@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body></body>
+  <script>
+    const modules = {{inject}};
+
+    const resolvedModules = {};
+
+    for (let i = modules.length - 1; i >= 0; i -= 1) {
+      const { name, dependencies, code } = modules[i];
+
+      try {
+        resolvedModules[name] = eval(atob(code))(
+          ...dependencies.map((depName) => resolvedModules[depName])
+        );
+      } catch (e) {
+        resolvedModules[name] = null;
+      }
+    }
+  </script>
+</html>
