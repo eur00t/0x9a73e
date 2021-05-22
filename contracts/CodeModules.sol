@@ -44,6 +44,14 @@ contract CodeModules {
         return modules[name].isSet;
     }
 
+    function getModule(string memory name)
+    external view
+    returns(Module memory result) {
+        require(modules[name].isSet, "module must exist");
+
+        return modules[name];
+    }
+
     function createModule(string memory name, string[] memory dependencies, string memory code) external {
         for (uint i = 0; i < dependencies.length; i++) {
             require(modules[dependencies[i]].isSet, "all dependencies must exist");

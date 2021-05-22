@@ -1,0 +1,96 @@
+import { useWeb3React } from "@web3-react/core";
+import constate from "constate";
+import { useCallback, useMemo, useState } from "react";
+import abi from "../code_modules_abi.json";
+
+const parseTemplate = (str) => {
+  const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
+
+  if (match === null) {
+    throw Error();
+  }
+
+  const [, before, after] = match;
+
+  return { before, after };
+};
+
+const useAppState = () => {
+  const { account, library: web3 } = useWeb3React();
+  const [progress, setProgress] = useState(false);
+
+  let contract = useMemo(
+    () =>
+      new web3.eth.Contract(
+        abi.d,
+        "0xe8A1Cda52D84566D6c22CBA11054f3e167b3D6f5",
+        { from: account }
+      ),
+    [account]
+  );
+
+  const setModule = useCallback(
+    async ({ name, deps, code }) => {
+      try {
+        setProgress(true);
+
+        const exists = await contract.methods.exists(name).call();
+        if (exists) {
+          await contract.methods.updateModule(name, deps, btoa(code)).send();
+        } else {
+          await contract.methods.createModule(name, deps, btoa(code)).send();
+        }
+      } catch (e) {
+      } finally {
+        setProgress(false);
+      }
+    },
+    [contract, setProgress]
+  );
+
+  const setTemplate = useCallback(
+    async (templateValue) => {
+      try {
+        setProgress(true);
+
+        const { before, after } = parseTemplate(templateValue);
+        await Promise.all([contract.methods.setTemplate(before, after).send()]);
+
+        retrieve();
+      } catch (e) {
+      } finally {
+        setProgress(false);
+      }
+    },
+    [contract, setProgress]
+  );
+
+  const getHtml = useCallback(
+    (moduleName) => contract.methods.getHtml(moduleName).call(),
+    [contract]
+  );
+
+  const getModule = useCallback(
+    async (moduleName) => {
+      const { code, ...rest } = await contract.methods
+        .getModule(moduleName)
+        .call();
+
+      return {
+        code: atob(code),
+        ...rest,
+      };
+    },
+    [contract]
+  );
+
+  return {
+    progress,
+    setModule,
+    setTemplate,
+    getHtml,
+    getModule,
+  };
+};
+
+export const [AppStateProvider, useAppStateContext] = constate(useAppState);
