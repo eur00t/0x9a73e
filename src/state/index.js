@@ -23,7 +23,7 @@ const useAppState = () => {
     () =>
       new web3.eth.Contract(
         abi.d,
-        "0xe8A1Cda52D84566D6c22CBA11054f3e167b3D6f5",
+        "0x2eFDba68eE66cFd11268D327BcF6A506ED959163",
         { from: account }
       ),
     [account]
@@ -70,6 +70,11 @@ const useAppState = () => {
     [contract]
   );
 
+  const getModules = useCallback(
+    () => contract.methods.getModules().call(),
+    [contract]
+  );
+
   const getModule = useCallback(
     async (moduleName) => {
       const { code, ...rest } = await contract.methods
@@ -90,6 +95,7 @@ const useAppState = () => {
     setTemplate,
     getHtml,
     getModule,
+    getModules,
   };
 };
 

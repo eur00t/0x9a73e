@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import AceEditor from "react-ace";
+import { Link } from "react-router-dom";
 
 import { useAppStateContext } from "../state";
 
@@ -83,6 +84,15 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
           </div>
         </div>
       </div>
+
+      {exists ? (
+        <Link
+          className="btn btn-outline-primary btn-sm mb-3"
+          to={`/modules/details/${moduleName}`}
+        >
+          View
+        </Link>
+      ) : null}
 
       <div className="mb-3">
         <label className="form-label">Code</label>

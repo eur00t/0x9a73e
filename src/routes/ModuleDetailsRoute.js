@@ -8,7 +8,7 @@ export const ModuleDetailsRoute = () => {
 
   const onModuleChange = (nextModuleName) => {
     if (!nextModuleName) {
-      history.push(`/modules/details`);
+      history.push(`/`);
     } else {
       history.push(`/modules/details/${nextModuleName}`);
     }

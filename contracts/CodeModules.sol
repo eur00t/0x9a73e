@@ -10,9 +10,16 @@ contract CodeModules {
         bool isSet;
     }
 
+    struct ModuleBrief {
+        address owner;
+        string name;
+        string[] dependencies;
+    }
+
     address owner;
 
     mapping (string => Module) modules;
+    string[] moduleNames;
 
     string template_before;
     string template_after;
@@ -52,6 +59,24 @@ contract CodeModules {
         return modules[name];
     }
 
+    function getModules()
+    external view
+    returns(ModuleBrief[] memory result) {
+        result = new ModuleBrief[](moduleNames.length);
+
+        for(uint i = 0; i < moduleNames.length; i++) {
+            Module storage m = modules[moduleNames[i]];
+
+            result[i] = ModuleBrief({
+                owner: m.owner,
+                name: m.name,
+                dependencies: m.dependencies
+            });
+        }
+
+        return result;
+    }
+
     function createModule(string memory name, string[] memory dependencies, string memory code) external {
         for (uint i = 0; i < dependencies.length; i++) {
             require(modules[dependencies[i]].isSet, "all dependencies must exist");
@@ -66,6 +91,7 @@ contract CodeModules {
             code: code,
             isSet: true
         });
+        moduleNames.push(name);
     }
 
     function updateModule(string memory name, string[] memory dependencies, string memory code) external {

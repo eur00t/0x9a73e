@@ -9,13 +9,19 @@ import Loader from "react-loader-spinner";
 import {
   BrowserRouter,
   NavLink,
+  Link,
   Redirect,
   Route,
   Switch,
 } from "react-router-dom";
 import Web3 from "web3";
 
-import { ModuleEditRoute, ModuleDetailsRoute, TemplateRoute } from "./routes";
+import {
+  ModuleEditRoute,
+  ModuleDetailsRoute,
+  TemplateRoute,
+  ModulesRoute,
+} from "./routes";
 import { AppStateProvider, useAppStateContext } from "./state";
 
 const App = () => {
@@ -25,27 +31,16 @@ const App = () => {
     <>
       <nav className="navbar navbar-expand navbar-light bg-light">
         <div className="container">
-          <a className="navbar-brand" href="#">
-            0x9a73e
-          </a>
+          <a className="navbar-brand">0x9a73e</a>
           <div className="collapse navbar-collapse">
             <ul className="navbar-nav">
               <li className="nav-item">
                 <NavLink
                   className="nav-link"
-                  to="/modules/details"
+                  to="/modules/list"
                   activeClassName="active"
                 >
-                  Module Details
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink
-                  className="nav-link"
-                  to="/modules/edit"
-                  activeClassName="active"
-                >
-                  Module Edit
+                  Modules
                 </NavLink>
               </li>
               <li className="nav-item">
@@ -54,20 +49,24 @@ const App = () => {
                   to="/admin/template"
                   activeClassName="active"
                 >
-                  Template
+                  Admin
                 </NavLink>
               </li>
             </ul>
           </div>
           {progress ? <Loader type="Bars" height="20" color="#0d6efd" /> : null}
+          <Link to="/modules/edit" className="btn btn-outline-primary">
+            Create Module
+          </Link>
         </div>
       </nav>
       <div className="container">
         <Switch>
-          <Route
-            path={["/modules/details/:moduleName", "/modules/details"]}
-            exact
-          >
+          <Route path={["/modules/list"]} exact>
+            <ModulesRoute />
+          </Route>
+
+          <Route path={["/modules/details/:moduleName"]} exact>
             <ModuleDetailsRoute />
           </Route>
 
@@ -80,7 +79,7 @@ const App = () => {
           </Route>
 
           <Route path="/">
-            <Redirect to="/modules/details"></Redirect>
+            <Redirect to="/modules/list"></Redirect>
           </Route>
         </Switch>
       </div>
