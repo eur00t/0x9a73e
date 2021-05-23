@@ -16,16 +16,16 @@ contract CodeModules {
         string[] dependencies;
     }
 
-    address owner;
+    address internal owner;
 
-    mapping(string => Module) modules;
-    string[] moduleNames;
+    mapping(string => Module) internal modules;
+    string[] internal moduleNames;
 
-    string template_before;
-    string template_after;
+    string internal templateBefore;
+    string internal templateAfter;
 
     modifier onlyOwner {
-        require(msg.sender == owner, "Only owner can call this function.");
+        require(msg.sender == owner, "only owner");
         _;
     }
 
@@ -33,16 +33,16 @@ contract CodeModules {
         external
         onlyOwner
     {
-        template_before = beforeStr;
-        template_after = afterStr;
+        templateBefore = beforeStr;
+        templateAfter = afterStr;
     }
 
     function setBefore(string memory str) external onlyOwner {
-        template_before = str;
+        templateBefore = str;
     }
 
     function setAfter(string memory str) external onlyOwner {
-        template_after = str;
+        templateAfter = str;
     }
 
     function exists(string memory name) external view returns (bool result) {
@@ -87,7 +87,7 @@ contract CodeModules {
             );
         }
 
-        require(!modules[name].isSet, "module with this name already exists");
+        require(!modules[name].isSet, "module already exists");
 
         modules[name] = Module({
             owner: msg.sender,
@@ -234,35 +234,35 @@ contract CodeModules {
         view
         returns (string memory result)
     {
-        require(modules[name].isSet, "module with this name doesn't exist");
+        require(modules[name].isSet, "module doesn't exist");
 
         string[128] memory stack;
         stack[0] = name;
-        uint8 i_stack = 1;
+        uint8 iStack = 1;
 
         Module[128] memory res;
-        uint8 i_res = 0;
+        uint8 iRes = 0;
 
-        while (i_stack > 0) {
-            i_stack--;
-            Module memory m = modules[stack[i_stack]];
-            res[i_res] = m;
-            i_res++;
+        while (iStack > 0) {
+            iStack--;
+            Module memory m = modules[stack[iStack]];
+            res[iRes] = m;
+            iRes++;
 
             for (uint256 i = 0; i < m.dependencies.length; i++) {
-                stack[i_stack] = m.dependencies[i];
-                i_stack++;
+                stack[iStack] = m.dependencies[i];
+                iStack++;
             }
         }
 
-        string[] memory arr = new string[](i_res);
-        for (uint256 i = 0; i < i_res; i++) {
+        string[] memory arr = new string[](iRes);
+        for (uint256 i = 0; i < iRes; i++) {
             arr[i] = moduleToJSON(res[i]);
         }
 
-        string memory modules_JSON = arrToJSON(arr);
+        string memory modulesJSON = arrToJSON(arr);
 
-        return strConcat3(template_before, modules_JSON, template_after);
+        return strConcat3(templateBefore, modulesJSON, templateAfter);
     }
 
     constructor() {
