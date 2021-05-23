@@ -5,14 +5,16 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 module.exports = {
   compilers: {
     solc: {
-      version: "0.8.4"
-    }
+      version: "0.8.4",
+    },
   },
   networks: {
     development: {
       host: "127.0.0.1",
       port: 7545,
-      network_id: "*",
+      network_id: 5777,
+      chain_id: 1337,
+      name: "Ganache",
     },
     test: {
       host: "127.0.0.1",
@@ -27,6 +29,8 @@ module.exports = {
         );
       },
       network_id: 42,
+      chain_id: 42,
+      name: "Kovan",
     },
   },
 };

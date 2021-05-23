@@ -9,6 +9,7 @@ export const ModulesRoute = () => {
   const [modules, setModules] = useState([]);
 
   const retreive = async () => {
+    setModules([]);
     setModules(await getModules());
   };
 
@@ -42,7 +43,10 @@ export const ModulesRoute = () => {
                 >
                   View
                 </Link>
-                <Link className="btn btn-outline-primary btn-sm" to={`/modules/edit/${name}`}>
+                <Link
+                  className="btn btn-outline-primary btn-sm"
+                  to={`/modules/edit/${name}`}
+                >
                   Edit
                 </Link>
               </div>

@@ -2,6 +2,7 @@ import { useWeb3React } from "@web3-react/core";
 import constate from "constate";
 import { useCallback, useMemo, useState } from "react";
 import abi from "../code_modules_abi.json";
+import { useNetwork } from "../utils/networks";
 
 const parseTemplate = (str) => {
   const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
@@ -19,12 +20,16 @@ const useAppState = () => {
   const { account, library: web3 } = useWeb3React();
   const [progress, setProgress] = useState(false);
 
+  const network = useNetwork();
+
   let contract = useMemo(
     () =>
-      new web3.eth.Contract(abi.d, process.env.CONTRACT_ADDRESS, {
-        from: account,
-      }),
-    [account]
+      network && web3
+        ? new web3.eth.Contract(abi.d, network.contractAddress, {
+            from: account,
+          })
+        : null,
+    [web3, network, account]
   );
 
   const setModule = useCallback(

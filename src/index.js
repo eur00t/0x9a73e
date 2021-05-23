@@ -16,17 +16,119 @@ import {
   Switch,
 } from "react-router-dom";
 import Web3 from "web3";
+import classNames from "classnames";
 
 import {
   ModuleEditRoute,
   ModuleDetailsRoute,
   TemplateRoute,
   ModulesRoute,
+  DisconnectedRoute,
+  WrongNetworkRoute,
 } from "./routes";
 import { AppStateProvider, useAppStateContext } from "./state";
+import { useNetwork } from "./utils/networks";
+
+const ACTIVE = "ACTIVE";
+const DISCONNECTED = "DISCONNECTED";
+const WRONG_NETWORK = "WRONG_NETWORK";
+
+const useAppMode = () => {
+  const { active } = useWeb3React();
+
+  if (!active) {
+    return DISCONNECTED;
+  }
+
+  const network = useNetwork();
+
+  if (!network) {
+    return WRONG_NETWORK;
+  }
+
+  return ACTIVE;
+};
+
+const Routes = () => {
+  const appMode = useAppMode();
+
+  switch (appMode) {
+    case ACTIVE:
+      return (
+        <Switch>
+          <Route path={["/modules/list"]} exact>
+            <ModulesRoute />
+          </Route>
+
+          <Route path={["/modules/details/:moduleName"]} exact>
+            <ModuleDetailsRoute />
+          </Route>
+
+          <Route path={["/modules/edit/:moduleName", "/modules/edit"]} exact>
+            <ModuleEditRoute />
+          </Route>
+
+          <Route path="/admin/template" exact>
+            <TemplateRoute />
+          </Route>
+
+          <Route path="/">
+            <Redirect to="/modules/list"></Redirect>
+          </Route>
+        </Switch>
+      );
+    case DISCONNECTED:
+      return (
+        <Switch>
+          <Route path="/disconnected" exact>
+            <DisconnectedRoute />
+          </Route>
+          <Route path="/">
+            <Redirect to="/disconnected"></Redirect>
+          </Route>
+        </Switch>
+      );
+    case WRONG_NETWORK:
+      return (
+        <Switch>
+          <Route path="/wrong-network" exact>
+            <WrongNetworkRoute />
+          </Route>
+          <Route path="/">
+            <Redirect to="/wrong-network"></Redirect>
+          </Route>
+        </Switch>
+      );
+  }
+};
+
+const NetworkIndicator = () => {
+  const appMode = useAppMode();
+  const network = useNetwork();
+
+  switch (appMode) {
+    case ACTIVE:
+      return <span className="badge d-block bg-info">{network.name}</span>;
+    case DISCONNECTED:
+      return (
+        <span className="badge d-block bg-warning">
+          Wallet is not connected
+        </span>
+      );
+    case WRONG_NETWORK:
+      return (
+        <span className="badge d-block bg-warning">
+          Network is not supported
+        </span>
+      );
+  }
+};
 
 const App = () => {
   const { progress } = useAppStateContext();
+
+  const { active, chainId } = useWeb3React();
+  const appMode = useAppMode();
 
   return (
     <>
@@ -56,46 +158,38 @@ const App = () => {
             </ul>
           </div>
           {progress ? <Loader type="Bars" height="20" color="#0d6efd" /> : null}
-          <Link to="/modules/edit" className="btn btn-outline-primary">
+          <div className="me-3">
+            <NetworkIndicator />
+          </div>
+          <Link
+            to="/modules/edit"
+            className={classNames("btn btn-outline-primary", {
+              disabled: appMode !== ACTIVE,
+            })}
+          >
             Create Module
           </Link>
         </div>
       </nav>
       <div className="container">
-        <Switch>
-          <Route path={["/modules/list"]} exact>
-            <ModulesRoute />
-          </Route>
-
-          <Route path={["/modules/details/:moduleName"]} exact>
-            <ModuleDetailsRoute />
-          </Route>
-
-          <Route path={["/modules/edit/:moduleName", "/modules/edit"]} exact>
-            <ModuleEditRoute />
-          </Route>
-
-          <Route path="/admin/template" exact>
-            <TemplateRoute />
-          </Route>
-
-          <Route path="/">
-            <Redirect to="/modules/list"></Redirect>
-          </Route>
-        </Switch>
+        <Routes key={chainId} />
       </div>
     </>
   );
 };
 
 const Web3Auth = ({ children }) => {
-  const { activate, active } = useWeb3React();
+  const { active, activate } = useWeb3React();
+
+  const injected = window.ethereum && window.ethereum.selectedAddress !== null;
 
   useEffect(() => {
-    activate(new InjectedConnector());
+    if (injected) {
+      activate(new InjectedConnector());
+    }
   }, []);
 
-  return active ? children : null;
+  return !injected || active ? children : null;
 };
 
 ReactDOM.render(

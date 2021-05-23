@@ -2,6 +2,8 @@ const { parse, stringify } = require("envfile");
 const fs = require("fs");
 const path = require("path");
 
+const truffleConfig = require("../truffle-config");
+
 const CodeModules = artifacts.require("CodeModules");
 
 const setTemplate = async (instance) => {
@@ -34,21 +36,57 @@ const uploadExampleModules = async (instance) => {
   }
 };
 
-module.exports = async (deployer, network) => {
+const appendNetwork = (configValue, networkEnvName, contractAddress) => {
+  const parsedConfigValue =
+    configValue === undefined ? [] : JSON.parse(configValue);
+
+  if (!truffleConfig.networks[networkEnvName]) {
+    return JSON.stringify(parsedConfigValue);
+  }
+
+  const {
+    chain_id: chainId,
+    network_id: networkId,
+    name,
+  } = truffleConfig.networks[networkEnvName];
+
+  const itemIndex = parsedConfigValue.findIndex(
+    ({ chainId: _chainId }) => _chainId === chainId
+  );
+
+  const value = { contractAddress, name, chainId, networkId };
+
+  if (itemIndex === -1) {
+    parsedConfigValue.push(value);
+  } else {
+    parsedConfigValue[itemIndex] = value;
+  }
+
+  return JSON.stringify(parsedConfigValue);
+};
+
+module.exports = async (deployer, networkEnvName) => {
   await deployer.deploy(CodeModules);
   const instance = await CodeModules.deployed();
 
   await setTemplate(instance);
   await uploadExampleModules(instance);
 
-  const configFilePath = path.resolve(`${__dirname}/../.env.${network}`);
+  const configFilePath = path.resolve(`${__dirname}/../.env`);
 
   if (fs.existsSync(configFilePath)) {
-    const envConfig = fs.readFileSync(configFilePath, "utf8");
+    const envConfig = parse(fs.readFileSync(configFilePath, "utf8"));
 
     fs.writeFileSync(
       configFilePath,
-      stringify({ ...parse(envConfig), CONTRACT_ADDRESS: instance.address })
+      stringify({
+        ...envConfig,
+        NETWORKS: appendNetwork(
+          envConfig.NETWORKS,
+          networkEnvName,
+          instance.address
+        ),
+      })
     );
   }
 };
