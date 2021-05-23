@@ -1,5 +1,6 @@
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import "regenerator-runtime/runtime";
+import "./scss/custom.scss";
 
 import { useWeb3React, Web3ReactProvider } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";

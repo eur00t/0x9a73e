@@ -5,6 +5,7 @@
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
     "ace-builds": "^1.4.12",
+    "bootstrap": "^5.0.1",
     "constate": "^3.2.0",
     "events": "^3.3.0",
     "react": "^17.0.2",
@@ -18,6 +19,9 @@
     "web3": "^1.3.5"
   },
   "scripts": {
-    "build": "node scripts/build.js"
+    "watch": "parcel -p 8080 watch public/index.html"
+  },
+  "devDependencies": {
+    "sass": "^1.34.0"
   }
 }
