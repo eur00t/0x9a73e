@@ -7,8 +7,8 @@
     "ace-builds": "^1.4.12",
     "bootstrap": "^5.0.1",
     "constate": "^3.2.0",
+    "dotenv": "^5.0.1",
     "events": "^3.3.0",
-    "parcel-bundler": "^1.12.5",
     "react": "^17.0.2",
     "react-ace": "^9.4.0",
     "react-dom": "^17.0.2",
@@ -20,9 +20,18 @@
     "web3": "^1.3.5"
   },
   "scripts": {
-    "watch": "parcel -p 8080 watch public/index.html"
+    "watch-dev": "NODE_ENV=development parcel -p 8080 watch public/index.html",
+    "watch-kovan": "NODE_ENV=kovan parcel -p 8080 watch public/index.html",
+    "deploy-dev": "truffle migrate --network development",
+    "deploy-kovan": "truffle migrate --network kovan"
   },
   "devDependencies": {
-    "sass": "^1.34.0"
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "parcel-bundler": "^1.12.5",
+    "envfile": "^6.14.0",
+    "prettier": "^2.3.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.10",
+    "sass": "^1.34.0",
+    "truffle": "^5.3.7"
   }
 }

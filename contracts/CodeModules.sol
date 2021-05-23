@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >= 0.7.0;
+pragma solidity >=0.7.0;
 
 contract CodeModules {
     struct Module {
@@ -18,21 +18,21 @@ contract CodeModules {
 
     address owner;
 
-    mapping (string => Module) modules;
+    mapping(string => Module) modules;
     string[] moduleNames;
 
     string template_before;
     string template_after;
 
     modifier onlyOwner {
-        require(
-            msg.sender == owner,
-            "Only owner can call this function."
-        );
+        require(msg.sender == owner, "Only owner can call this function.");
         _;
     }
 
-    function setTemplate(string memory beforeStr, string memory afterStr) external onlyOwner {
+    function setTemplate(string memory beforeStr, string memory afterStr)
+        external
+        onlyOwner
+    {
         template_before = beforeStr;
         template_after = afterStr;
     }
@@ -45,26 +45,24 @@ contract CodeModules {
         template_after = str;
     }
 
-    function exists(string memory name)
-    external view
-    returns(bool result) {
+    function exists(string memory name) external view returns (bool result) {
         return modules[name].isSet;
     }
 
     function getModule(string memory name)
-    external view
-    returns(Module memory result) {
+        external
+        view
+        returns (Module memory result)
+    {
         require(modules[name].isSet, "module must exist");
 
         return modules[name];
     }
 
-    function getModules()
-    external view
-    returns(ModuleBrief[] memory result) {
+    function getModules() external view returns (ModuleBrief[] memory result) {
         result = new ModuleBrief[](moduleNames.length);
 
-        for(uint i = 0; i < moduleNames.length; i++) {
+        for (uint256 i = 0; i < moduleNames.length; i++) {
             Module storage m = modules[moduleNames[i]];
 
             result[i] = ModuleBrief({
@@ -77,9 +75,16 @@ contract CodeModules {
         return result;
     }
 
-    function createModule(string memory name, string[] memory dependencies, string memory code) external {
-        for (uint i = 0; i < dependencies.length; i++) {
-            require(modules[dependencies[i]].isSet, "all dependencies must exist");
+    function createModule(
+        string memory name,
+        string[] memory dependencies,
+        string memory code
+    ) external {
+        for (uint256 i = 0; i < dependencies.length; i++) {
+            require(
+                modules[dependencies[i]].isSet,
+                "all dependencies must exist"
+            );
         }
 
         require(!modules[name].isSet, "module with this name already exists");
@@ -94,46 +99,68 @@ contract CodeModules {
         moduleNames.push(name);
     }
 
-    function updateModule(string memory name, string[] memory dependencies, string memory code) external {
+    function updateModule(
+        string memory name,
+        string[] memory dependencies,
+        string memory code
+    ) external {
         require(modules[name].isSet, "module must exist");
-        require(modules[name].owner == msg.sender, "only module owner can update it");
+        require(
+            modules[name].owner == msg.sender,
+            "only module owner can update it"
+        );
 
         modules[name].dependencies = dependencies;
         modules[name].code = code;
     }
 
     function strConcat(string memory _a, string memory _b)
-    internal pure
-    returns(string memory result) {
+        internal
+        pure
+        returns (string memory result)
+    {
         result = string(abi.encodePacked(bytes(_a), bytes(_b)));
     }
 
-    function strConcat3(string memory s1, string memory s2, string memory s3)
-    internal pure
-    returns(string memory result) {
+    function strConcat3(
+        string memory s1,
+        string memory s2,
+        string memory s3
+    ) internal pure returns (string memory result) {
         result = string(abi.encodePacked(bytes(s1), bytes(s2), bytes(s3)));
     }
 
-    function strConcat4(string memory s1, string memory s2, string memory s3, string memory s4)
-    internal pure
-    returns(string memory result) {
-        result = string(abi.encodePacked(bytes(s1), bytes(s2), bytes(s3), bytes(s4)));
+    function strConcat4(
+        string memory s1,
+        string memory s2,
+        string memory s3,
+        string memory s4
+    ) internal pure returns (string memory result) {
+        result = string(
+            abi.encodePacked(bytes(s1), bytes(s2), bytes(s3), bytes(s4))
+        );
     }
 
     function strConcatArr(string[] memory arr)
-    internal pure
-    returns(string memory result) {
-        for (uint i = 0; i < arr.length; i++) {
+        internal
+        pure
+        returns (string memory result)
+    {
+        for (uint256 i = 0; i < arr.length; i++) {
             result = strConcat(result, arr[i]);
         }
     }
 
     function join(string[] memory arr, string memory sep)
-    internal pure
-    returns(string memory result) {
-        if (arr.length == 0) { return ""; }
+        internal
+        pure
+        returns (string memory result)
+    {
+        if (arr.length == 0) {
+            return "";
+        }
 
-        for (uint i = 0; i < arr.length - 1; i++) {
+        for (uint256 i = 0; i < arr.length - 1; i++) {
             result = strConcat3(result, arr[i], sep);
         }
 
@@ -141,42 +168,54 @@ contract CodeModules {
     }
 
     function stringToJSON(string memory str)
-    internal pure
-    returns(string memory result) {
+        internal
+        pure
+        returns (string memory result)
+    {
         return strConcat3('"', str, '"');
     }
 
     function dictToJSON(string[] memory keys, string[] memory values)
-    internal pure
-    returns(string memory result) {
+        internal
+        pure
+        returns (string memory result)
+    {
         assert(keys.length == values.length);
 
         string[] memory arr = new string[](keys.length);
 
-        for (uint i = 0; i < keys.length; i++) {
-            arr[i] = strConcat3(stringToJSON(keys[i]), ': ', values[i]);
+        for (uint256 i = 0; i < keys.length; i++) {
+            arr[i] = strConcat3(stringToJSON(keys[i]), ": ", values[i]);
         }
 
         return strConcat3("{", join(arr, ", "), "}");
     }
 
     function arrToJSON(string[] memory arr)
-    internal pure
-    returns(string memory result) {
+        internal
+        pure
+        returns (string memory result)
+    {
         return strConcat3("[", join(arr, ", "), "]");
     }
 
     function strArrToJSON(string[] memory arr)
-    internal pure
-    returns(string memory result) {
-        if (arr.length == 0) { return "[]"; }
+        internal
+        pure
+        returns (string memory result)
+    {
+        if (arr.length == 0) {
+            return "[]";
+        }
 
         return strConcat3('["', join(arr, '", "'), '"]');
     }
 
     function moduleToJSON(Module memory m)
-    internal pure
-    returns(string memory result) {
+        internal
+        pure
+        returns (string memory result)
+    {
         string[] memory keys = new string[](3);
         keys[0] = "name";
         keys[1] = "code";
@@ -191,8 +230,10 @@ contract CodeModules {
     }
 
     function getHtml(string memory name)
-    external view
-    returns(string memory result) {
+        external
+        view
+        returns (string memory result)
+    {
         require(modules[name].isSet, "module with this name doesn't exist");
 
         string[128] memory stack;
@@ -208,14 +249,14 @@ contract CodeModules {
             res[i_res] = m;
             i_res++;
 
-            for (uint i = 0; i < m.dependencies.length; i++) {
+            for (uint256 i = 0; i < m.dependencies.length; i++) {
                 stack[i_stack] = m.dependencies[i];
                 i_stack++;
             }
         }
 
         string[] memory arr = new string[](i_res);
-        for (uint i = 0; i < i_res; i++) {
+        for (uint256 i = 0; i < i_res; i++) {
             arr[i] = moduleToJSON(res[i]);
         }
 
