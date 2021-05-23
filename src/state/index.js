@@ -21,11 +21,9 @@ const useAppState = () => {
 
   let contract = useMemo(
     () =>
-      new web3.eth.Contract(
-        abi.d,
-        "0x2eFDba68eE66cFd11268D327BcF6A506ED959163",
-        { from: account }
-      ),
+      new web3.eth.Contract(abi.d, process.env.CONTRACT_ADDRESS, {
+        from: account,
+      }),
     [account]
   );
 
