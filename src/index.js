@@ -127,7 +127,7 @@ const NetworkIndicator = () => {
 const App = () => {
   const { progress } = useAppStateContext();
 
-  const { active, chainId } = useWeb3React();
+  const { chainId } = useWeb3React();
   const appMode = useAppMode();
 
   return (

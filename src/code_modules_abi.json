@@ -1,37 +1,24 @@
 {
-  "d": [
+  "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string[]",
-          "name": "dependencies",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string",
-          "name": "code",
-          "type": "string"
-        }
-      ],
-      "name": "createModule",
-      "outputs": [],
+      "inputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
+      "type": "constructor"
     },
     {
       "inputs": [
         {
           "internalType": "string",
-          "name": "str",
+          "name": "beforeStr",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "afterStr",
           "type": "string"
         }
       ],
-      "name": "setAfter",
+      "name": "setTemplate",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -53,44 +40,11 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "beforeStr",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "afterStr",
+          "name": "str",
           "type": "string"
         }
       ],
-      "name": "setTemplate",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string[]",
-          "name": "dependencies",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string",
-          "name": "code",
-          "type": "string"
-        }
-      ],
-      "name": "updateModule",
+      "name": "setAfter",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -112,26 +66,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "name": "getHtml",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "result",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -177,7 +113,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -207,7 +144,74 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string[]",
+          "name": "dependencies",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string",
+          "name": "code",
+          "type": "string"
+        }
+      ],
+      "name": "createModule",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string[]",
+          "name": "dependencies",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string",
+          "name": "code",
+          "type": "string"
+        }
+      ],
+      "name": "updateModule",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "name": "getHtml",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "result",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
     }
   ]
 }

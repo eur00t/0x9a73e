@@ -1,7 +1,7 @@
 import { useWeb3React } from "@web3-react/core";
 import constate from "constate";
 import { useCallback, useMemo, useState } from "react";
-import abi from "../code_modules_abi.json";
+import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
 
 const parseTemplate = (str) => {
@@ -25,7 +25,7 @@ const useAppState = () => {
   let contract = useMemo(
     () =>
       network && web3
-        ? new web3.eth.Contract(abi.d, network.contractAddress, {
+        ? new web3.eth.Contract(abi, network.contractAddress, {
             from: account,
           })
         : null,
