@@ -31,6 +31,20 @@ module.exports = {
       network_id: 42,
       chain_id: 42,
       name: "Kovan",
+      etherscan: "https://kovan.etherscan.io/",
+    },
+    ropsten: {
+      provider: () => {
+        return new HDWalletProvider(
+          process.env.WALLET_MNEMONIC,
+          process.env.ROPSTEN_ENDPOINT_URL
+        );
+      },
+      network_id: 3,
+      chain_id: 3,
+      name: "Ropsten",
+      skipBootstrap: true,
+      etherscan: "https://ropsten.etherscan.io/",
     },
   },
 };

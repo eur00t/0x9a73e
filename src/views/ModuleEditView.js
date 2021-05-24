@@ -3,6 +3,9 @@ import AceEditor from "react-ace";
 import { Link } from "react-router-dom";
 
 import { useAppStateContext } from "../state";
+import { useTransactionsScope } from "../state/useTransactionsScope";
+import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
+import { TransactionButton } from "../components/TransactionButton";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -14,8 +17,12 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
   const depsRef = useRef();
   const codeRef = useRef();
 
+  const scopeId = `module-edit-view-${moduleName}`;
+
+  const { isPending } = useTransactionsScope(scopeId);
+
   const onSetModule = () => {
-    setModule({
+    setModule(scopeId, {
       name: nameRef.current.value,
       deps: JSON.parse(depsRef.current.value),
       code: codeRef.current.editor.getValue(),
@@ -25,8 +32,6 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
   const [exists, setExists] = useState(false);
 
   const retrieve = async () => {
-    setExists(false);
-
     if (!moduleName || moduleName === "") {
       return;
     }
@@ -52,8 +57,15 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
 
   useEffect(() => {
     nameRef.current.value = moduleName;
+    setExists(false);
     retrieve();
   }, [moduleName]);
+
+  useEffectOnValueChange(() => {
+    if (isPending === false) {
+      retrieve();
+    }
+  }, [isPending]);
 
   const navigateModule = () => {
     const nextModuleName = nameRef.current.value;
@@ -110,9 +122,11 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
       </div>
 
       <div className="mb-3">
-        <button onClick={onSetModule} className="btn btn-outline-primary">
-          {exists ? "update module" : "create module"}
-        </button>
+        <TransactionButton
+          scopeId={scopeId}
+          text={exists ? "update module" : "create module"}
+          onClick={onSetModule}
+        />
       </div>
     </div>
   );

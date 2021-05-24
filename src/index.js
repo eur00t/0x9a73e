@@ -125,8 +125,6 @@ const NetworkIndicator = () => {
 };
 
 const App = () => {
-  const { progress } = useAppStateContext();
-
   const { chainId } = useWeb3React();
   const appMode = useAppMode();
 
@@ -157,7 +155,6 @@ const App = () => {
               </li>
             </ul>
           </div>
-          {progress ? <Loader type="Bars" height="20" color="#0d6efd" /> : null}
           <div className="me-3">
             <NetworkIndicator />
           </div>

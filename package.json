@@ -10,6 +10,7 @@
     "constate": "^3.2.0",
     "dotenv": "^5.0.1",
     "events": "^3.3.0",
+    "pluralize": "^8.0.0",
     "react": "^17.0.2",
     "react-ace": "^9.4.0",
     "react-dom": "^17.0.2",
@@ -25,7 +26,8 @@
     "compile": "truffle compile && npm run update-abi",
     "watch-dev": "NODE_ENV=development parcel -p 8080 watch public/index.html",
     "deploy-dev": "truffle migrate --network development",
-    "deploy-kovan": "truffle migrate --network kovan --skip-dry-run"
+    "deploy-kovan": "truffle migrate --network kovan --skip-dry-run",
+    "deploy-ropsten": "truffle migrate --network ropsten --skip-dry-run"
   },
   "devDependencies": {
     "@truffle/hdwallet-provider": "^1.4.0",

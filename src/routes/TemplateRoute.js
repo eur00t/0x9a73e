@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import AceEditor from "react-ace";
 
 import { useAppStateContext } from "../state";
+import { TransactionButton } from "../components/TransactionButton";
 
 import "ace-builds/src-noconflict/mode-html";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -10,6 +11,8 @@ export const TemplateRoute = () => {
   const templateRef = useRef();
 
   const { setTemplate } = useAppStateContext();
+
+  const scopeId = `admin-template`;
 
   return (
     <div className="mt-3">
@@ -29,12 +32,13 @@ export const TemplateRoute = () => {
       </div>
 
       <div className="mb-3">
-        <button
-          className="btn btn-outline-primary"
-          onClick={() => setTemplate(templateRef.current.editor.getValue())}
-        >
-          set template
-        </button>
+        <TransactionButton
+          scopeId={scopeId}
+          text="set template"
+          onClick={() =>
+            setTemplate(scopeId, templateRef.current.editor.getValue())
+          }
+        />
       </div>
     </div>
   );

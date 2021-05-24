@@ -47,6 +47,7 @@ const appendNetwork = (configValue, networkEnvName, contractAddress) => {
   const {
     chain_id: chainId,
     network_id: networkId,
+    etherscan,
     name,
   } = truffleConfig.networks[networkEnvName];
 
@@ -54,7 +55,7 @@ const appendNetwork = (configValue, networkEnvName, contractAddress) => {
     ({ chainId: _chainId }) => _chainId === chainId
   );
 
-  const value = { contractAddress, name, chainId, networkId };
+  const value = { contractAddress, name, chainId, networkId, etherscan };
 
   if (itemIndex === -1) {
     parsedConfigValue.push(value);
@@ -69,8 +70,16 @@ module.exports = async (deployer, networkEnvName) => {
   await deployer.deploy(CodeModules);
   const instance = await CodeModules.deployed();
 
-  await setTemplate(instance);
-  await uploadExampleModules(instance);
+  const skipBootstrap =
+    truffleConfig.networks[networkEnvName] &&
+    truffleConfig.networks[networkEnvName].skipBootstrap
+      ? true
+      : false;
+
+  if (!skipBootstrap) {
+    await setTemplate(instance);
+    await uploadExampleModules(instance);
+  }
 
   const configFilePath = path.resolve(`${__dirname}/../.env`);
 

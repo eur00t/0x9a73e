@@ -3,6 +3,7 @@ import constate from "constate";
 import { useCallback, useMemo, useState } from "react";
 import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
+import { useTransactions } from "./useTransactions";
 
 const parseTemplate = (str) => {
   const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
@@ -22,6 +23,9 @@ const useAppState = () => {
 
   const network = useNetwork();
 
+  const transactions = useTransactions();
+  const { trackTransaction } = transactions;
+
   let contract = useMemo(
     () =>
       network && web3
@@ -33,15 +37,21 @@ const useAppState = () => {
   );
 
   const setModule = useCallback(
-    async ({ name, deps, code }) => {
+    async (scopeId, { name, deps, code }) => {
       try {
         setProgress(true);
 
         const exists = await contract.methods.exists(name).call();
         if (exists) {
-          await contract.methods.updateModule(name, deps, btoa(code)).send();
+          await trackTransaction(
+            scopeId,
+            contract.methods.updateModule(name, deps, btoa(code)).send()
+          );
         } else {
-          await contract.methods.createModule(name, deps, btoa(code)).send();
+          await trackTransaction(
+            scopeId,
+            contract.methods.createModule(name, deps, btoa(code)).send()
+          );
         }
       } catch (e) {
       } finally {
@@ -52,12 +62,15 @@ const useAppState = () => {
   );
 
   const setTemplate = useCallback(
-    async (templateValue) => {
+    async (scopeId, templateValue) => {
       try {
         setProgress(true);
 
         const { before, after } = parseTemplate(templateValue);
-        await Promise.all([contract.methods.setTemplate(before, after).send()]);
+        await trackTransaction(
+          scopeId,
+          contract.methods.setTemplate(before, after).send()
+        );
 
         retrieve();
       } catch (e) {
@@ -99,7 +112,13 @@ const useAppState = () => {
     getHtml,
     getModule,
     getModules,
+    transactions,
   };
 };
 
-export const [AppStateProvider, useAppStateContext] = constate(useAppState);
+export const [AppStateProvider, useAppStateContext, useTransactionsContext] =
+  constate(
+    useAppState,
+    ({ transactions, ...v }) => v,
+    ({ transactions, ...v }) => transactions
+  );
