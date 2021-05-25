@@ -6,6 +6,8 @@ import { useContractContext } from "../state";
 import { useTransactionsScope } from "../state/useTransactionsScope";
 import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
 import { TransactionButton } from "../components/TransactionButton";
+import { useLoading } from "../components/useLoading";
+import { Loading } from "../components/Loading";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -45,6 +47,8 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
     }
   };
 
+  const { isLoading, load } = useLoading(retrieve);
+
   const setControls = ({ name, dependencies, code }) => {
     nameRef.current.value = name;
     depsRef.current.value = JSON.stringify(dependencies);
@@ -58,12 +62,12 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
   useEffect(() => {
     nameRef.current.value = moduleName;
     setExists(false);
-    retrieve();
+    load();
   }, [moduleName]);
 
   useEffectOnValueChange(() => {
     if (isPending === false) {
-      retrieve();
+      load();
     }
   }, [isPending]);
 
@@ -77,57 +81,59 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
 
   return (
     <div className="mt-3">
-      <div className="row">
-        <div className="col">
-          <div className="mb-3">
-            <label className="form-label">Name</label>
-            <input
-              className="form-control"
-              ref={nameRef}
-              onBlur={navigateModule}
-              type="text"
-            ></input>
+      <Loading isLoading={isLoading}>
+        <div className="row">
+          <div className="col">
+            <div className="mb-3">
+              <label className="form-label">Name</label>
+              <input
+                className="form-control"
+                ref={nameRef}
+                onBlur={navigateModule}
+                type="text"
+              ></input>
+            </div>
+          </div>
+          <div className="col">
+            <div className="mb-3">
+              <label className="form-label">Deps</label>
+              <input className="form-control" ref={depsRef} type="text"></input>
+            </div>
           </div>
         </div>
-        <div className="col">
-          <div className="mb-3">
-            <label className="form-label">Deps</label>
-            <input className="form-control" ref={depsRef} type="text"></input>
-          </div>
+
+        {exists ? (
+          <Link
+            className="btn btn-outline-primary btn-sm mb-3"
+            to={`/modules/details/${moduleName}`}
+          >
+            View
+          </Link>
+        ) : null}
+
+        <div className="mb-3">
+          <label className="form-label">Code</label>
+          <AceEditor
+            ref={codeRef}
+            mode="javascript"
+            theme="monokai"
+            name="UNIQUE_ID_OF_DIV"
+            editorProps={{ $blockScrolling: true }}
+            setOptions={{
+              useWorker: false,
+            }}
+            width="100%"
+          />
         </div>
-      </div>
 
-      {exists ? (
-        <Link
-          className="btn btn-outline-primary btn-sm mb-3"
-          to={`/modules/details/${moduleName}`}
-        >
-          View
-        </Link>
-      ) : null}
-
-      <div className="mb-3">
-        <label className="form-label">Code</label>
-        <AceEditor
-          ref={codeRef}
-          mode="javascript"
-          theme="monokai"
-          name="UNIQUE_ID_OF_DIV"
-          editorProps={{ $blockScrolling: true }}
-          setOptions={{
-            useWorker: false,
-          }}
-          width="100%"
-        />
-      </div>
-
-      <div className="mb-3">
-        <TransactionButton
-          scopeId={scopeId}
-          text={exists ? "update module" : "create module"}
-          onClick={onSetModule}
-        />
-      </div>
+        <div className="mb-3">
+          <TransactionButton
+            scopeId={scopeId}
+            text={exists ? "update module" : "create module"}
+            onClick={onSetModule}
+          />
+        </div>
+      </Loading>
     </div>
   );
 };

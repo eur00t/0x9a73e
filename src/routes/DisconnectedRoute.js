@@ -1,20 +1,7 @@
 import React from "react";
-import { useWeb3React } from "@web3-react/core";
-import { InjectedConnector } from "@web3-react/injected-connector";
+
+import { DisconnectedView } from "../views/DisconnectedView";
 
 export const DisconnectedRoute = () => {
-  const { activate } = useWeb3React();
-
-  const connectMetamask = () => {
-    activate(new InjectedConnector());
-  };
-
-  return (
-    <div className="mt-3">
-      <p>This application doesn't work without a wallet.</p>
-      <button className="btn btn-primary" onClick={connectMetamask}>
-        Connect Metamask
-      </button>
-    </div>
-  );
+  return <DisconnectedView />;
 };
