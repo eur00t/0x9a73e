@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import AceEditor from "react-ace";
 
-import { useAppStateContext } from "../state";
+import { useContractContext } from "../state";
 import { TransactionButton } from "../components/TransactionButton";
 
 import "ace-builds/src-noconflict/mode-html";
@@ -10,7 +10,7 @@ import "ace-builds/src-noconflict/theme-monokai";
 export const TemplateRoute = () => {
   const templateRef = useRef();
 
-  const { setTemplate } = useAppStateContext();
+  const { setTemplate } = useContractContext();
 
   const scopeId = `admin-template`;
 

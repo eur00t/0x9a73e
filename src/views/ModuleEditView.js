@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import AceEditor from "react-ace";
 import { Link } from "react-router-dom";
 
-import { useAppStateContext } from "../state";
+import { useContractContext } from "../state";
 import { useTransactionsScope } from "../state/useTransactionsScope";
 import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
 import { TransactionButton } from "../components/TransactionButton";
@@ -11,7 +11,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 
 export const ModuleEditView = ({ moduleName, onModuleChange }) => {
-  const { setModule, getModule } = useAppStateContext();
+  const { setModule, getModule } = useContractContext();
 
   const nameRef = useRef();
   const depsRef = useRef();

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useAppStateContext } from "../state";
+import { useContractContext } from "../state";
 
 export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   const moduleIdRef = useRef();
@@ -13,7 +13,7 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
     owner: "",
   });
 
-  const { getHtml, getModule } = useAppStateContext();
+  const { getHtml, getModule } = useContractContext();
 
   const retrieve = async () => {
     if (!moduleName || moduleName === "") {

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useAppStateContext } from "../state";
+import { useContractContext } from "../state";
 
 export const ModulesRoute = () => {
-  const { getModules } = useAppStateContext();
+  const { getModules } = useContractContext();
 
   const [modules, setModules] = useState([]);
 

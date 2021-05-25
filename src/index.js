@@ -6,7 +6,6 @@ import { useWeb3React, Web3ReactProvider } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
-import Loader from "react-loader-spinner";
 import {
   BrowserRouter,
   NavLink,
@@ -26,7 +25,7 @@ import {
   DisconnectedRoute,
   WrongNetworkRoute,
 } from "./routes";
-import { AppStateProvider, useAppStateContext } from "./state";
+import { AppStateProvider } from "./state";
 import { useNetwork } from "./utils/networks";
 
 const ACTIVE = "ACTIVE";
