@@ -26,3 +26,15 @@ export const useAccount = () => {
 
   return account;
 };
+
+export const useContractOwner = () => {
+  const network = useNetwork();
+
+  if (!network) {
+    return "";
+  }
+
+  const { contractOwner } = network;
+
+  return contractOwner;
+};

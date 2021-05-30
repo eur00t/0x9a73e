@@ -27,6 +27,7 @@ import {
 } from "./routes";
 import { AppStateProvider } from "./state";
 import { useNetwork } from "./utils/networks";
+import { OnlyContractOwner } from "./components/OnlyContractOwner";
 
 const ACTIVE = "ACTIVE";
 const DISCONNECTED = "DISCONNECTED";
@@ -130,27 +131,26 @@ const App = () => {
     <>
       <nav className="navbar navbar-expand navbar-light bg-light">
         <div className="container">
-          <a className="navbar-brand">0x9a73e</a>
+          <NavLink
+            className="navbar-brand"
+            to="/modules/list"
+            activeClassName="active"
+          >
+            0x9a73e
+          </NavLink>
           <div className="collapse navbar-collapse">
             <ul className="navbar-nav">
-              <li className="nav-item">
-                <NavLink
-                  className="nav-link"
-                  to="/modules/list"
-                  activeClassName="active"
-                >
-                  Modules
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink
-                  className="nav-link"
-                  to="/admin/template"
-                  activeClassName="active"
-                >
-                  Admin
-                </NavLink>
-              </li>
+              <OnlyContractOwner>
+                <li className="nav-item">
+                  <NavLink
+                    className="nav-link"
+                    to="/admin/template"
+                    activeClassName="active"
+                  >
+                    Admin
+                  </NavLink>
+                </li>
+              </OnlyContractOwner>
             </ul>
           </div>
           <div className="me-3">

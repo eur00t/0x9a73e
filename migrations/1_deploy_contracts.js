@@ -36,7 +36,12 @@ const uploadExampleModules = async (instance) => {
   }
 };
 
-const appendNetwork = (configValue, networkEnvName, contractAddress) => {
+const appendNetwork = (
+  configValue,
+  networkEnvName,
+  contractAddress,
+  contractOwner
+) => {
   const parsedConfigValue =
     configValue === undefined ? [] : JSON.parse(configValue);
 
@@ -55,7 +60,14 @@ const appendNetwork = (configValue, networkEnvName, contractAddress) => {
     ({ chainId: _chainId }) => _chainId === chainId
   );
 
-  const value = { contractAddress, name, chainId, networkId, etherscan };
+  const value = {
+    contractAddress,
+    contractOwner,
+    name,
+    chainId,
+    networkId,
+    etherscan,
+  };
 
   if (itemIndex === -1) {
     parsedConfigValue.push(value);
@@ -66,7 +78,7 @@ const appendNetwork = (configValue, networkEnvName, contractAddress) => {
   return JSON.stringify(parsedConfigValue);
 };
 
-module.exports = async (deployer, networkEnvName) => {
+module.exports = async (deployer, networkEnvName, [contractOwner]) => {
   await deployer.deploy(CodeModules);
   const instance = await CodeModules.deployed();
 
@@ -93,7 +105,8 @@ module.exports = async (deployer, networkEnvName) => {
         NETWORKS: appendNetwork(
           envConfig.NETWORKS,
           networkEnvName,
-          instance.address
+          instance.address,
+          contractOwner
         ),
       })
     );
