@@ -20,3 +20,9 @@ export const useNetwork = () => {
 export const useSupportedNetworks = () => {
   return NETWORKS.map(({ name }) => name);
 };
+
+export const useAccount = () => {
+  const { account } = useWeb3React();
+
+  return account;
+};

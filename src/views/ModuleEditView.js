@@ -8,80 +8,42 @@ import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
 import { TransactionButton } from "../components/TransactionButton";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
+import { withOwner, OnlyOwner } from "../components/withOwner";
+import { useAccount } from "../utils/networks";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 
-export const ModuleEditView = ({ moduleName, onModuleChange }) => {
-  const { setModule, getModule } = useContractContext();
+const ModuleEdit = withOwner(
+  ({ scopeId, module, moduleName, navigateModule, onSetModule, exists }) => {
+    const nameRef = useRef();
+    const depsRef = useRef();
+    const codeRef = useRef();
 
-  const nameRef = useRef();
-  const depsRef = useRef();
-  const codeRef = useRef();
+    useEffect(() => {
+      nameRef.current.value = moduleName;
+    }, [moduleName]);
 
-  const scopeId = `module-edit-view-${moduleName}`;
+    useEffect(() => {
+      depsRef.current.value = JSON.stringify(module.dependencies);
+    }, [module.dependencies]);
 
-  const { isPending } = useTransactionsScope(scopeId);
+    useEffect(() => {
+      if (module.code !== "") {
+        codeRef.current.editor.setValue(module.code);
+      }
+    }, [module.code]);
 
-  const onSetModule = () => {
-    setModule(scopeId, {
-      name: nameRef.current.value,
-      deps: JSON.parse(depsRef.current.value),
-      code: codeRef.current.editor.getValue(),
-    });
-  };
+    const onSetModuleDOM = () => {
+      onSetModule({
+        name: nameRef.current.value,
+        deps: JSON.parse(depsRef.current.value),
+        code: codeRef.current.editor.getValue(),
+      });
+    };
 
-  const [exists, setExists] = useState(false);
-
-  const retrieve = async () => {
-    if (!moduleName || moduleName === "") {
-      return;
-    }
-
-    try {
-      const module = await getModule(moduleName);
-      setControls(module);
-      setExists(true);
-    } catch {
-      setExists(false);
-    }
-  };
-
-  const { isLoading, load } = useLoading(retrieve);
-
-  const setControls = ({ name, dependencies, code }) => {
-    nameRef.current.value = name;
-    depsRef.current.value = JSON.stringify(dependencies);
-    codeRef.current.editor.setValue(code);
-  };
-
-  useEffect(() => {
-    setControls({ name: moduleName, dependencies: [], code: "" });
-  }, []);
-
-  useEffect(() => {
-    nameRef.current.value = moduleName;
-    setExists(false);
-    load();
-  }, [moduleName]);
-
-  useEffectOnValueChange(() => {
-    if (isPending === false) {
-      load();
-    }
-  }, [isPending]);
-
-  const navigateModule = () => {
-    const nextModuleName = nameRef.current.value;
-
-    if (nextModuleName !== "" && nextModuleName !== moduleName) {
-      onModuleChange(nextModuleName);
-    }
-  };
-
-  return (
-    <div className="mt-3">
-      <Loading isLoading={isLoading}>
+    return (
+      <>
         <div className="row">
           <div className="col">
             <div className="mb-3">
@@ -89,7 +51,7 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
               <input
                 className="form-control"
                 ref={nameRef}
-                onBlur={navigateModule}
+                onBlur={() => navigateModule(nameRef.current.value)}
                 type="text"
               ></input>
             </div>
@@ -127,12 +89,97 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
         </div>
 
         <div className="mb-3">
-          <TransactionButton
-            scopeId={scopeId}
-            text={exists ? "update module" : "create module"}
-            onClick={onSetModule}
-          />
+          <OnlyOwner>
+            <TransactionButton
+              scopeId={scopeId}
+              text={exists ? "update module" : "create module"}
+              onClick={onSetModuleDOM}
+            />
+          </OnlyOwner>
         </div>
+      </>
+    );
+  },
+  "ModuleEdit"
+);
+
+const EMPTY_MODULE_DATA = { name: "", dependencies: [], code: "", owner: "" };
+
+export const ModuleEditView = ({ moduleName, onModuleChange }) => {
+  const { setModule, getModule } = useContractContext();
+
+  const scopeId = `module-edit-view-${moduleName}`;
+
+  const { isPending } = useTransactionsScope(scopeId);
+  const [exists, setExists] = useState(false);
+  const account = useAccount();
+
+  const [moduleData, setModuleData] = useState({
+    ...EMPTY_MODULE_DATA,
+    name: moduleName,
+  });
+
+  const retrieve = async () => {
+    if (!moduleName || moduleName === "") {
+      return;
+    }
+
+    try {
+      const module = await getModule(moduleName);
+      setModuleData(module);
+      setExists(true);
+    } catch {
+      setExists(false);
+      setModuleData((moduleData) => ({
+        ...moduleData,
+        name: moduleName,
+        owner: account,
+      }));
+    }
+  };
+
+  const { isLoading, load } = useLoading(retrieve);
+
+  useEffect(() => {
+    setExists(false);
+
+    if (!moduleName) {
+      setModuleData(EMPTY_MODULE_DATA);
+    } else {
+      load();
+    }
+  }, [moduleName]);
+
+  useEffectOnValueChange(() => {
+    if (isPending === false) {
+      load();
+    }
+  }, [isPending]);
+
+  const onSetModule = (module) => {
+    setModule(scopeId, module);
+  };
+
+  const navigateModule = (nextModuleName) => {
+    if (nextModuleName !== "" && nextModuleName !== moduleName) {
+      onModuleChange(nextModuleName);
+    }
+  };
+
+  return (
+    <div className="mt-3">
+      <Loading isLoading={isLoading}>
+        <ModuleEdit
+          {...{
+            owner: moduleData.owner,
+            scopeId,
+            module: moduleData,
+            moduleName,
+            exists,
+            onSetModule,
+            navigateModule,
+          }}
+        />
       </Loading>
     </div>
   );

@@ -34,12 +34,11 @@ const WRONG_NETWORK = "WRONG_NETWORK";
 
 const useAppMode = () => {
   const { active } = useWeb3React();
+  const network = useNetwork();
 
   if (!active) {
     return DISCONNECTED;
   }
-
-  const network = useNetwork();
 
   if (!network) {
     return WRONG_NETWORK;
