@@ -43,13 +43,24 @@ const ModuleCard = withOwner((module) => {
 }, "ModuleCard");
 
 export const ModulesView = () => {
-  const { getModules } = useContractContext();
+  const { getOwnedModules, getAllFeatured } = useContractContext();
 
-  const [modules, setModules] = useState([]);
+  const [ownedModules, setOwnedModules] = useState([]);
+  const [featuredModules, setFeaturedModules] = useState([]);
+
+  const retrieveOwned = async () => {
+    setOwnedModules([]);
+    setOwnedModules(await getOwnedModules());
+  };
+
+  const retrieveFeatured = async () => {
+    setFeaturedModules([]);
+    const d = await getAllFeatured();
+    setFeaturedModules(d);
+  };
 
   const retrieve = async () => {
-    setModules([]);
-    setModules(await getModules());
+    await Promise.all([retrieveOwned(), retrieveFeatured()]);
   };
 
   const { isLoading, load } = useLoading(retrieve);
@@ -61,10 +72,29 @@ export const ModulesView = () => {
   return (
     <div className="mt-3">
       <Loading isLoading={isLoading}>
+        {featuredModules.length > 0 ? (
+          <>
+            <h2>Featured Modules</h2>
+            <div className="d-flex gap-2 flex-wrap">
+              {featuredModules.map((module) => (
+                <ModuleCard key={module.name} {...module} />
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        <h2 className="mt-3">Own Modules</h2>
         <div className="d-flex gap-2 flex-wrap">
-          {modules.map((module) => (
-            <ModuleCard key={module.name} {...module} />
-          ))}
+          {ownedModules.length > 0 ? (
+            ownedModules.map((module) => (
+              <ModuleCard key={module.name} {...module} />
+            ))
+          ) : (
+            <>
+              You don't own any modules. Try to
+              <Link to="/modules/edit">create</Link>one
+            </>
+          )}
         </div>
       </Loading>
     </div>

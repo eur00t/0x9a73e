@@ -4,14 +4,20 @@ import classNames from "classnames";
 import { useTransactionsScope } from "../state/useTransactionsScope";
 import { TransactionsStatus } from "../components/TransactionsStatus";
 
-export const TransactionButton = ({ text, scopeId, onClick }) => {
+export const TransactionButton = ({
+  text,
+  scopeId,
+  onClick,
+  className,
+  btnClassName = "",
+}) => {
   const { isPending } = useTransactionsScope(scopeId);
 
   return (
-    <div className="d-flex align-items-start">
+    <div className={classNames("d-flex align-items-start", className)}>
       <button
         onClick={!isPending ? onClick : null}
-        className={classNames("btn btn-outline-primary", {
+        className={classNames("btn btn-outline-primary", btnClassName, {
           disabled: isPending,
         })}
       >

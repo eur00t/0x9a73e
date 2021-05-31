@@ -2,12 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useContractContext } from "../state";
+import { useTransactionsPendingChange } from "../state/useTransactionsPendingChange";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
+import { TransactionButton } from "../components/TransactionButton";
 import { withOwner, OnlyOwner } from "../components/withOwner";
+import { OnlyContractOwner } from "../components/OnlyContractOwner";
+
+const getFeaturedScopeId = (name) => `featured-action-${name}`;
 
 const ModuleDetails = withOwner((module) => {
-  const { html, name, owner, dependencies } = module;
+  const { html, name, owner, dependencies, isFeatured } = module;
+  const { setFeatured, unsetFeatured } = useContractContext();
+
+  const featuredScopeId = getFeaturedScopeId(name);
 
   return (
     <>
@@ -30,6 +38,22 @@ const ModuleDetails = withOwner((module) => {
           Edit
         </Link>
       </OnlyOwner>
+
+      <OnlyContractOwner>
+        <TransactionButton
+          className="mb-3"
+          btnClassName="btn-sm"
+          scopeId={featuredScopeId}
+          text={!isFeatured ? "Make Featured" : "Remove from Featured"}
+          onClick={() => {
+            if (isFeatured) {
+              unsetFeatured(featuredScopeId, name);
+            } else {
+              setFeatured(featuredScopeId, name);
+            }
+          }}
+        />
+      </OnlyContractOwner>
 
       <iframe
         srcDoc={html}
@@ -69,6 +93,14 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   useEffect(() => {
     load();
   }, [moduleName]);
+
+  const featuredScopeId = getFeaturedScopeId(moduleName);
+
+  useTransactionsPendingChange(featuredScopeId, (isPending) => {
+    if (isPending === false) {
+      load();
+    }
+  });
 
   return (
     <div className="mt-3">

@@ -8,12 +8,14 @@ contract CodeModules {
         string[] dependencies;
         string code;
         bool isSet;
+        bool isFeatured;
     }
 
     struct ModuleBrief {
         address owner;
         string name;
         string[] dependencies;
+        bool isFeatured;
     }
 
     address internal owner;
@@ -24,9 +26,68 @@ contract CodeModules {
     string internal templateBefore;
     string internal templateAfter;
 
+    uint8 internal constant FEATURED_UNKNOWN = 0;
+    uint8 internal constant FEATURED_SET = 1;
+    uint8 internal constant FEATURED_UNSET = 2;
+    string[] internal probablyFeaturedList;
+    mapping(string => uint8) internal featuredState;
+
     modifier onlyOwner {
         require(msg.sender == owner, "only owner");
         _;
+    }
+
+    function setFeatured(string memory name) external onlyOwner {
+        require(modules[name].isSet, "module must exist");
+        if (featuredState[name] == FEATURED_SET) {
+            return;
+        }
+
+        if (featuredState[name] == FEATURED_UNKNOWN) {
+            probablyFeaturedList.push(name);
+        }
+
+        featuredState[name] = FEATURED_SET;
+        modules[name].isFeatured = true;
+    }
+
+    function unsetFeatured(string memory name) external onlyOwner {
+        require(modules[name].isSet, "module must exist");
+        if (featuredState[name] == FEATURED_UNSET) {
+            return;
+        }
+
+        if (featuredState[name] == FEATURED_SET) {
+            featuredState[name] = FEATURED_UNSET;
+            modules[name].isFeatured = false;
+        }
+    }
+
+    function getAllFeatured()
+        external
+        view
+        returns (ModuleBrief[] memory result)
+    {
+        string[] memory featuredList =
+            new string[](probablyFeaturedList.length);
+        uint256 featuredListLength = 0;
+
+        for (uint256 i = 0; i < probablyFeaturedList.length; i++) {
+            if (featuredState[probablyFeaturedList[i]] == FEATURED_SET) {
+                featuredList[featuredListLength] = probablyFeaturedList[i];
+                featuredListLength++;
+            }
+        }
+
+        result = new ModuleBrief[](featuredListLength);
+
+        for (uint256 i = 0; i < featuredListLength; i++) {
+            Module storage m = modules[featuredList[i]];
+
+            result[i] = toBriefModule(m);
+        }
+
+        return result;
     }
 
     function setTemplate(string memory beforeStr, string memory afterStr)
@@ -59,17 +120,57 @@ contract CodeModules {
         return modules[name];
     }
 
-    function getModules() external view returns (ModuleBrief[] memory result) {
+    function toBriefModule(Module storage m)
+        internal
+        view
+        returns (ModuleBrief memory result)
+    {
+        return
+            ModuleBrief({
+                owner: m.owner,
+                name: m.name,
+                dependencies: m.dependencies,
+                isFeatured: m.isFeatured
+            });
+    }
+
+    function getAllModules()
+        external
+        view
+        returns (ModuleBrief[] memory result)
+    {
         result = new ModuleBrief[](moduleNames.length);
 
         for (uint256 i = 0; i < moduleNames.length; i++) {
             Module storage m = modules[moduleNames[i]];
 
-            result[i] = ModuleBrief({
-                owner: m.owner,
-                name: m.name,
-                dependencies: m.dependencies
-            });
+            result[i] = toBriefModule(m);
+        }
+
+        return result;
+    }
+
+    function getOwnedModules()
+        external
+        view
+        returns (ModuleBrief[] memory result)
+    {
+        string[] memory ownedModules = new string[](moduleNames.length);
+        uint256 ownedModulesLength = 0;
+
+        for (uint256 i = 0; i < moduleNames.length; i++) {
+            if (modules[moduleNames[i]].owner == msg.sender) {
+                ownedModules[ownedModulesLength] = moduleNames[i];
+                ownedModulesLength++;
+            }
+        }
+
+        result = new ModuleBrief[](ownedModulesLength);
+
+        for (uint256 i = 0; i < ownedModulesLength; i++) {
+            Module storage m = modules[ownedModules[i]];
+
+            result[i] = toBriefModule(m);
         }
 
         return result;
@@ -94,7 +195,8 @@ contract CodeModules {
             name: name,
             dependencies: dependencies,
             code: code,
-            isSet: true
+            isSet: true,
+            isFeatured: false
         });
         moduleNames.push(name);
     }

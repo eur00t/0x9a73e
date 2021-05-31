@@ -7,7 +7,6 @@ export const useLoading = (retreive) => {
     setIsLoading(true);
     try {
       await retreive();
-    } catch {
     } finally {
       setIsLoading(false);
     }

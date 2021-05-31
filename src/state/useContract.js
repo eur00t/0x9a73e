@@ -36,7 +36,6 @@ export const useContract = (trackTransaction) => {
             contract.methods.createModule(name, deps, btoa(code)).send()
           );
         }
-      } catch (e) {
       } finally {
         setProgress(false);
       }
@@ -54,9 +53,6 @@ export const useContract = (trackTransaction) => {
           scopeId,
           contract.methods.setTemplate(before, after).send()
         );
-
-        retrieve();
-      } catch (e) {
       } finally {
         setProgress(false);
       }
@@ -69,8 +65,36 @@ export const useContract = (trackTransaction) => {
     [contract]
   );
 
-  const getModules = useCallback(
-    () => contract.methods.getModules().call(),
+  const getAllModules = useCallback(
+    () => contract.methods.getAllModules().call(),
+    [contract]
+  );
+
+  const getOwnedModules = useCallback(
+    () => contract.methods.getOwnedModules().call(),
+    [contract]
+  );
+
+  const getAllFeatured = useCallback(
+    () => contract.methods.getAllFeatured().call(),
+    [contract]
+  );
+
+  const setFeatured = useCallback(
+    (scopeId, moduleName) =>
+      trackTransaction(
+        scopeId,
+        contract.methods.setFeatured(moduleName).send()
+      ),
+    [contract]
+  );
+
+  const unsetFeatured = useCallback(
+    (scopeId, moduleName) =>
+      trackTransaction(
+        scopeId,
+        contract.methods.unsetFeatured(moduleName).send()
+      ),
     [contract]
   );
 
@@ -94,6 +118,10 @@ export const useContract = (trackTransaction) => {
     setTemplate,
     getHtml,
     getModule,
-    getModules,
+    getAllModules,
+    getOwnedModules,
+    getAllFeatured,
+    setFeatured,
+    unsetFeatured,
   };
 };

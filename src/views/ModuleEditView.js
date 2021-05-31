@@ -3,8 +3,8 @@ import AceEditor from "react-ace";
 import { Link } from "react-router-dom";
 
 import { useContractContext } from "../state";
-import { useTransactionsScope } from "../state/useTransactionsScope";
-import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
+import { useTransactionsPendingChange } from "../state/useTransactionsPendingChange";
+
 import { TransactionButton } from "../components/TransactionButton";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
@@ -110,7 +110,6 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
 
   const scopeId = `module-edit-view-${moduleName}`;
 
-  const { isPending } = useTransactionsScope(scopeId);
   const [exists, setExists] = useState(false);
   const account = useAccount();
 
@@ -150,11 +149,11 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
     }
   }, [moduleName]);
 
-  useEffectOnValueChange(() => {
+  useTransactionsPendingChange(scopeId, (isPending) => {
     if (isPending === false) {
       load();
     }
-  }, [isPending]);
+  });
 
   const onSetModule = (module) => {
     setModule(scopeId, module);
