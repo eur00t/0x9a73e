@@ -3,6 +3,18 @@ import { useCallback, useMemo, useState } from "react";
 import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
 
+const parseTemplate = (str) => {
+  const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
+
+  if (match === null) {
+    throw Error();
+  }
+
+  const [, before, after] = match;
+
+  return { before, after };
+};
+
 export const useContract = (trackTransaction) => {
   const { account, library: web3 } = useWeb3React();
   const [progress, setProgress] = useState(false);
@@ -53,6 +65,7 @@ export const useContract = (trackTransaction) => {
           scopeId,
           contract.methods.setTemplate(before, after).send()
         );
+      } catch (e) {
       } finally {
         setProgress(false);
       }

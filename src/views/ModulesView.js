@@ -74,7 +74,7 @@ export const ModulesView = () => {
       <Loading isLoading={isLoading}>
         {featuredModules.length > 0 ? (
           <>
-            <h2>Featured Modules</h2>
+            <h2>Featured</h2>
             <div className="d-flex gap-2 flex-wrap">
               {featuredModules.map((module) => (
                 <ModuleCard key={module.name} {...module} />
@@ -83,7 +83,7 @@ export const ModulesView = () => {
           </>
         ) : null}
 
-        <h2 className="mt-3">Own Modules</h2>
+        <h2 className="mt-3">Own</h2>
         <div className="d-flex gap-2 flex-wrap">
           {ownedModules.length > 0 ? (
             ownedModules.map((module) => (
