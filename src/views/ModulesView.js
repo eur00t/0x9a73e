@@ -50,13 +50,14 @@ export const ModulesView = () => {
 
   const retrieveOwned = async () => {
     setOwnedModules([]);
-    setOwnedModules(await getOwnedModules());
+    const result = await getOwnedModules();
+    setOwnedModules(result);
   };
 
   const retrieveFeatured = async () => {
     setFeaturedModules([]);
-    const d = await getAllFeatured();
-    setFeaturedModules(d);
+    const result = await getAllFeatured();
+    setFeaturedModules(result);
   };
 
   const retrieve = async () => {

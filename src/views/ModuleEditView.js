@@ -20,19 +20,21 @@ const ModuleEdit = withOwner(
     const depsRef = useRef();
     const codeRef = useRef();
 
+    const { dependencies, code } = module;
+
     useEffect(() => {
       nameRef.current.value = moduleName;
     }, [moduleName]);
 
     useEffect(() => {
-      depsRef.current.value = JSON.stringify(module.dependencies);
-    }, [module.dependencies]);
+      depsRef.current.value = JSON.stringify(dependencies);
+    }, [dependencies]);
 
     useEffect(() => {
-      if (module.code !== "") {
-        codeRef.current.editor.setValue(module.code);
+      if (code !== "") {
+        codeRef.current.editor.setValue(code);
       }
-    }, [module.code]);
+    }, [code]);
 
     const onSetModuleDOM = () => {
       onSetModule({
@@ -89,7 +91,20 @@ const ModuleEdit = withOwner(
         </div>
 
         <div className="mb-3">
-          <OnlyOwner>
+          <OnlyOwner
+            fallback={
+              <>
+                <div className="btn btn-outline-primary disabled">
+                  {exists ? "update module" : "create module"}
+                </div>
+                {exists ? (
+                  <small className="ms-3">
+                    Only owners can update their modules.
+                  </small>
+                ) : null}
+              </>
+            }
+          >
             <TransactionButton
               scopeId={scopeId}
               text={exists ? "update module" : "create module"}

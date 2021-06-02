@@ -1,9 +1,35 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-contract CodeModules {
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract CodeModules is ERC721, ERC721Enumerable, Ownable {
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIdCounter;
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     struct Module {
-        address owner;
+        uint256 tokenId;
         string name;
         string[] dependencies;
         string code;
@@ -11,17 +37,25 @@ contract CodeModules {
         bool isFeatured;
     }
 
-    struct ModuleBrief {
+    struct ModuleView {
         address owner;
+        uint256 tokenId;
+        string name;
+        string[] dependencies;
+        string code;
+        bool isFeatured;
+    }
+
+    struct ModuleViewBrief {
+        address owner;
+        uint256 tokenId;
         string name;
         string[] dependencies;
         bool isFeatured;
     }
 
-    address internal owner;
-
     mapping(string => Module) internal modules;
-    string[] internal moduleNames;
+    mapping(uint256 => string) internal tokenIdToModuleName;
 
     string internal templateBefore;
     string internal templateAfter;
@@ -31,11 +65,6 @@ contract CodeModules {
     uint8 internal constant FEATURED_UNSET = 2;
     string[] internal probablyFeaturedList;
     mapping(string => uint8) internal featuredState;
-
-    modifier onlyOwner {
-        require(msg.sender == owner, "only owner");
-        _;
-    }
 
     function setFeatured(string memory name) external onlyOwner {
         require(modules[name].isSet, "module must exist");
@@ -66,7 +95,7 @@ contract CodeModules {
     function getAllFeatured()
         external
         view
-        returns (ModuleBrief[] memory result)
+        returns (ModuleViewBrief[] memory result)
     {
         string[] memory featuredList =
             new string[](probablyFeaturedList.length);
@@ -79,12 +108,12 @@ contract CodeModules {
             }
         }
 
-        result = new ModuleBrief[](featuredListLength);
+        result = new ModuleViewBrief[](featuredListLength);
 
         for (uint256 i = 0; i < featuredListLength; i++) {
             Module storage m = modules[featuredList[i]];
 
-            result[i] = toBriefModule(m);
+            result[i] = toModuleViewBrief(m);
         }
 
         return result;
@@ -113,21 +142,38 @@ contract CodeModules {
     function getModule(string memory name)
         external
         view
-        returns (Module memory result)
+        returns (ModuleView memory result)
     {
         require(modules[name].isSet, "module must exist");
 
-        return modules[name];
+        return toModuleView(modules[name]);
     }
 
-    function toBriefModule(Module storage m)
+    function toModuleView(Module storage m)
         internal
         view
-        returns (ModuleBrief memory result)
+        returns (ModuleView memory result)
     {
         return
-            ModuleBrief({
-                owner: m.owner,
+            ModuleView({
+                owner: ownerOf(m.tokenId),
+                tokenId: m.tokenId,
+                name: m.name,
+                dependencies: m.dependencies,
+                isFeatured: m.isFeatured,
+                code: m.code
+            });
+    }
+
+    function toModuleViewBrief(Module storage m)
+        internal
+        view
+        returns (ModuleViewBrief memory result)
+    {
+        return
+            ModuleViewBrief({
+                owner: ownerOf(m.tokenId),
+                tokenId: m.tokenId,
                 name: m.name,
                 dependencies: m.dependencies,
                 isFeatured: m.isFeatured
@@ -137,14 +183,15 @@ contract CodeModules {
     function getAllModules()
         external
         view
-        returns (ModuleBrief[] memory result)
+        returns (ModuleViewBrief[] memory result)
     {
-        result = new ModuleBrief[](moduleNames.length);
+        uint256 totalTokens = totalSupply();
+        result = new ModuleViewBrief[](totalTokens);
 
-        for (uint256 i = 0; i < moduleNames.length; i++) {
-            Module storage m = modules[moduleNames[i]];
-
-            result[i] = toBriefModule(m);
+        for (uint256 i = 0; i < totalTokens; i++) {
+            result[i] = toModuleViewBrief(
+                modules[tokenIdToModuleName[tokenByIndex(i)]]
+            );
         }
 
         return result;
@@ -153,24 +200,15 @@ contract CodeModules {
     function getOwnedModules()
         external
         view
-        returns (ModuleBrief[] memory result)
+        returns (ModuleViewBrief[] memory result)
     {
-        string[] memory ownedModules = new string[](moduleNames.length);
-        uint256 ownedModulesLength = 0;
+        uint256 totalOwnedModules = balanceOf(msg.sender);
+        result = new ModuleViewBrief[](totalOwnedModules);
 
-        for (uint256 i = 0; i < moduleNames.length; i++) {
-            if (modules[moduleNames[i]].owner == msg.sender) {
-                ownedModules[ownedModulesLength] = moduleNames[i];
-                ownedModulesLength++;
-            }
-        }
-
-        result = new ModuleBrief[](ownedModulesLength);
-
-        for (uint256 i = 0; i < ownedModulesLength; i++) {
-            Module storage m = modules[ownedModules[i]];
-
-            result[i] = toBriefModule(m);
+        for (uint256 i = 0; i < totalOwnedModules; i++) {
+            result[i] = toModuleViewBrief(
+                modules[tokenIdToModuleName[tokenOfOwnerByIndex(msg.sender, i)]]
+            );
         }
 
         return result;
@@ -190,15 +228,21 @@ contract CodeModules {
 
         require(!modules[name].isSet, "module already exists");
 
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(msg.sender, tokenId);
+
+        tokenIdToModuleName[tokenId] = name;
+
         modules[name] = Module({
-            owner: msg.sender,
+            tokenId: tokenId,
             name: name,
             dependencies: dependencies,
             code: code,
             isSet: true,
             isFeatured: false
         });
-        moduleNames.push(name);
     }
 
     function updateModule(
@@ -207,10 +251,8 @@ contract CodeModules {
         string memory code
     ) external {
         require(modules[name].isSet, "module must exist");
-        require(
-            modules[name].owner == msg.sender,
-            "only module owner can update it"
-        );
+        address tokenOwner = ownerOf(modules[name].tokenId);
+        require(tokenOwner == msg.sender, "only module owner can update it");
 
         modules[name].dependencies = dependencies;
         modules[name].code = code;
@@ -367,7 +409,5 @@ contract CodeModules {
         return strConcat3(templateBefore, modulesJSON, templateAfter);
     }
 
-    constructor() {
-        owner = msg.sender;
-    }
+    constructor() ERC721("CodeModules", "CDM") {}
 }

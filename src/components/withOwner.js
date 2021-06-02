@@ -6,11 +6,11 @@ import { useAccount } from "../utils/networks";
 
 const [OwnerProvider, useOwner] = constate(({ owner }) => owner);
 
-export const OnlyOwner = ({ children }) => {
+export const OnlyOwner = ({ children, fallback = null }) => {
   const owner = useOwner();
   const account = useAccount();
 
-  return owner === account ? children : null;
+  return owner === account ? children : fallback;
 };
 
 export const withOwner = (Component, displayName) => {
