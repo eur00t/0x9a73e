@@ -29,33 +29,32 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     struct Module {
-        uint256 tokenId;
         string name;
         string[] dependencies;
         string code;
-        bool isSet;
-        bool isFeatured;
     }
 
     struct ModuleView {
-        address owner;
-        uint256 tokenId;
         string name;
         string[] dependencies;
         string code;
+        address owner;
+        uint256 tokenId;
         bool isFeatured;
     }
 
     struct ModuleViewBrief {
-        address owner;
-        uint256 tokenId;
         string name;
         string[] dependencies;
+        address owner;
+        uint256 tokenId;
         bool isFeatured;
     }
 
     mapping(string => Module) internal modules;
+    mapping(string => bool) internal moduleExists;
     mapping(uint256 => string) internal tokenIdToModuleName;
+    mapping(string => uint256) internal moduleNameToTokenId;
 
     string internal templateBefore;
     string internal templateAfter;
@@ -67,7 +66,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     mapping(string => uint8) internal featuredState;
 
     function setFeatured(string memory name) external onlyOwner {
-        require(modules[name].isSet, "module must exist");
+        require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_SET) {
             return;
         }
@@ -77,18 +76,16 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         }
 
         featuredState[name] = FEATURED_SET;
-        modules[name].isFeatured = true;
     }
 
     function unsetFeatured(string memory name) external onlyOwner {
-        require(modules[name].isSet, "module must exist");
+        require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_UNSET) {
             return;
         }
 
         if (featuredState[name] == FEATURED_SET) {
             featuredState[name] = FEATURED_UNSET;
-            modules[name].isFeatured = false;
         }
     }
 
@@ -136,7 +133,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function exists(string memory name) external view returns (bool result) {
-        return modules[name].isSet;
+        return moduleExists[name];
     }
 
     function getModule(string memory name)
@@ -144,7 +141,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (ModuleView memory result)
     {
-        require(modules[name].isSet, "module must exist");
+        require(moduleExists[name], "module must exist");
 
         return toModuleView(modules[name]);
     }
@@ -156,11 +153,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     {
         return
             ModuleView({
-                owner: ownerOf(m.tokenId),
-                tokenId: m.tokenId,
+                owner: ownerOf(moduleNameToTokenId[m.name]),
+                tokenId: moduleNameToTokenId[m.name],
                 name: m.name,
                 dependencies: m.dependencies,
-                isFeatured: m.isFeatured,
+                isFeatured: (featuredState[m.name] == 1) ? true : false,
                 code: m.code
             });
     }
@@ -172,11 +169,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     {
         return
             ModuleViewBrief({
-                owner: ownerOf(m.tokenId),
-                tokenId: m.tokenId,
+                owner: ownerOf(moduleNameToTokenId[m.name]),
+                tokenId: moduleNameToTokenId[m.name],
                 name: m.name,
                 dependencies: m.dependencies,
-                isFeatured: m.isFeatured
+                isFeatured: (featuredState[m.name] == 1) ? true : false
             });
     }
 
@@ -221,12 +218,12 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     ) external {
         for (uint256 i = 0; i < dependencies.length; i++) {
             require(
-                modules[dependencies[i]].isSet,
+                moduleExists[dependencies[i]],
                 "all dependencies must exist"
             );
         }
 
-        require(!modules[name].isSet, "module already exists");
+        require(!moduleExists[name], "module already exists");
 
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
@@ -234,15 +231,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         _safeMint(msg.sender, tokenId);
 
         tokenIdToModuleName[tokenId] = name;
+        moduleNameToTokenId[name] = tokenId;
 
         modules[name] = Module({
-            tokenId: tokenId,
             name: name,
             dependencies: dependencies,
-            code: code,
-            isSet: true,
-            isFeatured: false
+            code: code
         });
+        moduleExists[name] = true;
     }
 
     function updateModule(
@@ -250,8 +246,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string[] memory dependencies,
         string memory code
     ) external {
-        require(modules[name].isSet, "module must exist");
-        address tokenOwner = ownerOf(modules[name].tokenId);
+        require(moduleExists[name], "module must exist");
+        address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can update it");
 
         modules[name].dependencies = dependencies;
@@ -378,7 +374,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (string memory result)
     {
-        require(modules[name].isSet, "module doesn't exist");
+        require(moduleExists[name], "module doesn't exist");
 
         string[128] memory stack;
         stack[0] = name;

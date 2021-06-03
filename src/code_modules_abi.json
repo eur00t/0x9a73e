@@ -488,16 +488,6 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
               "internalType": "string",
               "name": "name",
               "type": "string"
@@ -506,6 +496,16 @@
               "internalType": "string[]",
               "name": "dependencies",
               "type": "string[]"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -599,16 +599,6 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
               "internalType": "string",
               "name": "name",
               "type": "string"
@@ -622,6 +612,16 @@
               "internalType": "string",
               "name": "code",
               "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -645,16 +645,6 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
               "internalType": "string",
               "name": "name",
               "type": "string"
@@ -663,6 +653,16 @@
               "internalType": "string[]",
               "name": "dependencies",
               "type": "string[]"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -686,16 +686,6 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
               "internalType": "string",
               "name": "name",
               "type": "string"
@@ -704,6 +694,16 @@
               "internalType": "string[]",
               "name": "dependencies",
               "type": "string[]"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
             },
             {
               "internalType": "bool",
