@@ -3,7 +3,7 @@
 - strings usage, see if use other types
 - JSON serialization, see if make it better
 - dep resolve, improve alogrithm, dependency cycles
-- modules are NFTs
+- ~~modules are NFTs~~
 
 # Browser
 

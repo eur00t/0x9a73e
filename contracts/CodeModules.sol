@@ -41,6 +41,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         address owner;
         uint256 tokenId;
         bool isFeatured;
+        bool isInvocable;
+        InvocationModuleView[] invocations;
+        uint256 invocationsMax;
     }
 
     struct ModuleViewBrief {
@@ -49,10 +52,34 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         address owner;
         uint256 tokenId;
         bool isFeatured;
+        bool isInvocable;
+        uint256 invocationsNum;
+        uint256 invocationsMax;
+    }
+
+    struct InvocableState {
+        uint256[] invocations;
+        uint256 invocationsMax;
+    }
+
+    struct Invocation {
+        string moduleName;
+        uint256 seed;
+    }
+
+    struct InvocationModuleView {
+        uint256 tokenId;
+        uint256 seed;
     }
 
     mapping(string => Module) internal modules;
     mapping(string => bool) internal moduleExists;
+
+    mapping(string => bool) internal moduleInvocable;
+    mapping(string => InvocableState) internal moduleInvocableState;
+
+    mapping(uint256 => Invocation) internal tokenIdToInvocation;
+
     mapping(uint256 => string) internal tokenIdToModuleName;
     mapping(string => uint256) internal moduleNameToTokenId;
 
@@ -64,6 +91,44 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     uint8 internal constant FEATURED_UNSET = 2;
     string[] internal probablyFeaturedList;
     mapping(string => uint8) internal featuredState;
+
+    function setInvocable(string memory name, uint256 invocationsMax) external {
+        require(moduleExists[name], "module must exist");
+        address tokenOwner = ownerOf(moduleNameToTokenId[name]);
+        require(tokenOwner == msg.sender, "only module owner can change it");
+
+        moduleInvocable[name] = true;
+        moduleInvocableState[name].invocationsMax = invocationsMax;
+    }
+
+    function invoke(string memory moduleName) external {
+        require(moduleExists[moduleName], "module must exist");
+        require(moduleInvocable[moduleName], "module must be invocable");
+        require(
+            moduleInvocableState[moduleName].invocations.length <
+                moduleInvocableState[moduleName].invocationsMax,
+            "invocations limit reached"
+        );
+
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(msg.sender, tokenId);
+
+        moduleInvocableState[moduleName].invocations.push(tokenId);
+        tokenIdToInvocation[tokenId] = Invocation({
+            moduleName: moduleName,
+            seed: uint256(
+                keccak256(
+                    abi.encodePacked(
+                        moduleInvocableState[moduleName].invocations.length,
+                        block.number,
+                        msg.sender
+                    )
+                )
+            )
+        });
+    }
 
     function setFeatured(string memory name) external onlyOwner {
         require(moduleExists[name], "module must exist");
@@ -151,14 +216,36 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (ModuleView memory result)
     {
+        InvocationModuleView[] memory invocations =
+            new InvocationModuleView[](
+                moduleInvocableState[m.name].invocations.length
+            );
+
+        for (
+            uint256 i = 0;
+            i < moduleInvocableState[m.name].invocations.length;
+            i++
+        ) {
+            invocations[i] = InvocationModuleView({
+                seed: tokenIdToInvocation[
+                    moduleInvocableState[m.name].invocations[i]
+                ]
+                    .seed,
+                tokenId: moduleInvocableState[m.name].invocations[i]
+            });
+        }
+
         return
             ModuleView({
-                owner: ownerOf(moduleNameToTokenId[m.name]),
-                tokenId: moduleNameToTokenId[m.name],
                 name: m.name,
                 dependencies: m.dependencies,
+                code: m.code,
+                owner: ownerOf(moduleNameToTokenId[m.name]),
+                tokenId: moduleNameToTokenId[m.name],
                 isFeatured: (featuredState[m.name] == 1) ? true : false,
-                code: m.code
+                isInvocable: moduleInvocable[m.name],
+                invocations: invocations,
+                invocationsMax: moduleInvocableState[m.name].invocationsMax
             });
     }
 
@@ -169,11 +256,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     {
         return
             ModuleViewBrief({
-                owner: ownerOf(moduleNameToTokenId[m.name]),
-                tokenId: moduleNameToTokenId[m.name],
                 name: m.name,
                 dependencies: m.dependencies,
-                isFeatured: (featuredState[m.name] == 1) ? true : false
+                owner: ownerOf(moduleNameToTokenId[m.name]),
+                tokenId: moduleNameToTokenId[m.name],
+                isFeatured: (featuredState[m.name] == 1) ? true : false,
+                isInvocable: moduleInvocable[m.name],
+                invocationsNum: moduleInvocableState[m.name].invocations.length,
+                invocationsMax: moduleInvocableState[m.name].invocationsMax
             });
     }
 
@@ -369,13 +459,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return dictToJSON(keys, values);
     }
 
-    function getHtml(string memory name)
-        external
+    function traverseDependencies(string memory name)
+        internal
         view
-        returns (string memory result)
+        returns (Module[128] memory result, uint8 size)
     {
-        require(moduleExists[name], "module doesn't exist");
-
         string[128] memory stack;
         stack[0] = name;
         uint8 iStack = 1;
@@ -395,14 +483,45 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             }
         }
 
-        string[] memory arr = new string[](iRes);
-        for (uint256 i = 0; i < iRes; i++) {
-            arr[i] = moduleToJSON(res[i]);
+        return (res, iRes);
+    }
+
+    function getHtmlForModules(Module[128] memory traversedModules, uint8 size)
+        internal
+        view
+        returns (string memory result)
+    {
+        string[] memory arr = new string[](size);
+        for (uint256 i = 0; i < size; i++) {
+            arr[i] = moduleToJSON(traversedModules[i]);
         }
 
         string memory modulesJSON = arrToJSON(arr);
 
         return strConcat3(templateBefore, modulesJSON, templateAfter);
+    }
+
+    function getHtml(string memory name)
+        external
+        view
+        returns (string memory result)
+    {
+        require(moduleExists[name], "module doesn't exist");
+
+        Module[128] memory res;
+        uint8 size;
+
+        (res, size) = traverseDependencies(name);
+
+        return getHtmlForModules(res, size);
+    }
+
+    function getInvocationHtml(uint256 tokenId)
+        external
+        view
+        returns (string memory result)
+    {
+        return "";
     }
 
     constructor() ERC721("CodeModules", "CDM") {}

@@ -461,6 +461,37 @@
           "internalType": "string",
           "name": "name",
           "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "invocationsMax",
+          "type": "uint256"
+        }
+      ],
+      "name": "setInvocable",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "moduleName",
+          "type": "string"
+        }
+      ],
+      "name": "invoke",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         }
       ],
       "name": "setFeatured",
@@ -511,6 +542,21 @@
               "internalType": "bool",
               "name": "isFeatured",
               "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsNum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsMax",
+              "type": "uint256"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -627,6 +673,33 @@
               "internalType": "bool",
               "name": "isFeatured",
               "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "seed",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct CodeModules.InvocationModuleView[]",
+              "name": "invocations",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsMax",
+              "type": "uint256"
             }
           ],
           "internalType": "struct CodeModules.ModuleView",
@@ -668,6 +741,21 @@
               "internalType": "bool",
               "name": "isFeatured",
               "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsNum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsMax",
+              "type": "uint256"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -709,6 +797,21 @@
               "internalType": "bool",
               "name": "isFeatured",
               "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsNum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsMax",
+              "type": "uint256"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -775,6 +878,26 @@
         }
       ],
       "name": "getHtml",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "result",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getInvocationHtml",
       "outputs": [
         {
           "internalType": "string",
