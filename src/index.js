@@ -24,6 +24,7 @@ import {
   ModulesRoute,
   DisconnectedRoute,
   WrongNetworkRoute,
+  InvocationRoute,
 } from "./routes";
 import { AppStateProvider } from "./state";
 import { useNetwork } from "./utils/networks";
@@ -69,6 +70,10 @@ const Routes = () => {
 
           <Route path="/admin/template" exact>
             <TemplateRoute />
+          </Route>
+
+          <Route path={["/modules/invocation/:tokenId"]} exact>
+            <InvocationRoute />
           </Route>
 
           <Route path="/">

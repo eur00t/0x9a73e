@@ -13,6 +13,9 @@ const TransactionStatus = ({
   isConfirmed,
   confirmations,
   error,
+  result,
+  doneHandler,
+  doneBtnText,
 }) => {
   const { removeTransaction } = useTransactionsContext();
 
@@ -78,10 +81,22 @@ const TransactionStatus = ({
         </div>
         {status !== "pending" ? (
           <div className="d-flex justify-content-center mt-1">
+            {doneBtnText ? (
+              <button
+                type="button"
+                className="btn btn-outline-primary btn-sm me-1"
+                onClick={() => doneHandler && doneHandler(result)}
+              >
+                {doneBtnText}
+              </button>
+            ) : null}
             <button
               type="button"
               className="btn btn-outline-primary btn-sm"
-              onClick={() => removeTransaction(scopeId, transactionHash)}
+              onClick={() => {
+                removeTransaction(scopeId, transactionHash);
+                !doneBtnText && doneHandler && doneHandler(result);
+              }}
             >
               Got it!
             </button>

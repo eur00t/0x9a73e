@@ -74,7 +74,12 @@ export const useContract = (trackTransaction) => {
   );
 
   const getHtml = useCallback(
-    (moduleName) => contract.methods.getHtml(moduleName).call(),
+    (tokenId) => contract.methods.getHtml(tokenId).call(),
+    [contract]
+  );
+
+  const getInvocation = useCallback(
+    (tokenId) => contract.methods.getInvocation(tokenId).call(),
     [contract]
   );
 
@@ -85,6 +90,11 @@ export const useContract = (trackTransaction) => {
 
   const getOwnedModules = useCallback(
     () => contract.methods.getOwnedModules().call(),
+    [contract]
+  );
+
+  const getOwnedInvocations = useCallback(
+    () => contract.methods.getOwnedInvocations().call(),
     [contract]
   );
 
@@ -125,16 +135,39 @@ export const useContract = (trackTransaction) => {
     [contract]
   );
 
+  const setInvocable = useCallback(
+    (scopeId, moduleName, invocationsMax) =>
+      trackTransaction(
+        scopeId,
+        contract.methods.setInvocable(moduleName, invocationsMax).send()
+      ),
+    [contract]
+  );
+
+  const createInvocation = useCallback(
+    (scopeId, moduleName, doneOptions) =>
+      trackTransaction(
+        scopeId,
+        contract.methods.createInvocation(moduleName).send(),
+        doneOptions
+      ),
+    [contract]
+  );
+
   return {
     progress,
     setModule,
     setTemplate,
     getHtml,
+    getInvocation,
     getModule,
     getAllModules,
     getOwnedModules,
+    getOwnedInvocations,
     getAllFeatured,
     setFeatured,
     unsetFeatured,
+    setInvocable,
+    createInvocation,
   };
 };

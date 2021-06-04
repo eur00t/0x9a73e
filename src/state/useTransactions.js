@@ -75,7 +75,7 @@ export const useTransactions = () => {
   );
 
   const trackTransaction = useCallback(
-    (scopeId, transactionEventEmitter) => {
+    (scopeId, transactionEventEmitter, { doneHandler, doneBtnText } = {}) => {
       let transactionHash = null;
 
       const stopTracking = () => {
@@ -98,6 +98,8 @@ export const useTransactions = () => {
             error: null,
             receipt: null,
             eventEmitter: transactionEventEmitter,
+            doneBtnText,
+            doneHandler,
           });
         })
         .on("confirmation", (confirmationNumber, receipt) => {

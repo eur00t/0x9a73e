@@ -5,12 +5,13 @@ import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
+import { InvocableBadge } from "../components/InvocableBadge";
 
 const ModuleCard = withOwner((module) => {
-  const { name, owner, dependencies } = module;
+  const { name, owner, dependencies, isInvocable } = module;
 
   return (
-    <div key={name} className="card" style={{ width: "20rem" }}>
+    <div className="card" style={{ width: "20rem" }}>
       <div className="card-body">
         <h5 className="card-title">{name}</h5>
         <dl>
@@ -37,22 +38,49 @@ const ModuleCard = withOwner((module) => {
             </Link>
           </OnlyOwner>
         </div>
+        {isInvocable ? (
+          <div className="mt-3">
+            <InvocableBadge {...module} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }, "ModuleCard");
 
+const InvocationListCard = ({
+  tokenId,
+  seed,
+  module: { name: moduleName },
+}) => {
+  return (
+    <div className="card" style={{ width: "20rem" }}>
+      <div className="card-body">
+        <h5 className="card-title">{moduleName}</h5>
+        <dl>
+          <dt>Seed</dt>
+          <dd>{seed}</dd>
+        </dl>
+        <div className="d-flex gap-2">
+          <Link
+            className="btn btn-outline-primary btn-sm"
+            to={`/modules/invocation/${tokenId}`}
+          >
+            View
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ModulesView = () => {
-  const { getOwnedModules, getAllFeatured } = useContractContext();
+  const { getAllFeatured, getOwnedModules, getOwnedInvocations } =
+    useContractContext();
 
-  const [ownedModules, setOwnedModules] = useState([]);
   const [featuredModules, setFeaturedModules] = useState([]);
-
-  const retrieveOwned = async () => {
-    setOwnedModules([]);
-    const result = await getOwnedModules();
-    setOwnedModules(result);
-  };
+  const [ownedModules, setOwnedModules] = useState([]);
+  const [ownedInvocations, setOwnedInvocations] = useState([]);
 
   const retrieveFeatured = async () => {
     setFeaturedModules([]);
@@ -60,8 +88,24 @@ export const ModulesView = () => {
     setFeaturedModules(result);
   };
 
+  const retrieveOwnedModules = async () => {
+    setOwnedModules([]);
+    const result = await getOwnedModules();
+    setOwnedModules(result);
+  };
+
+  const retrieveOwnedInvocations = async () => {
+    setOwnedInvocations([]);
+    const result = await getOwnedInvocations();
+    setOwnedInvocations(result);
+  };
+
   const retrieve = async () => {
-    await Promise.all([retrieveOwned(), retrieveFeatured()]);
+    await Promise.all([
+      retrieveFeatured(),
+      retrieveOwnedModules(),
+      retrieveOwnedInvocations(),
+    ]);
   };
 
   const { isLoading, load } = useLoading(retrieve);
@@ -71,7 +115,7 @@ export const ModulesView = () => {
   }, []);
 
   return (
-    <div className="mt-3">
+    <div className="mt-3 mb-3">
       <Loading isLoading={isLoading}>
         {featuredModules.length > 0 ? (
           <>
@@ -84,7 +128,7 @@ export const ModulesView = () => {
           </>
         ) : null}
 
-        <h2 className="mt-3">Own</h2>
+        <h2 className="mt-5">Your Modules</h2>
         <div className="d-flex gap-2 flex-wrap">
           {ownedModules.length > 0 ? (
             ownedModules.map((module) => (
@@ -94,6 +138,20 @@ export const ModulesView = () => {
             <>
               You don't own any modules. Try to
               <Link to="/modules/edit">create</Link>one
+            </>
+          )}
+        </div>
+
+        <h2 className="mt-5">Your Invocations</h2>
+        <div className="d-flex gap-2 flex-wrap">
+          {ownedInvocations.length > 0 ? (
+            ownedInvocations.map((invocation) => (
+              <InvocationListCard key={invocation.tokenId} {...invocation} />
+            ))
+          ) : (
+            <>
+              You don't own any invocations. Try to mint some from invocable
+              modules.
             </>
           )}
         </div>
