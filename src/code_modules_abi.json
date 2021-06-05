@@ -512,6 +512,11 @@
                   "type": "string"
                 },
                 {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
+                },
+                {
                   "internalType": "string[]",
                   "name": "dependencies",
                   "type": "string[]"
@@ -557,9 +562,9 @@
               "type": "address"
             },
             {
-              "internalType": "uint256",
+              "internalType": "string",
               "name": "seed",
-              "type": "uint256"
+              "type": "string"
             },
             {
               "internalType": "uint256",
@@ -611,6 +616,11 @@
             {
               "internalType": "string",
               "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
               "type": "string"
             },
             {
@@ -740,6 +750,11 @@
               "type": "string"
             },
             {
+              "internalType": "string",
+              "name": "metadataJSON",
+              "type": "string"
+            },
+            {
               "internalType": "string[]",
               "name": "dependencies",
               "type": "string[]"
@@ -777,9 +792,9 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "string",
                   "name": "seed",
-                  "type": "uint256"
+                  "type": "string"
                 }
               ],
               "internalType": "struct CodeModules.InvocationModuleView[]",
@@ -810,6 +825,11 @@
             {
               "internalType": "string",
               "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
               "type": "string"
             },
             {
@@ -866,6 +886,11 @@
             {
               "internalType": "string",
               "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
               "type": "string"
             },
             {
@@ -927,6 +952,11 @@
                   "type": "string"
                 },
                 {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
+                },
+                {
                   "internalType": "string[]",
                   "name": "dependencies",
                   "type": "string[]"
@@ -972,9 +1002,9 @@
               "type": "address"
             },
             {
-              "internalType": "uint256",
+              "internalType": "string",
               "name": "seed",
-              "type": "uint256"
+              "type": "string"
             },
             {
               "internalType": "uint256",
@@ -999,6 +1029,11 @@
           "type": "string"
         },
         {
+          "internalType": "string",
+          "name": "metadataJSON",
+          "type": "string"
+        },
+        {
           "internalType": "string[]",
           "name": "dependencies",
           "type": "string[]"
@@ -1019,6 +1054,11 @@
         {
           "internalType": "string",
           "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "metadataJSON",
           "type": "string"
         },
         {

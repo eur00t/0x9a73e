@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
+import { displayHexString } from "../utils/displayHexString";
 
 export const InvocationView = ({ tokenId }) => {
   const { getHtml, getInvocation } = useContractContext();
@@ -12,7 +13,7 @@ export const InvocationView = ({ tokenId }) => {
     module: {
       name: "",
     },
-    seed: 0,
+    seed: "",
     owner: "",
   });
 
@@ -36,17 +37,17 @@ export const InvocationView = ({ tokenId }) => {
   } = invocation;
 
   return (
-    <div className="mt-3">
+    <div>
       <Loading isLoading={isLoading}>
         <dl>
           <dt>Module Name</dt>
-          <dd>{moduleName}</dd>
+          <dd className="font-monospace">{moduleName}</dd>
           <dt>Token ID</dt>
-          <dd>{tokenId}</dd>
+          <dd className="font-monospace">{tokenId}</dd>
           <dt>Owner</dt>
-          <dd>{owner}</dd>
+          <dd className="font-monospace">{displayHexString(owner)}</dd>
           <dt>seed</dt>
-          <dd>{seed}</dd>
+          <dd className="font-monospace">{displayHexString(seed)}</dd>
         </dl>
 
         <iframe

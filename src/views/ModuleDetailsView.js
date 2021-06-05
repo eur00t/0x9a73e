@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import pluralize from "pluralize";
 
 import { useContractContext } from "../state";
@@ -11,6 +11,8 @@ import { withOwner, OnlyOwner } from "../components/withOwner";
 import { OnlyContractOwner } from "../components/OnlyContractOwner";
 import { InvocableBadge } from "../components/InvocableBadge";
 import { InvocationCard } from "../components/InvocationCard";
+import { displayHexString } from "../utils/displayHexString";
+import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 
 const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
@@ -19,6 +21,7 @@ const ModuleDetails = withOwner((module) => {
   const {
     html,
     name,
+    metadataJSON,
     owner,
     dependencies,
     tokenId,
@@ -35,22 +38,24 @@ const ModuleDetails = withOwner((module) => {
 
   const [invocationsMaxInputValue, setInvocationsMaxInputValue] = useState(1);
 
+  const { description } = useMemo(
+    () => JSON.parse(metadataJSON),
+    [metadataJSON]
+  );
+
   return (
     <>
-      {isInvocable ? (
-        <div className="mb-3">
-          <InvocableBadge {...module} />
-        </div>
-      ) : null}
       <dl>
         <dt>Name</dt>
-        <dd>{name}</dd>
+        <dd className="font-monospace">{name}</dd>
+        <dt>Description</dt>
+        <dd>{description}</dd>
         <dt>Token ID</dt>
-        <dd>{tokenId}</dd>
+        <dd className="font-monospace">{tokenId}</dd>
         <dt>Owner</dt>
-        <dd>{owner}</dd>
+        <dd className="font-monospace">{displayHexString(owner)}</dd>
         <dt>Dependencies</dt>
-        <dd>
+        <dd className="font-monospace">
           {dependencies.length > 0 ? dependencies.join(", ") : <em>none</em>}
         </dd>
       </dl>
@@ -76,10 +81,10 @@ const ModuleDetails = withOwner((module) => {
             ></input>
 
             <TransactionButton
-              btnClassName="btn-sm"
+              btnClassName="btn-outline-primary btn-sm"
               scopeId={invocableScopeId}
-              text={`Allow ${pluralize(
-                " Invocation",
+              text={`Enable ${pluralize(
+                " Mint",
                 invocationsMaxInputValue,
                 true
               )}`}
@@ -94,18 +99,16 @@ const ModuleDetails = withOwner((module) => {
       {isInvocable ? (
         parseInt(invocationsMax, 10) === invocations.length ? (
           <div className="mb-3">
-            <div className="btn btn-outline-primary btn-sm disabled">
-              All invocations has been minted
+            <div className="btn btn-outline-primary btn-lg disabled">
+              No more mints left
             </div>
           </div>
         ) : (
           <TransactionButton
             className="mb-3"
-            btnClassName="btn-sm"
+            btnClassName="btn-primary btn-lg"
             scopeId={invocableScopeId}
-            text={`Mint Invocation (${
-              invocationsMax - invocations.length
-            } left)`}
+            text={`Mint (${invocationsMax - invocations.length} left)`}
             onClick={() => {
               createInvocation(invocableScopeId, name);
             }}
@@ -116,7 +119,7 @@ const ModuleDetails = withOwner((module) => {
       <OnlyContractOwner>
         <TransactionButton
           className="mb-3"
-          btnClassName="btn-sm"
+          btnClassName="btn-outline-primary btn-sm"
           scopeId={featuredScopeId}
           text={!isFeatured ? "Make Featured" : "Remove from Featured"}
           onClick={() => {
@@ -128,21 +131,24 @@ const ModuleDetails = withOwner((module) => {
           }}
         />
       </OnlyContractOwner>
-      {!isInvocable ? (
+      {!isInvocable || invocations.length === 0 ? (
         <iframe
           srcDoc={html}
           style={{ width: "100%", height: "500px", border: 0 }}
         ></iframe>
       ) : (
         <>
-          <h3 className="mb-3 mt-3">Recent invocations</h3>
+          <h3 className="mb-3 mt-5">Recent Mints</h3>
           <div className="d-flex gap-2 flex-wrap">
-            {[...invocations]
-              .reverse()
-              .slice(0, 3)
-              .map(({ tokenId }) => (
-                <InvocationCard key={tokenId} tokenId={tokenId} />
-              ))}
+            {[...invocations].reverse().map(({ tokenId, ...invocation }, i) => (
+              <InvocationCard
+                key={tokenId}
+                tokenId={tokenId}
+                module={module}
+                noRender={i > 2}
+                {...invocation}
+              />
+            ))}
           </div>
         </>
       )}
@@ -152,12 +158,7 @@ const ModuleDetails = withOwner((module) => {
 
 export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   const [html, setHtml] = useState("");
-  const [module, setModule] = useState({
-    name: "",
-    dependencies: [],
-    owner: "",
-    invocations: [],
-  });
+  const [module, setModule] = useState(EMPTY_MODULE_DATA);
 
   const { getHtml, getModule } = useContractContext();
 
@@ -198,7 +199,7 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   });
 
   return (
-    <div className="mt-3">
+    <div>
       <Loading isLoading={isLoading}>
         <ModuleDetails html={html} {...module} />
       </Loading>

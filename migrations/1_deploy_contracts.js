@@ -26,10 +26,13 @@ const uploadExampleModules = async (instance) => {
       path.resolve(`${__dirname}/../src/example-modules/${fileName}`),
       "utf8"
     );
-    const [, depsStr, code] = content.match(/^(.*);\n([\s\S]*)/m);
+    const [, description, depsStr, code] = content.match(
+      /^(.*);\n(.*);\n([\s\S]*)/m
+    );
 
     await instance.createModule(
       moduleName,
+      JSON.stringify({ description: description.slice(1, -1) }),
       JSON.parse(depsStr),
       Buffer.from(code).toString("base64")
     );

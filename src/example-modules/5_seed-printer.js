@@ -1,15 +1,16 @@
+`Invocable module which displays a given seed for each invocation.`;
 [];
 () => {
   const get256Num = (seed, pos, div) => {
-    const str = seed.slice(pos * 3, pos * 3 + 3);
+    const str = seed.slice(2 + pos * 2, 2 + pos * 2 + 2);
 
-    return parseInt(str, 10) % div;
+    return parseInt(str, 16) % div;
   };
 
   return (seed) => {
     let seedText = seed;
     if (seed === "0") {
-      seed = "181038060";
+      seed = "0x992135";
       seedText = "<seed value will be shown here>";
     }
 
@@ -19,8 +20,8 @@
 
     const [h, s, l] = [
       get256Num(seed, 0, 360),
-      get256Num(seed, 0, 100),
-      get256Num(seed, 0, 100),
+      get256Num(seed, 1, 100),
+      get256Num(seed, 2, 100),
     ];
 
     styleSheet.insertRule(`

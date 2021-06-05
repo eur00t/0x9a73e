@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import AceEditor from "react-ace";
 import { Link } from "react-router-dom";
 
@@ -10,6 +10,7 @@ import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
 import { useAccount } from "../utils/networks";
+import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -19,8 +20,13 @@ const ModuleEdit = withOwner(
     const nameRef = useRef();
     const depsRef = useRef();
     const codeRef = useRef();
+    const descriptionRef = useRef();
 
-    const { dependencies, code } = module;
+    const { dependencies, code, metadataJSON } = module;
+    const { description } = useMemo(
+      () => JSON.parse(metadataJSON),
+      [metadataJSON]
+    );
 
     useEffect(() => {
       nameRef.current.value = moduleName;
@@ -29,6 +35,10 @@ const ModuleEdit = withOwner(
     useEffect(() => {
       depsRef.current.value = JSON.stringify(dependencies);
     }, [dependencies]);
+
+    useEffect(() => {
+      descriptionRef.current.value = description;
+    }, [description]);
 
     useEffect(() => {
       if (code !== "") {
@@ -41,6 +51,9 @@ const ModuleEdit = withOwner(
         name: nameRef.current.value,
         deps: JSON.parse(depsRef.current.value),
         code: codeRef.current.editor.getValue(),
+        metadataJSON: JSON.stringify({
+          description: descriptionRef.current.value,
+        }),
       });
     };
 
@@ -64,6 +77,11 @@ const ModuleEdit = withOwner(
               <input className="form-control" ref={depsRef} type="text"></input>
             </div>
           </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Description</label>
+          <textarea ref={descriptionRef} className="form-control"></textarea>
         </div>
 
         {exists ? (
@@ -117,8 +135,6 @@ const ModuleEdit = withOwner(
   },
   "ModuleEdit"
 );
-
-const EMPTY_MODULE_DATA = { name: "", dependencies: [], code: "", owner: "" };
 
 export const ModuleEditView = ({ moduleName, onModuleChange }) => {
   const { setModule, getModule } = useContractContext();
@@ -181,7 +197,7 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
   };
 
   return (
-    <div className="mt-3">
+    <div>
       <Loading isLoading={isLoading}>
         <ModuleEdit
           {...{

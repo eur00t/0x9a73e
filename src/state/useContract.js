@@ -32,7 +32,7 @@ export const useContract = (trackTransaction) => {
   );
 
   const setModule = useCallback(
-    async (scopeId, { name, deps, code }) => {
+    async (scopeId, { name, deps, code, metadataJSON }) => {
       try {
         setProgress(true);
 
@@ -40,12 +40,16 @@ export const useContract = (trackTransaction) => {
         if (exists) {
           await trackTransaction(
             scopeId,
-            contract.methods.updateModule(name, deps, btoa(code)).send()
+            contract.methods
+              .updateModule(name, metadataJSON, deps, btoa(code))
+              .send()
           );
         } else {
           await trackTransaction(
             scopeId,
-            contract.methods.createModule(name, deps, btoa(code)).send()
+            contract.methods
+              .createModule(name, metadataJSON, deps, btoa(code))
+              .send()
           );
         }
       } finally {

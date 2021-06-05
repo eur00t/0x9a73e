@@ -9,11 +9,12 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 1500,
+          runs: 1,
         },
       },
     },
   },
+  plugins: ["truffle-contract-size"],
   networks: {
     development: {
       host: "127.0.0.1",

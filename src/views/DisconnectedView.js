@@ -10,7 +10,7 @@ export const DisconnectedView = () => {
   };
 
   return (
-    <div className="mt-3">
+    <div>
       <p>This application doesn't work without a wallet.</p>
       <button className="btn btn-primary" onClick={connectMetamask}>
         Connect Metamask

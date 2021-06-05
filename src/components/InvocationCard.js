@@ -5,7 +5,12 @@ import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 
-export const InvocationCard = ({ tokenId }) => {
+export const InvocationCard = ({
+  tokenId,
+  module: { name: moduleName },
+  noTitle = false,
+  noRender = false,
+}) => {
   const { getHtml } = useContractContext();
 
   const [html, setHtml] = useState("");
@@ -18,17 +23,27 @@ export const InvocationCard = ({ tokenId }) => {
   const { isLoading, load } = useLoading(retrieve);
 
   useEffect(() => {
-    load();
+    !noRender && load();
   }, []);
 
   return (
     <div className="card" style={{ width: "20rem" }}>
-      <div className="card-body">
-        <Loading isLoading={isLoading}>
+      <Loading isLoading={isLoading}>
+        {!noRender ? (
           <iframe
             srcDoc={html}
+            className="card-img-top"
             style={{ width: "100%", height: "20rem", border: 0 }}
           ></iframe>
+        ) : null}
+
+        <div className="card-body">
+          {!noTitle ? (
+            <div className="card-title font-monospace fw-bold">
+              {moduleName}#{tokenId}
+            </div>
+          ) : null}
+
           <div className="d-flex gap-2">
             <Link
               className="btn btn-outline-primary btn-sm"
@@ -37,8 +52,8 @@ export const InvocationCard = ({ tokenId }) => {
               Open
             </Link>
           </div>
-        </Loading>
-      </div>
+        </div>
+      </Loading>
     </div>
   );
 };

@@ -29,6 +29,7 @@ import {
 import { AppStateProvider } from "./state";
 import { useNetwork } from "./utils/networks";
 import { OnlyContractOwner } from "./components/OnlyContractOwner";
+import Plug from "./icons/plug.svg";
 
 const ACTIVE = "ACTIVE";
 const DISCONNECTED = "DISCONNECTED";
@@ -112,7 +113,12 @@ const NetworkIndicator = () => {
 
   switch (appMode) {
     case ACTIVE:
-      return <span className="badge d-block bg-info">{network.name}</span>;
+      return (
+        <span className="badge d-block bg-info d-flex align-items-center">
+          <Plug className="me-1" />
+          {network.name}
+        </span>
+      );
     case DISCONNECTED:
       return (
         <span className="badge d-block bg-warning">
@@ -171,7 +177,7 @@ const App = () => {
           </Link>
         </div>
       </nav>
-      <div className="container">
+      <div className="container pb-3 pt-3">
         <Routes key={`${chainId}-${account}`} />
       </div>
     </>

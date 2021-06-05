@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -34,12 +35,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     struct Module {
         string name;
+        string metadataJSON;
         string[] dependencies;
         string code;
     }
 
     struct ModuleView {
         string name;
+        string metadataJSON;
         string[] dependencies;
         string code;
         address owner;
@@ -52,6 +55,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     struct ModuleViewBrief {
         string name;
+        string metadataJSON;
         string[] dependencies;
         address owner;
         uint256 tokenId;
@@ -74,13 +78,13 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     struct InvocationView {
         ModuleViewBrief module;
         address owner;
-        uint256 seed;
+        string seed;
         uint256 tokenId;
     }
 
     struct InvocationModuleView {
         uint256 tokenId;
-        uint256 seed;
+        string seed;
     }
 
     mapping(string => Module) internal modules;
@@ -156,7 +160,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 module: toModuleViewBrief(
                     modules[tokenIdToInvocation[tokenId].moduleName]
                 ),
-                seed: tokenIdToInvocation[tokenId].seed,
+                seed: tokenIdToInvocation[tokenId].seed.toHexString(),
                 owner: ownerOf(tokenId),
                 tokenId: tokenId
             });
@@ -272,7 +276,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 seed: tokenIdToInvocation[
                     moduleInvocableState[m.name].invocations[i]
                 ]
-                    .seed,
+                    .seed
+                    .toHexString(),
                 tokenId: moduleInvocableState[m.name].invocations[i]
             });
         }
@@ -280,6 +285,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return
             ModuleView({
                 name: m.name,
+                metadataJSON: m.metadataJSON,
                 dependencies: m.dependencies,
                 code: m.code,
                 owner: ownerOf(moduleNameToTokenId[m.name]),
@@ -299,6 +305,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return
             ModuleViewBrief({
                 name: m.name,
+                metadataJSON: m.metadataJSON,
                 dependencies: m.dependencies,
                 owner: ownerOf(moduleNameToTokenId[m.name]),
                 tokenId: moduleNameToTokenId[m.name],
@@ -408,6 +415,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     function createModule(
         string memory name,
+        string memory metadataJSON,
         string[] memory dependencies,
         string memory code
     ) external {
@@ -431,6 +439,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
         modules[name] = Module({
             name: name,
+            metadataJSON: metadataJSON,
             dependencies: dependencies,
             code: code
         });
@@ -439,6 +448,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     function updateModule(
         string memory name,
+        string memory metadataJSON,
         string[] memory dependencies,
         string memory code
     ) external {
@@ -446,6 +456,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can update it");
 
+        modules[name].metadataJSON = metadataJSON;
         modules[name].dependencies = dependencies;
         modules[name].code = code;
     }
@@ -649,8 +660,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
         res[0] = Module({
             name: "module-invocation",
+            metadataJSON: "",
             dependencies: dependencies,
-            code: strConcat3('(f) => f("', seed.toString(), '")').encode()
+            code: strConcat3('(f) => f("', seed.toHexString(), '")').encode()
         });
 
         return getHtmlForModules(res, size);

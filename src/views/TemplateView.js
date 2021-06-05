@@ -15,7 +15,7 @@ export const TemplateView = () => {
   const scopeId = `admin-template`;
 
   return (
-    <div className="mt-3">
+    <div>
       <div className="mb-3">
         <label className="form-label">Template</label>
         <AceEditor
