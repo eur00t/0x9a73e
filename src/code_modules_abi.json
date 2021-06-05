@@ -1096,6 +1096,36 @@
       "stateMutability": "view",
       "type": "function",
       "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "dependencies",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string",
+          "name": "code",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isInvocable",
+          "type": "bool"
+        }
+      ],
+      "name": "getHtmlPreview",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "result",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
     }
   ]
 }

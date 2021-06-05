@@ -1,15 +1,16 @@
 import React from "react";
 
 import { useSupportedNetworks } from "../utils/networks";
+import { Page } from "../components/Page";
 
 export const WrongNetworkRoute = () => {
   const networks = useSupportedNetworks();
 
   return (
-    <div className="mt-3">
+    <Page>
       <p>
         This app only works with the following networks: {networks.join(", ")}.
       </p>
-    </div>
+    </Page>
   );
 };

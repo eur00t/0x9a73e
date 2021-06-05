@@ -7,6 +7,7 @@ import { displayHexString } from "../utils/displayHexString";
 import { useNetwork } from "../utils/networks";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
+import { Page } from "../components/Page";
 
 export const InvocationView = ({ tokenId }) => {
   const { getHtml, getInvocation } = useContractContext();
@@ -42,7 +43,7 @@ export const InvocationView = ({ tokenId }) => {
   const { contractAddress } = useNetwork();
 
   return (
-    <div>
+    <Page>
       <Loading isLoading={isLoading}>
         <dl>
           <dt>Module Name</dt>
@@ -78,6 +79,6 @@ export const InvocationView = ({ tokenId }) => {
           style={{ width: "100%", height: "500px", border: 0 }}
         ></iframe>
       </Loading>
-    </div>
+    </Page>
   );
 };

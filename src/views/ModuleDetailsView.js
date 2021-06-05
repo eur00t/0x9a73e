@@ -15,6 +15,7 @@ import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 import { useNetwork } from "../utils/networks";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
+import { Page } from "../components/Page";
 
 const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
@@ -160,7 +161,7 @@ const ModuleDetails = withOwner((module) => {
         ></iframe>
       ) : (
         <>
-          <h3 className="mb-3 mt-5">Recent Mints</h3>
+          <h3 className="mb-3 mt-5">Mints</h3>
           <div className="d-flex gap-2 flex-wrap">
             {[...invocations].reverse().map(({ tokenId, ...invocation }, i) => (
               <InvocationCard
@@ -221,10 +222,10 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   });
 
   return (
-    <div>
+    <Page>
       <Loading isLoading={isLoading}>
         <ModuleDetails html={html} {...module} />
       </Loading>
-    </div>
+    </Page>
   );
 };

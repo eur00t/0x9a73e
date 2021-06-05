@@ -16,27 +16,49 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 
 const ModuleEdit = withOwner(
-  ({ scopeId, module, moduleName, navigateModule, onSetModule, exists }) => {
+  ({
+    scopeId,
+    module,
+    moduleName,
+    navigateModule,
+    onSetModule,
+    onLoadPreview,
+    exists,
+  }) => {
     const nameRef = useRef();
     const depsRef = useRef();
     const codeRef = useRef();
+    const codeContainerRef = useRef();
     const descriptionRef = useRef();
+    const mintableRef = useRef();
 
-    const { dependencies, code, metadataJSON } = module;
+    const { dependencies, code, metadataJSON, isInvocable } = module;
     const { description } = useMemo(
       () => JSON.parse(metadataJSON),
       [metadataJSON]
     );
 
     useEffect(() => {
+      if (!nameRef.current) {
+        return;
+      }
+
       nameRef.current.value = moduleName;
     }, [moduleName]);
 
     useEffect(() => {
+      if (!depsRef.current) {
+        return;
+      }
+
       depsRef.current.value = JSON.stringify(dependencies);
     }, [dependencies]);
 
     useEffect(() => {
+      if (!descriptionRef.current) {
+        return;
+      }
+
       descriptionRef.current.value = description;
     }, [description]);
 
@@ -46,55 +68,106 @@ const ModuleEdit = withOwner(
       }
     }, [code]);
 
+    useEffect(() => {
+      codeRef.current.editor.container.style.height = `${codeContainerRef.current.offsetHeight}px`;
+      codeRef.current.editor.resize();
+    }, [code, exists]);
+
+    const getModuleDOM = () => ({
+      name: nameRef.current.value,
+      deps: JSON.parse(depsRef.current.value),
+      code: codeRef.current.editor.getValue(),
+      metadataJSON: JSON.stringify({
+        description: descriptionRef.current.value,
+      }),
+    });
+
     const onSetModuleDOM = () => {
-      onSetModule({
-        name: nameRef.current.value,
-        deps: JSON.parse(depsRef.current.value),
-        code: codeRef.current.editor.getValue(),
-        metadataJSON: JSON.stringify({
-          description: descriptionRef.current.value,
-        }),
-      });
+      onSetModule(getModuleDOM());
+    };
+
+    const onLoadPreviewDOM = () => {
+      onLoadPreview(
+        getModuleDOM(),
+        exists ? isInvocable : mintableRef.current.checked
+      );
     };
 
     return (
       <>
-        <div className="row">
-          <div className="col">
-            <div className="mb-3">
-              <label className="form-label">Name</label>
-              <input
-                className="form-control"
-                ref={nameRef}
-                onBlur={() => navigateModule(nameRef.current.value)}
-                type="text"
-              ></input>
+        <>
+          <div className="row">
+            <div className="col">
+              <div className="mb-3">
+                <label className="form-label">Name</label>
+                <input
+                  className="form-control"
+                  ref={nameRef}
+                  onBlur={() => navigateModule(nameRef.current.value)}
+                  type="text"
+                ></input>
+              </div>
+            </div>
+            <div className="col">
+              <div className="mb-3">
+                <label className="form-label">Deps</label>
+                <input
+                  className="form-control"
+                  ref={depsRef}
+                  type="text"
+                ></input>
+              </div>
             </div>
           </div>
-          <div className="col">
-            <div className="mb-3">
-              <label className="form-label">Deps</label>
-              <input className="form-control" ref={depsRef} type="text"></input>
-            </div>
+
+          <div>
+            <label className="form-label">Description</label>
+            <textarea ref={descriptionRef} className="form-control"></textarea>
           </div>
-        </div>
+        </>
 
-        <div className="mb-3">
-          <label className="form-label">Description</label>
-          <textarea ref={descriptionRef} className="form-control"></textarea>
-        </div>
-
-        {exists ? (
-          <Link
-            className="btn btn-outline-primary btn-sm mb-3"
-            to={`/modules/details/${moduleName}`}
+        <div className="d-flex align-items-center mt-3 mb-3">
+          {exists ? (
+            <Link
+              className="btn btn-outline-primary btn-sm me-1"
+              to={`/modules/details/${moduleName}`}
+            >
+              View
+            </Link>
+          ) : null}
+          <div
+            className="btn btn-outline-primary btn-sm"
+            onClick={onLoadPreviewDOM}
           >
-            View
-          </Link>
-        ) : null}
+            Load Preview
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Code</label>
+          {!exists ? (
+            <div className="form-check ms-3">
+              <input
+                ref={mintableRef}
+                className="form-check-input"
+                id="module-edit-mintable"
+                type="checkbox"
+                value=""
+                onChange={() => {}}
+              />
+              <label
+                className="form-check-label"
+                htmlFor="module-edit-mintable"
+              >
+                Mintable
+              </label>
+            </div>
+          ) : null}
+        </div>
+
+        <label className="form-label">Code</label>
+        <div
+          className="mb-3"
+          ref={codeContainerRef}
+          style={{ flex: "1 1 auto", overflow: "auto" }}
+        >
           <AceEditor
             ref={codeRef}
             mode="javascript"
@@ -103,6 +176,8 @@ const ModuleEdit = withOwner(
             editorProps={{ $blockScrolling: true }}
             setOptions={{
               useWorker: false,
+              tabSize: 2,
+              useSoftTabs: true,
             }}
             width="100%"
           />
@@ -137,7 +212,7 @@ const ModuleEdit = withOwner(
 );
 
 export const ModuleEditView = ({ moduleName, onModuleChange }) => {
-  const { setModule, getModule } = useContractContext();
+  const { setModule, getModule, getHtmlPreview } = useContractContext();
 
   const scopeId = `module-edit-view-${moduleName}`;
 
@@ -148,6 +223,8 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
     ...EMPTY_MODULE_DATA,
     name: moduleName,
   });
+
+  const [previewHtml, setPreviewHtml] = useState("");
 
   const retrieve = async () => {
     if (!moduleName || moduleName === "") {
@@ -196,9 +273,21 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
     }
   };
 
+  const retrievePreview = async ({ deps, code }, isInvocable) => {
+    const previewHtml = await getHtmlPreview(deps, code, isInvocable);
+    setPreviewHtml(previewHtml);
+  };
+
+  const { isLoading: isLoadingPreview, load: loadPreview } =
+    useLoading(retrievePreview);
+
   return (
-    <div>
-      <Loading isLoading={isLoading}>
+    <div style={{ flex: 1, overflow: "auto" }} className="m-1 d-flex flex-row">
+      <Loading
+        style={{ width: "634px" }}
+        isLoading={isLoading}
+        className="d-flex flex-column"
+      >
         <ModuleEdit
           {...{
             owner: moduleData.owner,
@@ -207,10 +296,25 @@ export const ModuleEditView = ({ moduleName, onModuleChange }) => {
             moduleName,
             exists,
             onSetModule,
+            onLoadPreview: loadPreview,
             navigateModule,
           }}
         />
       </Loading>
+      <div style={{ flex: "1 1 0" }} className="ms-2 d-flex flex-column">
+        <label className="form-label d-flex align-items-center">Preview</label>
+        <div style={{ flex: "1 1 0" }}>
+          <Loading
+            style={{ width: "100%", height: "100%" }}
+            isLoading={isLoadingPreview}
+          >
+            <iframe
+              srcDoc={previewHtml}
+              style={{ width: "100%", height: "100%" }}
+            ></iframe>
+          </Loading>
+        </div>
+      </div>
     </div>
   );
 };

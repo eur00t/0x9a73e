@@ -8,6 +8,7 @@ import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
 import { InvocableBadge } from "../components/InvocableBadge";
 import { InvocationCard } from "../components/InvocationCard";
+import { Page } from "../components/Page";
 
 const ModuleCard = withOwner((module) => {
   const { name, isInvocable, metadataJSON } = module;
@@ -91,7 +92,7 @@ export const ModulesView = () => {
   }, []);
 
   return (
-    <div>
+    <Page>
       <Loading isLoading={isLoading}>
         {featuredModules.length > 0 ? (
           <>
@@ -125,13 +126,10 @@ export const ModulesView = () => {
               <InvocationCard key={invocation.tokenId} {...invocation} />
             ))
           ) : (
-            <>
-              You don't own any invocations. Try to mint some from invocable
-              modules.
-            </>
+            <>You don't own any mints. Try to get some from mintable modules.</>
           )}
         </div>
       </Loading>
-    </div>
+    </Page>
   );
 };

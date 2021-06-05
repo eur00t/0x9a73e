@@ -9,7 +9,7 @@
 
   return (seed) => {
     let seedText = seed;
-    if (seed === "0") {
+    if (seed === "0x00") {
       seed = "0x992135";
       seedText = "<seed value will be shown here>";
     }

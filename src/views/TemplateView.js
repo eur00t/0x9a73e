@@ -3,6 +3,7 @@ import AceEditor from "react-ace";
 
 import { useContractContext } from "../state";
 import { TransactionButton } from "../components/TransactionButton";
+import { Page } from "../components/Page";
 
 import "ace-builds/src-noconflict/mode-html";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -15,7 +16,7 @@ export const TemplateView = () => {
   const scopeId = `admin-template`;
 
   return (
-    <div>
+    <Page>
       <div className="mb-3">
         <label className="form-label">Template</label>
         <AceEditor
@@ -40,6 +41,6 @@ export const TemplateView = () => {
           }
         />
       </div>
-    </div>
+    </Page>
   );
 };

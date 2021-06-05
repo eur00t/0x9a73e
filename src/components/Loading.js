@@ -1,5 +1,6 @@
 import React from "react";
 import { Transition } from "react-transition-group";
+import classNames from "classnames";
 
 const LoadingOverlay = ({ isLoading }) => {
   const duration = 100;
@@ -33,9 +34,9 @@ const LoadingOverlay = ({ isLoading }) => {
   );
 };
 
-export const Loading = ({ isLoading, children }) => {
+export const Loading = ({ isLoading, children, className = "", ...props }) => {
   return (
-    <div className="position-relative">
+    <div className={classNames("position-relative", className)} {...props}>
       {children}
       <LoadingOverlay isLoading={isLoading} />
     </div>

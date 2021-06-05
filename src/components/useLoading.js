@@ -3,10 +3,10 @@ import { useState } from "react";
 export const useLoading = (retreive) => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const load = async () => {
+  const load = async (...args) => {
     setIsLoading(true);
     try {
-      await retreive();
+      await retreive(...args);
     } finally {
       setIsLoading(false);
     }

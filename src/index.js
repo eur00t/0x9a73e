@@ -178,9 +178,7 @@ const App = () => {
           </NavLink>
         </div>
       </nav>
-      <div className="container pb-3 pt-3">
-        <Routes key={`${chainId}-${account}`} />
-      </div>
+      <Routes key={`${chainId}-${account}`} />
     </>
   );
 };

@@ -82,6 +82,12 @@ export const useContract = (trackTransaction) => {
     [contract]
   );
 
+  const getHtmlPreview = useCallback(
+    (deps, code, isInvocable) =>
+      contract.methods.getHtmlPreview(deps, btoa(code), isInvocable).call(),
+    [contract]
+  );
+
   const getInvocation = useCallback(
     (tokenId) => contract.methods.getInvocation(tokenId).call(),
     [contract]
@@ -163,6 +169,7 @@ export const useContract = (trackTransaction) => {
     setModule,
     setTemplate,
     getHtml,
+    getHtmlPreview,
     getInvocation,
     getModule,
     getAllModules,

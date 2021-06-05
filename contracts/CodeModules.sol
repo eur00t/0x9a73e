@@ -576,13 +576,12 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return dictToJSON(keys, values);
     }
 
-    function traverseDependencies(string memory name, uint8 leftResultPadding)
-        internal
-        view
-        returns (Module[128] memory result, uint8 size)
-    {
-        string[128] memory stack;
-        stack[0] = name;
+    function traverseDependencies(
+        Module memory entryModule,
+        uint8 leftResultPadding
+    ) internal view returns (Module[128] memory result, uint8 size) {
+        Module[128] memory stack;
+        stack[0] = entryModule;
         uint8 iStack = 1;
 
         Module[128] memory res;
@@ -590,12 +589,12 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
         while (iStack > 0) {
             iStack--;
-            Module memory m = modules[stack[iStack]];
+            Module memory m = stack[iStack];
             res[iRes] = m;
             iRes++;
 
             for (uint256 i = 0; i < m.dependencies.length; i++) {
-                stack[iStack] = m.dependencies[i];
+                stack[iStack] = modules[m.dependencies[i]];
                 iStack++;
             }
         }
@@ -626,7 +625,10 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         Module[128] memory res;
         uint8 size;
 
-        (res, size) = traverseDependencies(tokenIdToModuleName[tokenId], 0);
+        (res, size) = traverseDependencies(
+            modules[tokenIdToModuleName[tokenId]],
+            0
+        );
 
         return getHtmlForModules(res, size);
     }
@@ -645,7 +647,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         }
     }
 
-    function getSeedHtml(string memory moduleName, uint256 seed)
+    function getModuleValueHtml(Module memory m)
         internal
         view
         returns (string memory result)
@@ -653,10 +655,23 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         Module[128] memory res;
         uint8 size;
 
-        (res, size) = traverseDependencies(moduleName, 1);
+        (res, size) = traverseDependencies(m, 0);
+
+        return getHtmlForModules(res, size);
+    }
+
+    function getModuleSeedValueHtml(Module memory m, uint256 seed)
+        internal
+        view
+        returns (string memory result)
+    {
+        Module[128] memory res;
+        uint8 size;
 
         string[] memory dependencies = new string[](1);
-        dependencies[0] = moduleName;
+        dependencies[0] = m.name;
+
+        (res, size) = traverseDependencies(m, 1);
 
         res[0] = Module({
             name: "module-invocation",
@@ -666,6 +681,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         });
 
         return getHtmlForModules(res, size);
+    }
+
+    function getSeedHtml(string memory moduleName, uint256 seed)
+        internal
+        view
+        returns (string memory result)
+    {
+        return getModuleSeedValueHtml(modules[moduleName], seed);
     }
 
     function getInvocationHtml(uint256 tokenId)
@@ -693,6 +716,42 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             return getModuleHtml(tokenId);
         } else {
             revert("token does not exist");
+        }
+    }
+
+    function getHtmlPreview(
+        string[] memory dependencies,
+        string memory code,
+        bool isInvocable
+    ) external view returns (string memory result) {
+        for (uint256 i = 0; i < dependencies.length; i++) {
+            require(
+                moduleExists[dependencies[i]],
+                "all dependencies must exist"
+            );
+        }
+
+        if (!isInvocable) {
+            return
+                getModuleValueHtml(
+                    Module({
+                        name: "module-preview",
+                        metadataJSON: "",
+                        dependencies: dependencies,
+                        code: code
+                    })
+                );
+        } else {
+            return
+                getModuleSeedValueHtml(
+                    Module({
+                        name: "module-preview",
+                        metadataJSON: "",
+                        dependencies: dependencies,
+                        code: code
+                    }),
+                    0
+                );
         }
     }
 
