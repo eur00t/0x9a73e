@@ -164,17 +164,18 @@ const App = () => {
               </OnlyContractOwner>
             </ul>
           </div>
-          <div className="me-3">
+          <div>
             <NetworkIndicator />
           </div>
-          <Link
+          <NavLink
             to="/modules/edit"
-            className={classNames("btn btn-outline-primary", {
+            activeClassName="d-none"
+            className={classNames("btn btn-outline-primary ms-3", {
               disabled: appMode !== ACTIVE,
             })}
           >
             Create Module
-          </Link>
+          </NavLink>
         </div>
       </nav>
       <div className="container pb-3 pt-3">

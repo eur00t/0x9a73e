@@ -9,10 +9,12 @@ import { Loading } from "../components/Loading";
 import { TransactionButton } from "../components/TransactionButton";
 import { withOwner, OnlyOwner } from "../components/withOwner";
 import { OnlyContractOwner } from "../components/OnlyContractOwner";
-import { InvocableBadge } from "../components/InvocableBadge";
 import { InvocationCard } from "../components/InvocationCard";
 import { displayHexString } from "../utils/displayHexString";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
+import { useNetwork } from "../utils/networks";
+import { EtherscanLink } from "../components/EtherscanLink";
+import { OwnerLabel } from "../components/OwnerLabel";
 
 const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
@@ -43,6 +45,8 @@ const ModuleDetails = withOwner((module) => {
     [metadataJSON]
   );
 
+  const { contractAddress } = useNetwork();
+
   return (
     <>
       <dl>
@@ -50,10 +54,28 @@ const ModuleDetails = withOwner((module) => {
         <dd className="font-monospace">{name}</dd>
         <dt>Description</dt>
         <dd>{description}</dd>
-        <dt>Token ID</dt>
+        <dt>ERC721 Token Contract</dt>
+        <dd className="font-monospace">
+          <EtherscanLink
+            className="fs-6"
+            type="address"
+            id={displayHexString(contractAddress)}
+            showFullId
+          />
+        </dd>
+        <dt>ERC721 Token ID</dt>
         <dd className="font-monospace">{tokenId}</dd>
-        <dt>Owner</dt>
-        <dd className="font-monospace">{displayHexString(owner)}</dd>
+        <dt>
+          <OwnerLabel address={owner} />
+        </dt>
+        <dd className="font-monospace">
+          <EtherscanLink
+            className="fs-6"
+            type="address"
+            id={displayHexString(owner)}
+            showFullId
+          />
+        </dd>
         <dt>Dependencies</dt>
         <dd className="font-monospace">
           {dependencies.length > 0 ? dependencies.join(", ") : <em>none</em>}

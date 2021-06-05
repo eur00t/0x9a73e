@@ -113,7 +113,7 @@ const ModuleEdit = withOwner(
             fallback={
               <>
                 <div className="btn btn-outline-primary disabled">
-                  {exists ? "update module" : "create module"}
+                  {exists ? "Update Module" : "Create Module"}
                 </div>
                 {exists ? (
                   <small className="ms-3">
@@ -125,7 +125,7 @@ const ModuleEdit = withOwner(
           >
             <TransactionButton
               scopeId={scopeId}
-              text={exists ? "update module" : "create module"}
+              text={exists ? "Update Module" : "Create Module"}
               onClick={onSetModuleDOM}
             />
           </OnlyOwner>

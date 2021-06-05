@@ -22,6 +22,7 @@ module.exports = {
       network_id: 5777,
       chain_id: 1337,
       name: "Ganache",
+      etherscan: "https://kovan.etherscan.io/",
     },
     test: {
       host: "127.0.0.1",

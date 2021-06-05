@@ -4,6 +4,9 @@ import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { displayHexString } from "../utils/displayHexString";
+import { useNetwork } from "../utils/networks";
+import { EtherscanLink } from "../components/EtherscanLink";
+import { OwnerLabel } from "../components/OwnerLabel";
 
 export const InvocationView = ({ tokenId }) => {
   const { getHtml, getInvocation } = useContractContext();
@@ -36,17 +39,37 @@ export const InvocationView = ({ tokenId }) => {
     seed,
   } = invocation;
 
+  const { contractAddress } = useNetwork();
+
   return (
     <div>
       <Loading isLoading={isLoading}>
         <dl>
           <dt>Module Name</dt>
           <dd className="font-monospace">{moduleName}</dd>
-          <dt>Token ID</dt>
+          <dt>ERC721 Token Contract</dt>
+          <dd className="font-monospace">
+            <EtherscanLink
+              className="fs-6"
+              type="address"
+              id={displayHexString(contractAddress)}
+              showFullId
+            />
+          </dd>
+          <dt>ERC721 Token ID</dt>
           <dd className="font-monospace">{tokenId}</dd>
-          <dt>Owner</dt>
-          <dd className="font-monospace">{displayHexString(owner)}</dd>
-          <dt>seed</dt>
+          <dt>
+            <OwnerLabel address={owner} />
+          </dt>
+          <dd className="font-monospace">
+            <EtherscanLink
+              className="fs-6"
+              type="address"
+              id={displayHexString(owner)}
+              showFullId
+            />
+          </dd>
+          <dt>Seed</dt>
           <dd className="font-monospace">{displayHexString(seed)}</dd>
         </dl>
 
