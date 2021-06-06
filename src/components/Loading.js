@@ -1,36 +1,55 @@
 import React from "react";
-import { Transition } from "react-transition-group";
+import styled from "styled-components";
 import classNames from "classnames";
+import { CSSTransition } from "react-transition-group";
+
+const LoadingContainer = styled.div`
+  display: flex;
+  z-index: 999;
+  opacity: 0;
+  background: rgba(255, 255, 255, 0.5);
+
+  &.loading-enter {
+    opacity: 0;
+  }
+
+  &.loading-enter-active {
+    opacity: 1;
+    transition: opacity 150ms;
+  }
+
+  &.loading-enter-done {
+    opacity: 1;
+  }
+
+  &.loading-exit {
+    opacity: 1;
+  }
+
+  &.loading-exit-active {
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+
+  &.loading-exit-done {
+    opacity: 0;
+  }
+`;
 
 const LoadingOverlay = ({ isLoading }) => {
-  const duration = 100;
-
-  const style = {
-    background: "rgba(255, 255, 255, 0.5)",
-    transition: `opacity ${duration}ms ease-in-out`,
-    opacity: 0,
-    display: "flex",
-    zIndex: 999,
-  };
-
-  const transitionStyles = {
-    entering: { opacity: 1 },
-    entered: { opacity: 1 },
-    exiting: { opacity: 0 },
-    exited: { opacity: 0, display: "none" },
-  };
-
   return (
-    <Transition in={isLoading} timeout={duration}>
-      {(state) => (
-        <div
-          style={{ ...style, ...transitionStyles[state] }}
-          className="align-items-center justify-content-center position-absolute top-0 start-0 end-0 bottom-0"
-        >
-          <div className="spinner-border text-primary"></div>
-        </div>
-      )}
-    </Transition>
+    <CSSTransition
+      in={isLoading}
+      timeout={150}
+      appear
+      mountOnEnter
+      unmountOnExit
+      classNames="loading"
+    >
+      <LoadingContainer className="align-items-center justify-content-center position-absolute top-0 start-0 end-0 bottom-0">
+        <div className="spinner-border text-primary"></div>
+      </LoadingContainer>
+    </CSSTransition>
   );
 };
 
