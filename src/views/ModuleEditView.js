@@ -11,8 +11,10 @@ import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
 import { useAccount } from "../utils/networks";
+import { DEFAULT_MODULE_DATA } from "../utils/defaultModule";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 import Refresh from "../icons/refresh.svg";
+import { DepsControl } from "../components/DepsControl";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -86,10 +88,6 @@ const ModuleEdit = withOwner(
     );
 
     useEffect(() => {
-      depsRef.current.value = JSON.stringify(dependencies);
-    }, [dependencies]);
-
-    useEffect(() => {
       invocableOnRef.current.checked = isInvocable;
       invocableOffRef.current.checked = !isInvocable;
     }, [isInvocable]);
@@ -157,7 +155,7 @@ const ModuleEdit = withOwner(
           onChange={() => onLoadPreviewDOM()}
         />
         <label
-          className="btn btn-outline-primary"
+          className="btn btn-outline-secondary"
           htmlFor="btn-module-invocable"
         >
           Mintable
@@ -173,7 +171,7 @@ const ModuleEdit = withOwner(
           onChange={() => onLoadPreviewDOM()}
         />
         <label
-          className="btn btn-outline-primary"
+          className="btn btn-outline-secondary"
           htmlFor="btn-module-non-invocable"
         >
           Non-Mintable
@@ -184,7 +182,7 @@ const ModuleEdit = withOwner(
     return (
       <div
         style={{ flex: 1, overflow: "auto" }}
-        className="p-2 d-flex flex-row"
+        className="p-2 d-flex flex-row container"
       >
         <Loading
           style={{ width: "634px" }}
@@ -230,18 +228,17 @@ const ModuleEdit = withOwner(
             </div>
           </div>
 
-          <div className="row">
+          <div className="row align-items-center">
             <label className="col-sm-2 col-form-label col-form-label-sm">
               Deps
             </label>
             <div className="col-sm-10">
-              <input
-                className="form-control form-control-sm"
+              <DepsControl
                 ref={depsRef}
-                type="text"
-                onBlur={() => onLoadPreviewDOM()}
                 disabled={isFinalized}
-              ></input>
+                value={dependencies}
+                onChange={() => onLoadPreviewDOM()}
+              />
             </div>
           </div>
 
@@ -328,7 +325,7 @@ export const ModuleEditView = ({
   const account = useAccount();
 
   const [moduleData, setModuleData] = useState({
-    ...EMPTY_MODULE_DATA,
+    ...(isCreateMode ? DEFAULT_MODULE_DATA : EMPTY_MODULE_DATA),
     name: moduleName,
   });
 
@@ -359,7 +356,7 @@ export const ModuleEditView = ({
     setExists(false);
 
     if (!moduleName) {
-      setModuleData(EMPTY_MODULE_DATA);
+      setModuleData(isCreateMode ? DEFAULT_MODULE_DATA : EMPTY_MODULE_DATA);
     } else {
       load();
     }

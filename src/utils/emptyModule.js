@@ -1,12 +1,10 @@
 export const EMPTY_MODULE_DATA = {
   name: "",
   dependencies: [],
-  code: `() => {
-  document.write("Hello, World!")
-}
-`,
+  code: "",
   owner: "",
   metadataJSON: JSON.stringify({ description: "" }),
   isInvocable: false,
   isFinalized: false,
+  invocations: [],
 };

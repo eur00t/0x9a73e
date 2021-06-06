@@ -31,6 +31,11 @@ export const useContract = (trackTransaction) => {
     [web3, network, account]
   );
 
+  const checkIfModuleExists = useCallback(
+    (name) => contract.methods.exists(name).call(),
+    [contract]
+  );
+
   const setModule = useCallback(
     async (
       scopeId,
@@ -210,5 +215,6 @@ export const useContract = (trackTransaction) => {
     unsetFeatured,
     setInvocable,
     createInvocation,
+    checkIfModuleExists,
   };
 };
