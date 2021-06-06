@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import AceEditor from "react-ace";
+import classNames from "classnames";
 import { Link } from "react-router-dom";
 
 import { useContractContext } from "../state";
@@ -19,7 +20,12 @@ import "ace-builds/src-noconflict/theme-monokai";
 const Preview = ({ isLoadingPreview, previewHtml }) => {
   return (
     <Loading
-      style={{ width: "100%", height: "100%" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        border: "1px solid #ced4da",
+        borderRadius: "0.2rem",
+      }}
       isLoading={isLoadingPreview}
     >
       <iframe
@@ -69,44 +75,39 @@ const ModuleEdit = withOwner(
     const codeRef = useRef();
     const codeContainerRef = useRef();
     const descriptionRef = useRef();
-    const mintableRef = useRef();
+    const invocableOnRef = useRef();
+    const invocableOffRef = useRef();
 
-    const { dependencies, code, metadataJSON, isInvocable } = module;
+    const { dependencies, code, metadataJSON, isInvocable, isFinalized } =
+      module;
     const { description } = useMemo(
       () => JSON.parse(metadataJSON),
       [metadataJSON]
     );
 
     useEffect(() => {
-      if (!depsRef.current || isCreateMode) {
-        return;
-      }
-
       depsRef.current.value = JSON.stringify(dependencies);
-    }, [dependencies, isCreateMode]);
+    }, [dependencies]);
 
     useEffect(() => {
-      if (!descriptionRef.current || isCreateMode) {
-        return;
-      }
+      invocableOnRef.current.checked = isInvocable;
+      invocableOffRef.current.checked = !isInvocable;
+    }, [isInvocable]);
 
+    useEffect(() => {
       descriptionRef.current.value = description;
-    }, [description, isCreateMode]);
+    }, [description]);
 
     useEffect(() => {
-      if (!codeRef.current || isCreateMode) {
-        return;
-      }
-
       if (code !== "") {
         codeRef.current.editor.setValue(code);
       }
-    }, [code, isCreateMode]);
+    }, [code]);
 
     useEffect(() => {
       codeRef.current.editor.container.style.height = `${codeContainerRef.current.offsetHeight}px`;
       codeRef.current.editor.resize();
-    }, [isCreateMode]);
+    }, []);
 
     const getModuleDOM = () => ({
       name: nameRef.current ? nameRef.current.value : moduleName,
@@ -115,10 +116,16 @@ const ModuleEdit = withOwner(
       metadataJSON: JSON.stringify({
         description: descriptionRef.current.value,
       }),
-      isInvocable: exists ? isInvocable : mintableRef.current.checked,
+      isInvocable: invocableOnRef.current.checked,
     });
 
     const onSetModuleDOM = () => {
+      const module = getModuleDOM();
+
+      if (module.name === "" || (exists && isCreateMode)) {
+        return;
+      }
+
       onSetModule(getModuleDOM());
     };
 
@@ -134,64 +141,112 @@ const ModuleEdit = withOwner(
       }
     }, [exists]);
 
+    const isInvocableSelect = (
+      <div
+        className="btn-group btn-group-sm ms-auto"
+        style={{ whiteSpace: "nowrap" }}
+      >
+        <input
+          ref={invocableOnRef}
+          type="radio"
+          className="btn-check"
+          name="btn-module-is-invocable"
+          id="btn-module-invocable"
+          autoComplete="off"
+          disabled={isFinalized}
+          onChange={() => onLoadPreviewDOM()}
+        />
+        <label
+          className="btn btn-outline-primary"
+          htmlFor="btn-module-invocable"
+        >
+          Mintable
+        </label>
+        <input
+          ref={invocableOffRef}
+          type="radio"
+          className="btn-check"
+          name="btn-module-is-invocable"
+          id="btn-module-non-invocable"
+          autoComplete="off"
+          disabled={isFinalized}
+          onChange={() => onLoadPreviewDOM()}
+        />
+        <label
+          className="btn btn-outline-primary"
+          htmlFor="btn-module-non-invocable"
+        >
+          Non-Mintable
+        </label>
+      </div>
+    );
+
     return (
       <div
         style={{ flex: 1, overflow: "auto" }}
-        className="p-1 d-flex flex-row"
+        className="p-2 d-flex flex-row"
       >
         <Loading
           style={{ width: "634px" }}
           isLoading={isLoading}
           className="d-flex flex-column"
         >
-          <div className="d-flex align-items-top">
-            <div style={{ flex: "1 1 0" }}>
-              {isCreateMode ? (
-                <div className="row mb-2">
-                  <label className="col-sm-2 col-form-label col-form-label-sm">
-                    Name
-                  </label>
-                  <div className="col-sm-10">
-                    <input
-                      className="form-control form-control-sm"
-                      ref={nameRef}
-                      onBlur={() => changeModuleName(nameRef.current.value)}
-                      type="text"
-                    ></input>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="row mb-2">
-                <label className="col-sm-2 col-form-label col-form-label-sm">
-                  Description
-                </label>
-                <div className="col-sm-10">
-                  <textarea
-                    ref={descriptionRef}
-                    className="form-control form-control-sm"
-                    style={{ resize: "none" }}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="row">
-                <label className="col-sm-2 col-form-label col-form-label-sm">
-                  Deps
-                </label>
-                <div className="col-sm-10">
+          <div className="row mb-2">
+            <label className="col-sm-2 col-form-label col-form-label-sm">
+              Name
+            </label>
+            <div className="col-sm-10">
+              <div className="d-flex align-items-center">
+                {isCreateMode ? (
                   <input
-                    className="form-control form-control-sm"
-                    ref={depsRef}
+                    className={classNames("form-control form-control-sm me-2", {
+                      "is-invalid": exists,
+                    })}
+                    ref={nameRef}
+                    onBlur={() => changeModuleName(nameRef.current.value)}
                     type="text"
+                    disabled={isFinalized}
                   ></input>
-                </div>
+                ) : (
+                  <strong className="fs-6">{moduleName}</strong>
+                )}
+
+                {isInvocableSelect}
               </div>
             </div>
           </div>
 
+          <div className="row mb-2">
+            <label className="col-sm-2 col-form-label col-form-label-sm">
+              Description
+            </label>
+            <div className="col-sm-10">
+              <textarea
+                ref={descriptionRef}
+                className="form-control form-control-sm"
+                style={{ resize: "none" }}
+                disabled={isFinalized}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="row">
+            <label className="col-sm-2 col-form-label col-form-label-sm">
+              Deps
+            </label>
+            <div className="col-sm-10">
+              <input
+                className="form-control form-control-sm"
+                ref={depsRef}
+                type="text"
+                onBlur={() => onLoadPreviewDOM()}
+                disabled={isFinalized}
+              ></input>
+            </div>
+          </div>
+
           <div
-            className="mb-3 mt-3"
+            className="mb-2 mt-2"
             ref={codeContainerRef}
             style={{ flex: "1 1 auto", overflow: "auto" }}
           >
@@ -201,72 +256,52 @@ const ModuleEdit = withOwner(
               theme="monokai"
               name="UNIQUE_ID_OF_DIV"
               editorProps={{ $blockScrolling: true }}
+              debounceChangePeriod={1000}
+              onChange={() => onLoadPreviewDOM()}
               setOptions={{
                 useWorker: false,
                 tabSize: 2,
                 useSoftTabs: true,
+                showPrintMargin: false,
               }}
               width="100%"
+              readOnly={isFinalized}
             />
           </div>
 
-          <div className="mb-3">
-            <OnlyOwner
-              fallback={
-                <>
-                  <div className="btn btn-outline-primary disabled">
-                    {exists ? "Update Module" : "Create Module"}
-                  </div>
-                  {exists ? (
-                    <small className="ms-3">
-                      Only owners can update their modules.
-                    </small>
-                  ) : null}
-                </>
-              }
-            >
-              <TransactionButton
-                scopeId={scopeId}
-                text={exists ? "Update Module" : "Create Module"}
-                onClick={onSetModuleDOM}
-              />
+          <div className="d-flex">
+            <OnlyOwner>
+              {(isOwner) => {
+                return (
+                  <TransactionButton
+                    scopeId={scopeId}
+                    text={exists ? "Update Module" : "Create Module"}
+                    onClick={onSetModuleDOM}
+                    disabled={isFinalized || !isOwner}
+                  />
+                );
+              }}
             </OnlyOwner>
           </div>
         </Loading>
         <div style={{ flex: "1 1 0" }} className="ms-2 d-flex flex-column">
-          <label className="d-flex align-items-center">
-            <div className="btn me-2" onClick={onLoadPreviewDOM}>
+          <div className="d-flex align-items-center mb-2 ms-auto">
+            <div
+              className="btn btn-outline-primary btn-sm"
+              onClick={onLoadPreviewDOM}
+            >
               <Refresh />
             </div>
 
             {exists ? (
               <Link
-                className="btn btn-outline-primary btn-sm me-2"
+                className="btn btn-outline-primary btn-sm ms-2"
                 to={`/modules/details/${moduleName}`}
               >
                 View
               </Link>
             ) : null}
-
-            {!exists ? (
-              <div className="form-check ms-3">
-                <input
-                  ref={mintableRef}
-                  className="form-check-input"
-                  id="module-edit-mintable"
-                  type="checkbox"
-                  value=""
-                  onChange={() => {}}
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="module-edit-mintable"
-                >
-                  Mintable
-                </label>
-              </div>
-            ) : null}
-          </label>
+          </div>
           <div style={{ flex: "1 1 0" }}>{preview}</div>
         </div>
       </div>
@@ -277,13 +312,13 @@ const ModuleEdit = withOwner(
 
 export const ModuleEditView = ({
   isCreateMode,
+  onCreateDone,
   moduleName: moduleNameRoute,
 }) => {
-  const { setModule, getModule, getHtmlPreview } = useContractContext();
-
-  const scopeId = `module-edit-view-${!isCreateMode ? moduleName : "create"}`;
+  const { setModule, getModule } = useContractContext();
 
   const [moduleName, setModuleName] = useState(moduleNameRoute);
+  const scopeId = `module-edit-view-${moduleName}`;
 
   useEffect(() => {
     setModuleName(moduleNameRoute);
@@ -304,7 +339,9 @@ export const ModuleEditView = ({
 
     try {
       const module = await getModule(moduleName);
-      setModuleData(module);
+      if (!isCreateMode) {
+        setModuleData(module);
+      }
       setExists(true);
     } catch {
       setExists(false);
@@ -329,6 +366,11 @@ export const ModuleEditView = ({
   }, [moduleName]);
 
   useTransactionsPendingChange(scopeId, (isPending) => {
+    if (isPending === false && isCreateMode) {
+      onCreateDone(moduleName);
+      return;
+    }
+
     if (isPending === false) {
       load();
     }

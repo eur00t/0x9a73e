@@ -10,15 +10,16 @@ export const TransactionButton = ({
   onClick,
   className,
   btnClassName = "btn-outline-primary",
+  disabled,
 }) => {
   const { isPending } = useTransactionsScope(scopeId);
 
   return (
     <div className={classNames("d-flex align-items-start", className)}>
       <button
-        onClick={!isPending ? onClick : null}
+        onClick={!isPending && !disabled ? onClick : null}
         className={classNames("btn", btnClassName, {
-          disabled: isPending,
+          disabled: disabled || isPending,
         })}
       >
         {isPending ? (

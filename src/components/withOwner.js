@@ -10,7 +10,11 @@ export const OnlyOwner = ({ children, fallback = null }) => {
   const owner = useOwner();
   const account = useAccount();
 
-  return owner === account ? children : fallback;
+  if (typeof children === "function") {
+    return children(owner === account);
+  } else {
+    return owner === account ? children : fallback;
+  }
 };
 
 export const withOwner = (Component, displayName) => {
