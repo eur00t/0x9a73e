@@ -30,6 +30,7 @@ const ModuleDetails = withOwner((module) => {
     tokenId,
     isFeatured,
     isInvocable,
+    isFinalized,
     invocationsMax,
     invocations,
   } = module;
@@ -92,7 +93,7 @@ const ModuleDetails = withOwner((module) => {
         </Link>
       </OnlyOwner>
 
-      {!isInvocable ? (
+      {isInvocable && !isFinalized ? (
         <OnlyOwner>
           <div className="d-flex align-items-start mb-3">
             <input
@@ -119,7 +120,7 @@ const ModuleDetails = withOwner((module) => {
         </OnlyOwner>
       ) : null}
 
-      {isInvocable ? (
+      {isInvocable && isFinalized ? (
         parseInt(invocationsMax, 10) === invocations.length ? (
           <div className="mb-3">
             <div className="btn btn-outline-primary btn-lg disabled">

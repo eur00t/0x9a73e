@@ -5,4 +5,5 @@ export const EMPTY_MODULE_DATA = {
   owner: "",
   metadataJSON: JSON.stringify({ description: "" }),
   isInvocable: false,
+  isFinalized: false,
 };

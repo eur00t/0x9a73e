@@ -1,4 +1,5 @@
 `Applies basic styling to prepare the page for full-sized <canvas> element.`;
+false;
 [];
 () => {
   const css = `html,

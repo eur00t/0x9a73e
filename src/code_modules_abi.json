@@ -542,6 +542,11 @@
                   "type": "bool"
                 },
                 {
+                  "internalType": "bool",
+                  "name": "isFinalized",
+                  "type": "bool"
+                },
+                {
                   "internalType": "uint256",
                   "name": "invocationsNum",
                   "type": "uint256"
@@ -646,6 +651,11 @@
             {
               "internalType": "bool",
               "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isFinalized",
               "type": "bool"
             },
             {
@@ -785,6 +795,11 @@
               "type": "bool"
             },
             {
+              "internalType": "bool",
+              "name": "isFinalized",
+              "type": "bool"
+            },
+            {
               "components": [
                 {
                   "internalType": "uint256",
@@ -858,6 +873,11 @@
               "type": "bool"
             },
             {
+              "internalType": "bool",
+              "name": "isFinalized",
+              "type": "bool"
+            },
+            {
               "internalType": "uint256",
               "name": "invocationsNum",
               "type": "uint256"
@@ -916,6 +936,11 @@
             {
               "internalType": "bool",
               "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isFinalized",
               "type": "bool"
             },
             {
@@ -982,6 +1007,11 @@
                   "type": "bool"
                 },
                 {
+                  "internalType": "bool",
+                  "name": "isFinalized",
+                  "type": "bool"
+                },
+                {
                   "internalType": "uint256",
                   "name": "invocationsNum",
                   "type": "uint256"
@@ -1042,6 +1072,11 @@
           "internalType": "string",
           "name": "code",
           "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isInvocable",
+          "type": "bool"
         }
       ],
       "name": "createModule",
@@ -1070,6 +1105,11 @@
           "internalType": "string",
           "name": "code",
           "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isInvocable",
+          "type": "bool"
         }
       ],
       "name": "updateModule",

@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Base64.sol";
+import "./definitions.sol";
+import "./CodeModulesRendering.sol";
 
 contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
@@ -33,13 +35,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return super.supportsInterface(interfaceId);
     }
 
-    struct Module {
-        string name;
-        string metadataJSON;
-        string[] dependencies;
-        string code;
-    }
-
     struct ModuleView {
         string name;
         string metadataJSON;
@@ -49,6 +44,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         uint256 tokenId;
         bool isFeatured;
         bool isInvocable;
+        bool isFinalized;
         InvocationModuleView[] invocations;
         uint256 invocationsMax;
     }
@@ -61,6 +57,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         uint256 tokenId;
         bool isFeatured;
         bool isInvocable;
+        bool isFinalized;
         uint256 invocationsNum;
         uint256 invocationsMax;
     }
@@ -90,7 +87,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     mapping(string => Module) internal modules;
     mapping(string => bool) internal moduleExists;
 
-    mapping(string => bool) internal moduleInvocable;
+    mapping(string => bool) internal moduleFinalized;
     mapping(string => InvocableState) internal moduleInvocableState;
 
     mapping(uint256 => Invocation) internal tokenIdToInvocation;
@@ -109,10 +106,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     function setInvocable(string memory name, uint256 invocationsMax) external {
         require(moduleExists[name], "module must exist");
+        require(!moduleFinalized[name], "modules is finalized");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can change it");
 
-        moduleInvocable[name] = true;
+        moduleFinalized[name] = true;
         moduleInvocableState[name].invocationsMax = invocationsMax;
     }
 
@@ -121,7 +119,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         returns (uint256)
     {
         require(moduleExists[moduleName], "module must exist");
-        require(moduleInvocable[moduleName], "module must be invocable");
+        require(modules[moduleName].isInvocable, "module must be invocable");
+        require(moduleFinalized[moduleName], "module must be finalized");
         require(
             moduleInvocableState[moduleName].invocations.length <
                 moduleInvocableState[moduleName].invocationsMax,
@@ -291,7 +290,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 owner: ownerOf(moduleNameToTokenId[m.name]),
                 tokenId: moduleNameToTokenId[m.name],
                 isFeatured: (featuredState[m.name] == 1) ? true : false,
-                isInvocable: moduleInvocable[m.name],
+                isInvocable: m.isInvocable,
+                isFinalized: moduleFinalized[m.name],
                 invocations: invocations,
                 invocationsMax: moduleInvocableState[m.name].invocationsMax
             });
@@ -310,7 +310,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 owner: ownerOf(moduleNameToTokenId[m.name]),
                 tokenId: moduleNameToTokenId[m.name],
                 isFeatured: (featuredState[m.name] == 1) ? true : false,
-                isInvocable: moduleInvocable[m.name],
+                isInvocable: m.isInvocable,
+                isFinalized: moduleFinalized[m.name],
                 invocationsNum: moduleInvocableState[m.name].invocations.length,
                 invocationsMax: moduleInvocableState[m.name].invocationsMax
             });
@@ -417,7 +418,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string memory name,
         string memory metadataJSON,
         string[] memory dependencies,
-        string memory code
+        string memory code,
+        bool isInvocable
     ) external {
         require(bytes(name).length > 0, "module name must not be empty");
         for (uint256 i = 0; i < dependencies.length; i++) {
@@ -441,7 +443,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             name: name,
             metadataJSON: metadataJSON,
             dependencies: dependencies,
-            code: code
+            code: code,
+            isInvocable: isInvocable
         });
         moduleExists[name] = true;
     }
@@ -450,7 +453,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string memory name,
         string memory metadataJSON,
         string[] memory dependencies,
-        string memory code
+        string memory code,
+        bool isInvocable
     ) external {
         require(moduleExists[name], "module must exist");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
@@ -459,250 +463,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         modules[name].metadataJSON = metadataJSON;
         modules[name].dependencies = dependencies;
         modules[name].code = code;
-    }
-
-    function strConcat(string memory _a, string memory _b)
-        internal
-        pure
-        returns (string memory result)
-    {
-        result = string(abi.encodePacked(bytes(_a), bytes(_b)));
-    }
-
-    function strConcat3(
-        string memory s1,
-        string memory s2,
-        string memory s3
-    ) internal pure returns (string memory result) {
-        result = string(abi.encodePacked(bytes(s1), bytes(s2), bytes(s3)));
-    }
-
-    function strConcat4(
-        string memory s1,
-        string memory s2,
-        string memory s3,
-        string memory s4
-    ) internal pure returns (string memory result) {
-        result = string(
-            abi.encodePacked(bytes(s1), bytes(s2), bytes(s3), bytes(s4))
-        );
-    }
-
-    function strConcatArr(string[] memory arr)
-        internal
-        pure
-        returns (string memory result)
-    {
-        for (uint256 i = 0; i < arr.length; i++) {
-            result = strConcat(result, arr[i]);
-        }
-    }
-
-    function join(string[] memory arr, string memory sep)
-        internal
-        pure
-        returns (string memory result)
-    {
-        if (arr.length == 0) {
-            return "";
-        }
-
-        for (uint256 i = 0; i < arr.length - 1; i++) {
-            result = strConcat3(result, arr[i], sep);
-        }
-
-        result = strConcat(result, arr[arr.length - 1]);
-    }
-
-    function stringToJSON(string memory str)
-        internal
-        pure
-        returns (string memory result)
-    {
-        return strConcat3('"', str, '"');
-    }
-
-    function dictToJSON(string[] memory keys, string[] memory values)
-        internal
-        pure
-        returns (string memory result)
-    {
-        assert(keys.length == values.length);
-
-        string[] memory arr = new string[](keys.length);
-
-        for (uint256 i = 0; i < keys.length; i++) {
-            arr[i] = strConcat3(stringToJSON(keys[i]), ": ", values[i]);
-        }
-
-        return strConcat3("{", join(arr, ", "), "}");
-    }
-
-    function arrToJSON(string[] memory arr)
-        internal
-        pure
-        returns (string memory result)
-    {
-        return strConcat3("[", join(arr, ", "), "]");
-    }
-
-    function strArrToJSON(string[] memory arr)
-        internal
-        pure
-        returns (string memory result)
-    {
-        if (arr.length == 0) {
-            return "[]";
-        }
-
-        return strConcat3('["', join(arr, '", "'), '"]');
-    }
-
-    function moduleToJSON(Module memory m)
-        internal
-        pure
-        returns (string memory result)
-    {
-        string[] memory keys = new string[](3);
-        keys[0] = "name";
-        keys[1] = "code";
-        keys[2] = "dependencies";
-
-        string[] memory values = new string[](3);
-        values[0] = stringToJSON(m.name);
-        values[1] = stringToJSON(m.code);
-        values[2] = strArrToJSON(m.dependencies);
-
-        return dictToJSON(keys, values);
-    }
-
-    function traverseDependencies(
-        Module memory entryModule,
-        uint8 leftResultPadding
-    ) internal view returns (Module[128] memory result, uint8 size) {
-        Module[128] memory stack;
-        stack[0] = entryModule;
-        uint8 iStack = 1;
-
-        Module[128] memory res;
-        uint8 iRes = leftResultPadding;
-
-        while (iStack > 0) {
-            iStack--;
-            Module memory m = stack[iStack];
-            res[iRes] = m;
-            iRes++;
-
-            for (uint256 i = 0; i < m.dependencies.length; i++) {
-                stack[iStack] = modules[m.dependencies[i]];
-                iStack++;
-            }
-        }
-
-        return (res, iRes);
-    }
-
-    function getHtmlForModules(Module[128] memory traversedModules, uint8 size)
-        internal
-        view
-        returns (string memory result)
-    {
-        string[] memory arr = new string[](size);
-        for (uint256 i = 0; i < size; i++) {
-            arr[i] = moduleToJSON(traversedModules[i]);
-        }
-
-        string memory modulesJSON = arrToJSON(arr);
-
-        return strConcat3(templateBefore, modulesJSON, templateAfter);
-    }
-
-    function getModuleNonInvocableHtml(uint256 tokenId)
-        internal
-        view
-        returns (string memory result)
-    {
-        Module[128] memory res;
-        uint8 size;
-
-        (res, size) = traverseDependencies(
-            modules[tokenIdToModuleName[tokenId]],
-            0
-        );
-
-        return getHtmlForModules(res, size);
-    }
-
-    function getModuleHtml(uint256 tokenId)
-        internal
-        view
-        returns (string memory result)
-    {
-        require(tokenIsModule(tokenId), "token must be a module");
-
-        if (moduleInvocable[tokenIdToModuleName[tokenId]]) {
-            return getSeedHtml(tokenIdToModuleName[tokenId], 0);
-        } else {
-            return getModuleNonInvocableHtml(tokenId);
-        }
-    }
-
-    function getModuleValueHtml(Module memory m)
-        internal
-        view
-        returns (string memory result)
-    {
-        Module[128] memory res;
-        uint8 size;
-
-        (res, size) = traverseDependencies(m, 0);
-
-        return getHtmlForModules(res, size);
-    }
-
-    function getModuleSeedValueHtml(Module memory m, uint256 seed)
-        internal
-        view
-        returns (string memory result)
-    {
-        Module[128] memory res;
-        uint8 size;
-
-        string[] memory dependencies = new string[](1);
-        dependencies[0] = m.name;
-
-        (res, size) = traverseDependencies(m, 1);
-
-        res[0] = Module({
-            name: "module-invocation",
-            metadataJSON: "",
-            dependencies: dependencies,
-            code: strConcat3('(f) => f("', seed.toHexString(), '")').encode()
-        });
-
-        return getHtmlForModules(res, size);
-    }
-
-    function getSeedHtml(string memory moduleName, uint256 seed)
-        internal
-        view
-        returns (string memory result)
-    {
-        return getModuleSeedValueHtml(modules[moduleName], seed);
-    }
-
-    function getInvocationHtml(uint256 tokenId)
-        internal
-        view
-        returns (string memory result)
-    {
-        require(tokenIsInvocation(tokenId), "token must be an invocation");
-
-        return
-            getSeedHtml(
-                tokenIdToInvocation[tokenId].moduleName,
-                tokenIdToInvocation[tokenId].seed
-            );
+        modules[name].isInvocable = isInvocable;
     }
 
     function getHtml(uint256 tokenId)
@@ -710,13 +471,37 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (string memory result)
     {
+        string memory modulesJSON;
+
         if (tokenIsInvocation(tokenId)) {
-            return getInvocationHtml(tokenId);
+            modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
+                modules,
+                modules[tokenIdToInvocation[tokenId].moduleName],
+                tokenIdToInvocation[tokenId].seed
+            );
         } else if (tokenIsModule(tokenId)) {
-            return getModuleHtml(tokenId);
+            if (modules[tokenIdToModuleName[tokenId]].isInvocable) {
+                modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
+                    modules,
+                    modules[tokenIdToModuleName[tokenId]],
+                    0
+                );
+            } else {
+                modulesJSON = CodeModulesRendering.getModuleValueJSON(
+                    modules,
+                    modules[tokenIdToModuleName[tokenId]]
+                );
+            }
         } else {
             revert("token does not exist");
         }
+
+        return
+            CodeModulesRendering.strConcat3(
+                templateBefore,
+                modulesJSON,
+                templateAfter
+            );
     }
 
     function getHtmlPreview(
@@ -731,28 +516,39 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             );
         }
 
+        string memory modulesJSON;
+
         if (!isInvocable) {
-            return
-                getModuleValueHtml(
-                    Module({
-                        name: "module-preview",
-                        metadataJSON: "",
-                        dependencies: dependencies,
-                        code: code
-                    })
-                );
+            modulesJSON = CodeModulesRendering.getModuleValueJSON(
+                modules,
+                Module({
+                    name: "module-preview",
+                    metadataJSON: "",
+                    dependencies: dependencies,
+                    code: code,
+                    isInvocable: false
+                })
+            );
         } else {
-            return
-                getModuleSeedValueHtml(
-                    Module({
-                        name: "module-preview",
-                        metadataJSON: "",
-                        dependencies: dependencies,
-                        code: code
-                    }),
-                    0
-                );
+            modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
+                modules,
+                Module({
+                    name: "module-preview",
+                    metadataJSON: "",
+                    dependencies: dependencies,
+                    code: code,
+                    isInvocable: true
+                }),
+                0
+            );
         }
+
+        return
+            CodeModulesRendering.strConcat3(
+                templateBefore,
+                modulesJSON,
+                templateAfter
+            );
     }
 
     constructor() ERC721("CodeModules", "CDM") {}

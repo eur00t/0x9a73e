@@ -1,4 +1,5 @@
 `A demo of gravitation springs in p5.js`;
+true;
 ["load-script", "get-seed-color-hsl", "reset-css-canvas"];
 (loadScript, getSeedColorHSL) => {
   return async (seed) => {

@@ -5,10 +5,15 @@ export const InvocableBadge = ({
   invocations,
   invocationsNum,
   invocationsMax,
+  isFinalized,
 }) => {
   const invocationsLeftNum =
     invocationsMax -
     (invocationsNum ? parseInt(invocationsNum, 10) : invocations.length);
+
+  if (!isFinalized) {
+    return null;
+  }
 
   return (
     <>

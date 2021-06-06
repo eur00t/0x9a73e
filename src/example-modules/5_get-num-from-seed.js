@@ -1,4 +1,5 @@
 `Extract an int number from a given seed.`;
+false;
 [];
 () => {
   const get256Num = (seed, pos, digits, div) => {

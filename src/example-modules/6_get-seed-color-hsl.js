@@ -1,4 +1,5 @@
 `Compute a HSL color based on a given seed.`;
+false;
 ["get-num-from-seed"];
 (get256Num) => {
   return (seed) => {

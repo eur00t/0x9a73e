@@ -1,4 +1,5 @@
 `Loads given URL as a <script>. Returns a promise, which resolves when the script is ready.`;
+false;
 [];
 () => {
   return (scriptSrc) => {

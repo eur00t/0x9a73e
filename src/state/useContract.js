@@ -32,7 +32,10 @@ export const useContract = (trackTransaction) => {
   );
 
   const setModule = useCallback(
-    async (scopeId, { name, deps, code, metadataJSON }) => {
+    async (
+      scopeId,
+      { name, dependencies, code, metadataJSON, isInvocable }
+    ) => {
       try {
         setProgress(true);
 
@@ -41,14 +44,26 @@ export const useContract = (trackTransaction) => {
           await trackTransaction(
             scopeId,
             contract.methods
-              .updateModule(name, metadataJSON, deps, btoa(code))
+              .updateModule(
+                name,
+                metadataJSON,
+                dependencies,
+                btoa(code),
+                isInvocable
+              )
               .send()
           );
         } else {
           await trackTransaction(
             scopeId,
             contract.methods
-              .createModule(name, metadataJSON, deps, btoa(code))
+              .createModule(
+                name,
+                metadataJSON,
+                dependencies,
+                btoa(code),
+                isInvocable
+              )
               .send()
           );
         }
@@ -83,8 +98,23 @@ export const useContract = (trackTransaction) => {
   );
 
   const getHtmlPreview = useCallback(
-    (deps, code, isInvocable) =>
-      contract.methods.getHtmlPreview(deps, btoa(code), isInvocable).call(),
+    (dependencies, code, isInvocable) => {
+      let moduleConstructor;
+
+      try {
+        moduleConstructor = eval(code);
+      } catch (e) {
+        return "";
+      }
+
+      if (typeof moduleConstructor !== "function") {
+        return "";
+      }
+
+      return contract.methods
+        .getHtmlPreview(dependencies, btoa(code), isInvocable)
+        .call();
+    },
     [contract]
   );
 

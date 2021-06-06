@@ -65,8 +65,12 @@ const Routes = () => {
             <ModuleDetailsRoute />
           </Route>
 
-          <Route path={["/modules/edit/:moduleName", "/modules/edit"]} exact>
+          <Route path={["/modules/edit/:moduleName"]} exact>
             <ModuleEditRoute />
+          </Route>
+
+          <Route path={["/modules/create"]} exact>
+            <ModuleEditRoute isCreateMode />
           </Route>
 
           <Route path="/admin/template" exact>
@@ -168,7 +172,7 @@ const App = () => {
             <NetworkIndicator />
           </div>
           <NavLink
-            to="/modules/edit"
+            to="/modules/create"
             activeClassName="d-none"
             className={classNames("btn btn-outline-primary ms-3", {
               disabled: appMode !== ACTIVE,

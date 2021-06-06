@@ -1,4 +1,5 @@
 `p5.js usage example #2.`;
+false;
 ["load-script", "reset-css-canvas"];
 async (loadScript) => {
   await loadScript("https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js");

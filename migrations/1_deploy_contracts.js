@@ -5,6 +5,7 @@ const path = require("path");
 const truffleConfig = require("../truffle-config");
 
 const CodeModules = artifacts.require("CodeModules");
+const CodeModulesRendering = artifacts.require("CodeModulesRendering");
 
 const setTemplate = async (instance) => {
   const template = fs.readFileSync(
@@ -26,15 +27,16 @@ const uploadExampleModules = async (instance) => {
       path.resolve(`${__dirname}/../src/example-modules/${fileName}`),
       "utf8"
     );
-    const [, description, depsStr, code] = content.match(
-      /^(.*);\n(.*);\n([\s\S]*)/m
+    const [, description, isInvocable, depsStr, code] = content.match(
+      /^(.*);\n(.*);\n(.*);\n([\s\S]*)/m
     );
 
     await instance.createModule(
       moduleName,
       JSON.stringify({ description: description.slice(1, -1) }),
       JSON.parse(depsStr),
-      Buffer.from(code).toString("base64")
+      Buffer.from(code).toString("base64"),
+      JSON.parse(isInvocable)
     );
   }
 };
@@ -82,7 +84,10 @@ const appendNetwork = (
 };
 
 module.exports = async (deployer, networkEnvName, [contractOwner]) => {
+  await deployer.deploy(CodeModulesRendering);
+  await deployer.link(CodeModulesRendering, CodeModules);
   await deployer.deploy(CodeModules);
+
   const instance = await CodeModules.deployed();
 
   const skipBootstrap =

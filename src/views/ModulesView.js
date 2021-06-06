@@ -114,7 +114,7 @@ export const ModulesView = () => {
           ) : (
             <>
               You don't own any modules. Try to
-              <Link to="/modules/edit">create</Link>one
+              <Link to="/modules/create">create</Link>one
             </>
           )}
         </div>

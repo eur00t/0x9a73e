@@ -1,4 +1,5 @@
 `Invocable module which displays a given seed for each invocation.`;
+true;
 [];
 () => {
   const get256Num = (seed, pos, div) => {
