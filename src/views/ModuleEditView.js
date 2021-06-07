@@ -1,6 +1,13 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useCallback,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import AceEditor from "react-ace";
 import classNames from "classnames";
+import debounce from "debounce";
 import { Link } from "react-router-dom";
 
 import { useContractContext } from "../state";
@@ -43,10 +50,13 @@ const usePreview = () => {
 
   const [previewHtml, setPreviewHtml] = useState("");
 
-  const retrievePreview = async ({ dependencies, code, isInvocable }) => {
-    const previewHtml = await getHtmlPreview(dependencies, code, isInvocable);
-    setPreviewHtml(previewHtml);
-  };
+  const retrievePreview = useCallback(
+    async ({ dependencies, code, isInvocable }) => {
+      const previewHtml = await getHtmlPreview(dependencies, code, isInvocable);
+      setPreviewHtml(previewHtml);
+    },
+    [getHtmlPreview, setPreviewHtml]
+  );
 
   const { isLoading: isLoadingPreview, load: loadPreview } =
     useLoading(retrievePreview);
@@ -59,6 +69,43 @@ const usePreview = () => {
     preview,
     loadPreview,
   };
+};
+
+const validateModuleDOM = (module, isCreateMode, exists) => {
+  const { name, dependenciesRaw, code } = module;
+
+  const errors = [];
+
+  if (!name || name === "") {
+    errors.push("The name must not be empty");
+  } else {
+    if (exists && isCreateMode) {
+      errors.push(`Module with the name "${name}" already exists`);
+    }
+  }
+
+  const wrongDependencies = dependenciesRaw.filter(({ exists }) => !exists);
+  if (wrongDependencies.length > 0) {
+    errors.push(
+      `The following dependencies do not exist: ${wrongDependencies
+        .map(({ moduleName }) => moduleName)
+        .join(", ")}`
+    );
+  }
+
+  let moduleConstructor;
+
+  try {
+    moduleConstructor = eval(code);
+
+    if (typeof moduleConstructor !== "function") {
+      errors.push(`Code must eval to a single constructor function`);
+    }
+  } catch (e) {
+    errors.push(`Can't parse code: ${e.message}`);
+  }
+
+  return errors;
 };
 
 const ModuleEdit = withOwner(
@@ -98,46 +145,119 @@ const ModuleEdit = withOwner(
 
     useEffect(() => {
       if (code !== "") {
+        codeRef.current.editor.programmaticUpdate = true;
         codeRef.current.editor.setValue(code);
+        codeRef.current.editor.programmaticUpdate = false;
       }
     }, [code]);
 
-    useEffect(() => {
+    const recalcEditorSize = () => {
       codeRef.current.editor.container.style.height = `${codeContainerRef.current.offsetHeight}px`;
       codeRef.current.editor.resize();
+    };
+
+    useEffect(() => {
+      recalcEditorSize();
     }, []);
 
-    const getModuleDOM = () => ({
-      name: nameRef.current ? nameRef.current.value : moduleName,
-      dependencies: JSON.parse(depsRef.current.value),
-      code: codeRef.current.editor.getValue(),
-      metadataJSON: JSON.stringify({
-        description: descriptionRef.current.value,
+    const getModuleDOM = useCallback(
+      () => ({
+        name: nameRef.current ? nameRef.current.value : moduleName,
+        dependenciesRaw: JSON.parse(depsRef.current.value),
+        dependencies: JSON.parse(depsRef.current.value).map(
+          ({ moduleName }) => moduleName
+        ),
+        code: codeRef.current.editor.getValue(),
+        metadataJSON: JSON.stringify({
+          description: descriptionRef.current.value,
+        }),
+        isInvocable: invocableOnRef.current.checked,
       }),
-      isInvocable: invocableOnRef.current.checked,
-    });
+      [moduleName, nameRef, depsRef, codeRef, descriptionRef, invocableOnRef]
+    );
 
-    const onSetModuleDOM = () => {
+    const [showErrors, setShowErrors] = useState(false);
+    const [validationErrors, setValidationsErrors] = useState([]);
+
+    useEffect(() => {
+      recalcEditorSize();
+    }, [validationErrors.length]);
+
+    const recalcValidation = () => {
+      if (showErrors) {
+        setValidationsErrors(
+          validateModuleDOM(getModuleDOM(), isCreateMode, exists)
+        );
+      }
+    };
+
+    useEffect(() => {
+      recalcValidation();
+    }, [showErrors, isCreateMode, exists]);
+
+    const onSetModuleDOM = useCallback(() => {
       const module = getModuleDOM();
+      const errors = validateModuleDOM(module, isCreateMode, exists);
 
-      if (module.name === "" || (exists && isCreateMode)) {
+      if (errors.length > 0) {
+        setValidationsErrors(errors);
+        setShowErrors(true);
         return;
       }
 
-      onSetModule(getModuleDOM());
-    };
+      onSetModule(module);
+    }, [
+      getModuleDOM,
+      validateModuleDOM,
+      onSetModule,
+      setValidationsErrors,
+      isCreateMode,
+      exists,
+    ]);
 
     const { loadPreview, preview } = usePreview();
 
-    const onLoadPreviewDOM = () => {
-      loadPreview(getModuleDOM());
+    const onLoadPreviewDOM = useCallback(() => {
+      const module = getModuleDOM();
+
+      if (showErrors) {
+        setValidationsErrors(validateModuleDOM(module, isCreateMode, exists));
+      }
+
+      loadPreview(module);
+    }, [
+      codeRef,
+      loadPreview,
+      getModuleDOM,
+      showErrors,
+      validateModuleDOM,
+      setValidationsErrors,
+      isCreateMode,
+      exists,
+    ]);
+
+    const onLoadPreviewDOMDebounced = useMemo(
+      () => debounce(onLoadPreviewDOM, 1000),
+      [debounce, onLoadPreviewDOM]
+    );
+
+    const onLoadPreviewAce = () => {
+      if (codeRef.current.editor.programmaticUpdate) {
+        return;
+      }
+
+      onLoadPreviewDOMDebounced();
+    };
+
+    const onChangeModuleName = (moduleName) => {
+      recalcValidation();
+
+      changeModuleName(moduleName);
     };
 
     useEffect(() => {
-      if (exists) {
-        loadPreview(module);
-      }
-    }, [exists]);
+      loadPreview(module);
+    }, [module.dependencies, module.code, module.isInvocable]);
 
     const isInvocableSelect = (
       <div
@@ -186,7 +306,7 @@ const ModuleEdit = withOwner(
       >
         <Loading
           style={{ width: "634px" }}
-          isLoading={isLoading}
+          isLoading={isLoading && !isCreateMode}
           className="d-flex flex-column"
         >
           <div className="row mb-2">
@@ -201,7 +321,7 @@ const ModuleEdit = withOwner(
                       "is-invalid": exists,
                     })}
                     ref={nameRef}
-                    onBlur={() => changeModuleName(nameRef.current.value)}
+                    onBlur={() => onChangeModuleName(nameRef.current.value)}
                     type="text"
                     disabled={isFinalized}
                   ></input>
@@ -253,8 +373,8 @@ const ModuleEdit = withOwner(
               theme="monokai"
               name="UNIQUE_ID_OF_DIV"
               editorProps={{ $blockScrolling: true }}
-              debounceChangePeriod={1000}
-              onChange={() => onLoadPreviewDOM()}
+              onChange={() => onLoadPreviewAce()}
+              onFocus={() => recalcEditorSize()}
               setOptions={{
                 useWorker: false,
                 tabSize: 2,
@@ -272,13 +392,33 @@ const ModuleEdit = withOwner(
                 return (
                   <TransactionButton
                     scopeId={scopeId}
-                    text={exists ? "Update Module" : "Create Module"}
+                    text={
+                      isCreateMode || (!isCreateMode && !exists)
+                        ? "Create Module"
+                        : "Update Module"
+                    }
                     onClick={onSetModuleDOM}
-                    disabled={isFinalized || !isOwner}
+                    disabled={
+                      isFinalized ||
+                      !isOwner ||
+                      (showErrors && validationErrors.length > 0)
+                    }
                   />
                 );
               }}
             </OnlyOwner>
+
+            {validationErrors.length > 0 ? (
+              <div>
+                {validationErrors.map((str, i) => {
+                  return (
+                    <div key={i} className="invalid-feedback d-block">
+                      {str}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         </Loading>
         <div style={{ flex: "1 1 0" }} className="ms-2 d-flex flex-column">
@@ -327,6 +467,7 @@ export const ModuleEditView = ({
   const [moduleData, setModuleData] = useState({
     ...(isCreateMode ? DEFAULT_MODULE_DATA : EMPTY_MODULE_DATA),
     name: moduleName,
+    owner: account,
   });
 
   const retrieve = async () => {
@@ -334,32 +475,28 @@ export const ModuleEditView = ({
       return;
     }
 
+    setExists(false);
+
+    setModuleData((moduleData) => ({
+      ...moduleData,
+      name: moduleName,
+    }));
+
     try {
       const module = await getModule(moduleName);
+      setExists(true);
       if (!isCreateMode) {
         setModuleData(module);
       }
-      setExists(true);
     } catch {
       setExists(false);
-      setModuleData((moduleData) => ({
-        ...moduleData,
-        name: moduleName,
-        owner: account,
-      }));
     }
   };
 
   const { isLoading, load } = useLoading(retrieve);
 
   useEffect(() => {
-    setExists(false);
-
-    if (!moduleName) {
-      setModuleData(isCreateMode ? DEFAULT_MODULE_DATA : EMPTY_MODULE_DATA);
-    } else {
-      load();
-    }
+    load();
   }, [moduleName]);
 
   useTransactionsPendingChange(scopeId, (isPending) => {
@@ -373,9 +510,16 @@ export const ModuleEditView = ({
     }
   });
 
-  const onSetModule = (module) => {
-    setModule(scopeId, module);
-  };
+  const onSetModule = useCallback(
+    (module) => {
+      if (exists && isCreateMode) {
+        return;
+      }
+
+      setModule(scopeId, module);
+    },
+    [exists, isCreateMode, scopeId, setModule]
+  );
 
   const changeModuleName = (nextModuleName) => {
     if (nextModuleName !== "" && nextModuleName !== moduleName) {

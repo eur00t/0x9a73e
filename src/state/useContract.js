@@ -76,7 +76,7 @@ export const useContract = (trackTransaction) => {
         setProgress(false);
       }
     },
-    [contract, setProgress]
+    [contract, setProgress, trackTransaction]
   );
 
   const setTemplate = useCallback(
@@ -94,7 +94,7 @@ export const useContract = (trackTransaction) => {
         setProgress(false);
       }
     },
-    [contract, setProgress]
+    [contract, setProgress, trackTransaction]
   );
 
   const getHtml = useCallback(
@@ -154,7 +154,7 @@ export const useContract = (trackTransaction) => {
         scopeId,
         contract.methods.setFeatured(moduleName).send()
       ),
-    [contract]
+    [contract, trackTransaction]
   );
 
   const unsetFeatured = useCallback(
@@ -163,7 +163,7 @@ export const useContract = (trackTransaction) => {
         scopeId,
         contract.methods.unsetFeatured(moduleName).send()
       ),
-    [contract]
+    [contract, trackTransaction]
   );
 
   const getModule = useCallback(
@@ -186,7 +186,7 @@ export const useContract = (trackTransaction) => {
         scopeId,
         contract.methods.setInvocable(moduleName, invocationsMax).send()
       ),
-    [contract]
+    [contract, trackTransaction]
   );
 
   const createInvocation = useCallback(
@@ -196,7 +196,7 @@ export const useContract = (trackTransaction) => {
         contract.methods.createInvocation(moduleName).send(),
         doneOptions
       ),
-    [contract]
+    [contract, trackTransaction]
   );
 
   return {

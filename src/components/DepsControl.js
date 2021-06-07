@@ -8,6 +8,7 @@ const DepsControlItem = ({
   moduleName,
   disabled,
   skipCheck = false,
+  onReady,
   onRemove,
 }) => {
   const { checkIfModuleExists } = useContractContext();
@@ -16,10 +17,10 @@ const DepsControlItem = ({
   const [ready, setReady] = useState(skipCheck);
 
   const checkExists = async () => {
-    console.log("checking");
     const exists = await checkIfModuleExists(moduleName);
     setExists(exists);
     setReady(true);
+    onReady(moduleName, exists);
   };
 
   useEffect(() => {
@@ -53,7 +54,11 @@ const DepsControlItem = ({
 export const DepsControl = React.forwardRef(
   ({ value: valueProp, disabled, onChange }, ref) => {
     const transformFromPropValue = (value) =>
-      value.map((moduleName) => ({ moduleName, skipCheck: true }));
+      value.map((moduleName) => ({
+        moduleName,
+        skipCheck: true,
+        exists: true,
+      }));
     const transformToPropValue = (value) =>
       value.map(({ moduleName }) => moduleName);
 
@@ -64,24 +69,51 @@ export const DepsControl = React.forwardRef(
       setValue(transformFromPropValue(valueProp));
     }, [valueProp]);
 
-    useEffect(() => {
-      const propValue = transformToPropValue(value);
+    const updateDOMValue = (value) => {
+      ref.current.value = JSON.stringify(value);
+    };
 
-      ref.current.value = JSON.stringify(propValue);
-      onChange(propValue);
+    useEffect(() => {
+      updateDOMValue(value);
     }, [value]);
 
+    const triggerOnChange = (nextValue) => {
+      onChange(transformToPropValue(nextValue));
+    };
+
     const removeItem = (moduleNameRemove) => {
-      setValue((value) =>
-        value.filter(({ moduleName }) => moduleName !== moduleNameRemove)
+      const nextValue = value.filter(
+        ({ moduleName }) => moduleName !== moduleNameRemove
       );
+
+      setValue(nextValue);
+      updateDOMValue(nextValue);
+      triggerOnChange(nextValue);
     };
 
     const addItem = (moduleNameAdd) => {
-      setValue((value) => [
+      const nextValue = [
         ...value.filter(({ moduleName }) => moduleName !== moduleNameAdd),
         { moduleName: moduleNameAdd, skipCheck: false },
-      ]);
+      ];
+
+      setValue(nextValue);
+      updateDOMValue(nextValue);
+      triggerOnChange(nextValue);
+    };
+
+    const onReady = (moduleNameReady, exists) => {
+      const nextValue = value.map((item) => {
+        const { moduleName } = item;
+
+        if (moduleName !== moduleNameReady) {
+          return item;
+        }
+
+        return { ...item, exists };
+      });
+
+      setValue(nextValue);
     };
 
     const addItemDOM = () => {
@@ -111,6 +143,7 @@ export const DepsControl = React.forwardRef(
               skipCheck={skipCheck}
               disabled={disabled}
               onRemove={removeItem}
+              onReady={onReady}
             />
           );
         })}
