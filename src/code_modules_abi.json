@@ -461,6 +461,19 @@
           "internalType": "string",
           "name": "name",
           "type": "string"
+        }
+      ],
+      "name": "finalize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         },
         {
           "internalType": "uint256",
@@ -768,6 +781,63 @@
               "internalType": "string[]",
               "name": "dependencies",
               "type": "string[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string[]",
+                  "name": "dependencies",
+                  "type": "string[]"
+                },
+                {
+                  "internalType": "address",
+                  "name": "owner",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isFeatured",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isInvocable",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isFinalized",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "invocationsNum",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "invocationsMax",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct CodeModules.ModuleViewBrief[]",
+              "name": "allDependencies",
+              "type": "tuple[]"
             },
             {
               "internalType": "string",

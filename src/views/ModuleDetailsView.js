@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import pluralize from "pluralize";
+import classNames from "classnames";
 
 import { useContractContext } from "../state";
 import { useTransactionsPendingChange } from "../state/useTransactionsPendingChange";
@@ -16,9 +17,11 @@ import { useNetwork } from "../utils/networks";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
+import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 
 const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
+const getFinalizeScopeId = (name) => `finalize-action-${name}`;
 
 const ModuleDetails = withOwner((module) => {
   const {
@@ -27,6 +30,7 @@ const ModuleDetails = withOwner((module) => {
     metadataJSON,
     owner,
     dependencies,
+    allDependencies = [],
     tokenId,
     isFeatured,
     isInvocable,
@@ -34,11 +38,24 @@ const ModuleDetails = withOwner((module) => {
     invocationsMax,
     invocations,
   } = module;
-  const { setFeatured, unsetFeatured, setInvocable, createInvocation } =
-    useContractContext();
+  const {
+    setFeatured,
+    unsetFeatured,
+    setInvocable,
+    createInvocation,
+    finalize,
+  } = useContractContext();
+
+  const notFinalizedDependencies = useMemo(
+    () => allDependencies.filter(({ isFinalized }) => !isFinalized),
+    [allDependencies]
+  );
+
+  const areDependenciesMutable = notFinalizedDependencies.length > 0;
 
   const featuredScopeId = getFeaturedScopeId(name);
   const invocableScopeId = getInvocableScopeId(name);
+  const finalizeScopeId = getFinalizeScopeId(name);
 
   const [invocationsMaxInputValue, setInvocationsMaxInputValue] = useState(1);
 
@@ -51,6 +68,41 @@ const ModuleDetails = withOwner((module) => {
 
   return (
     <>
+      {hasBadges(module) ? (
+        <div className="mb-3">
+          <ModuleBadges {...module} />
+        </div>
+      ) : null}
+
+      {areDependenciesMutable ? (
+        <div className="alert alert-warning" style={{ maxWidth: "500px" }}>
+          <h4 className="alert-heading">Mutable Dependencies</h4>
+          <p>
+            Some of the module's dependencies has not been finalized. This means
+            that their owners can update them at their will. If you are going to
+            mint this module, the output you get can change.
+          </p>
+          <hr />
+          <p className="mb-0">
+            The following dependencies are not final:{" "}
+            <strong>
+              {notFinalizedDependencies.map(({ name }) => name).join(", ")}
+            </strong>
+            .
+          </p>
+        </div>
+      ) : null}
+
+      {!areDependenciesMutable && isInvocable && isFinalized ? (
+        <div className="alert alert-success" style={{ maxWidth: "500px" }}>
+          <h4 className="alert-heading">Immutable Mints</h4>
+          <p>
+            This module and all its dependencies have been finalized and can't
+            be changed. All its mints are safe on blockchain.
+          </p>
+        </div>
+      ) : null}
+
       <dl>
         <dt>Name</dt>
         <dd className="font-monospace">{name}</dd>
@@ -93,6 +145,25 @@ const ModuleDetails = withOwner((module) => {
         </Link>
       </OnlyOwner>
 
+      {!isInvocable ? (
+        <OnlyOwner>
+          <TransactionButton
+            btnClassName="btn-outline-primary btn-sm"
+            className="mb-3"
+            scopeId={finalizeScopeId}
+            text={isFinalized ? "Module Is Finalized" : "Finalize"}
+            onClick={
+              isFinalized
+                ? null
+                : () => {
+                    finalize(finalizeScopeId, name);
+                  }
+            }
+            disabled={isFinalized}
+          />
+        </OnlyOwner>
+      ) : null}
+
       {isInvocable && !isFinalized ? (
         <OnlyOwner>
           <div className="d-flex align-items-start mb-3">
@@ -130,9 +201,16 @@ const ModuleDetails = withOwner((module) => {
         ) : (
           <TransactionButton
             className="mb-3"
-            btnClassName="btn-primary btn-lg"
+            btnClassName={classNames("btn-primary btn-lg", {
+              "btn-primary": !areDependenciesMutable,
+              "btn-warning": areDependenciesMutable,
+            })}
             scopeId={invocableScopeId}
-            text={`Mint (${invocationsMax - invocations.length} left)`}
+            text={
+              !areDependenciesMutable
+                ? `Mint (${invocationsMax - invocations.length} left)`
+                : `Mint Mutable (${invocationsMax - invocations.length} left)`
+            }
             onClick={() => {
               createInvocation(invocableScopeId, name);
             }}
@@ -209,18 +287,17 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
 
   const featuredScopeId = getFeaturedScopeId(moduleName);
   const invocableScopeId = getInvocableScopeId(moduleName);
+  const finalizeScopeId = getFinalizeScopeId(moduleName);
 
-  useTransactionsPendingChange(featuredScopeId, (isPending) => {
+  const reloadOnDone = (isPending) => {
     if (isPending === false) {
       load();
     }
-  });
+  };
 
-  useTransactionsPendingChange(invocableScopeId, (isPending) => {
-    if (isPending === false) {
-      load();
-    }
-  });
+  useTransactionsPendingChange(featuredScopeId, reloadOnDone);
+  useTransactionsPendingChange(invocableScopeId, reloadOnDone);
+  useTransactionsPendingChange(finalizeScopeId, reloadOnDone);
 
   return (
     <Page>

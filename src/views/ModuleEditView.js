@@ -302,7 +302,7 @@ const ModuleEdit = withOwner(
     return (
       <div
         style={{ flex: 1, overflow: "auto" }}
-        className="p-2 d-flex flex-row container"
+        className="pt-2 pb-2 d-flex flex-row container"
       >
         <Loading
           style={{ width: "634px" }}

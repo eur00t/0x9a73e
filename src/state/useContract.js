@@ -180,6 +180,12 @@ export const useContract = (trackTransaction) => {
     [contract]
   );
 
+  const finalize = useCallback(
+    (scopeId, moduleName) =>
+      trackTransaction(scopeId, contract.methods.finalize(moduleName).send()),
+    [contract, trackTransaction]
+  );
+
   const setInvocable = useCallback(
     (scopeId, moduleName, invocationsMax) =>
       trackTransaction(
@@ -213,6 +219,7 @@ export const useContract = (trackTransaction) => {
     getAllFeatured,
     setFeatured,
     unsetFeatured,
+    finalize,
     setInvocable,
     createInvocation,
     checkIfModuleExists,

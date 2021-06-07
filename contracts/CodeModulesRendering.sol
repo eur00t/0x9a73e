@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Base64.sol";
+import "./Traverse.sol";
 import "./definitions.sol";
 
 library CodeModulesRendering {
@@ -124,34 +125,7 @@ library CodeModulesRendering {
         return dictToJSON(keys, values);
     }
 
-    function traverseDependencies(
-        mapping(string => Module) storage modules,
-        Module memory entryModule,
-        uint8 leftResultPadding
-    ) internal view returns (Module[128] memory result, uint8 size) {
-        Module[128] memory stack;
-        stack[0] = entryModule;
-        uint8 iStack = 1;
-
-        Module[128] memory res;
-        uint8 iRes = leftResultPadding;
-
-        while (iStack > 0) {
-            iStack--;
-            Module memory m = stack[iStack];
-            res[iRes] = m;
-            iRes++;
-
-            for (uint256 i = 0; i < m.dependencies.length; i++) {
-                stack[iStack] = modules[m.dependencies[i]];
-                iStack++;
-            }
-        }
-
-        return (res, iRes);
-    }
-
-    function getJSONForModules(Module[128] memory traversedModules, uint8 size)
+    function getJSONForModules(Module[] memory traversedModules, uint256 size)
         internal
         pure
         returns (string memory result)
@@ -164,30 +138,64 @@ library CodeModulesRendering {
         return arrToJSON(arr);
     }
 
+    function getAllDependencies(
+        mapping(string => Module) storage modules,
+        mapping(string => uint256) storage moduleNameToTokenId,
+        string memory name
+    ) external view returns (Module[] memory result) {
+        Module[] memory resTraversed;
+        uint256 size;
+
+        (resTraversed, size) = Traverse.traverseDependencies(
+            modules,
+            moduleNameToTokenId,
+            modules[name],
+            0
+        );
+
+        result = new Module[](size - 1);
+
+        for (uint256 i = 0; i < size - 1; i++) {
+            result[i] = resTraversed[i + 1];
+        }
+    }
+
     function getModuleValueJSON(
         mapping(string => Module) storage modules,
+        mapping(string => uint256) storage moduleNameToTokenId,
         Module memory m
     ) external view returns (string memory result) {
-        Module[128] memory res;
-        uint8 size;
+        Module[] memory res;
+        uint256 size;
 
-        (res, size) = traverseDependencies(modules, m, 0);
+        (res, size) = Traverse.traverseDependencies(
+            modules,
+            moduleNameToTokenId,
+            m,
+            0
+        );
 
         return getJSONForModules(res, size);
     }
 
     function getModuleSeedValueJSON(
         mapping(string => Module) storage modules,
+        mapping(string => uint256) storage moduleNameToTokenId,
         Module memory m,
         uint256 seed
     ) external view returns (string memory result) {
-        Module[128] memory res;
-        uint8 size;
+        Module[] memory res;
+        uint256 size;
 
         string[] memory dependencies = new string[](1);
         dependencies[0] = m.name;
 
-        (res, size) = traverseDependencies(modules, m, 1);
+        (res, size) = Traverse.traverseDependencies(
+            modules,
+            moduleNameToTokenId,
+            m,
+            1
+        );
 
         res[0] = Module({
             name: "module-invocation",

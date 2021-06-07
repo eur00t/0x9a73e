@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "./Base64.sol";
 import "./definitions.sol";
 import "./CodeModulesRendering.sol";
@@ -39,6 +40,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string name;
         string metadataJSON;
         string[] dependencies;
+        ModuleViewBrief[] allDependencies;
         string code;
         address owner;
         uint256 tokenId;
@@ -104,9 +106,19 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     string[] internal probablyFeaturedList;
     mapping(string => uint8) internal featuredState;
 
+    function finalize(string memory name) external {
+        require(moduleExists[name], "module must exist");
+        require(!moduleFinalized[name], "modules is finalized");
+        address tokenOwner = ownerOf(moduleNameToTokenId[name]);
+        require(tokenOwner == msg.sender, "only module owner can change it");
+
+        moduleFinalized[name] = true;
+    }
+
     function setInvocable(string memory name, uint256 invocationsMax) external {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "modules is finalized");
+        require(modules[name].isInvocable, "module must be invocable");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can change it");
 
@@ -256,7 +268,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return toModuleView(modules[name]);
     }
 
-    function toModuleView(Module storage m)
+    function toModuleView(Module memory m)
         internal
         view
         returns (ModuleView memory result)
@@ -281,11 +293,26 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             });
         }
 
+        Module[] memory allDependencies =
+            CodeModulesRendering.getAllDependencies(
+                modules,
+                moduleNameToTokenId,
+                m.name
+            );
+
+        ModuleViewBrief[] memory allDependenciesViewBrief =
+            new ModuleViewBrief[](allDependencies.length);
+
+        for (uint256 i = 0; i < allDependencies.length; i++) {
+            allDependenciesViewBrief[i] = toModuleViewBrief(allDependencies[i]);
+        }
+
         return
             ModuleView({
                 name: m.name,
                 metadataJSON: m.metadataJSON,
                 dependencies: m.dependencies,
+                allDependencies: allDependenciesViewBrief,
                 code: m.code,
                 owner: ownerOf(moduleNameToTokenId[m.name]),
                 tokenId: moduleNameToTokenId[m.name],
@@ -297,7 +324,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             });
     }
 
-    function toModuleViewBrief(Module storage m)
+    function toModuleViewBrief(Module memory m)
         internal
         view
         returns (ModuleViewBrief memory result)
@@ -457,6 +484,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         bool isInvocable
     ) external {
         require(moduleExists[name], "module must exist");
+        require(!moduleFinalized[name], "module is finalized");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can update it");
 
@@ -476,6 +504,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         if (tokenIsInvocation(tokenId)) {
             modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
                 modules,
+                moduleNameToTokenId,
                 modules[tokenIdToInvocation[tokenId].moduleName],
                 tokenIdToInvocation[tokenId].seed
             );
@@ -483,12 +512,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             if (modules[tokenIdToModuleName[tokenId]].isInvocable) {
                 modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
                     modules,
+                    moduleNameToTokenId,
                     modules[tokenIdToModuleName[tokenId]],
                     0
                 );
             } else {
                 modulesJSON = CodeModulesRendering.getModuleValueJSON(
                     modules,
+                    moduleNameToTokenId,
                     modules[tokenIdToModuleName[tokenId]]
                 );
             }
@@ -521,6 +552,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         if (!isInvocable) {
             modulesJSON = CodeModulesRendering.getModuleValueJSON(
                 modules,
+                moduleNameToTokenId,
                 Module({
                     name: "module-preview",
                     metadataJSON: "",
@@ -532,6 +564,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         } else {
             modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
                 modules,
+                moduleNameToTokenId,
                 Module({
                     name: "module-preview",
                     metadataJSON: "",
@@ -551,5 +584,10 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             );
     }
 
-    constructor() ERC721("CodeModules", "CDM") {}
+    constructor() ERC721("CodeModules", "CDM") {
+        moduleNameToTokenId["module-preview"] = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        moduleNameToTokenId["module-invocation"] = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+    }
 }

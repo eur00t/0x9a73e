@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import PencilSquare from "../icons/pencil-square.svg";
+import classNames from "classnames";
 
+import PencilSquare from "../icons/pencil-square.svg";
 import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
-import { InvocableBadge } from "../components/InvocableBadge";
+import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { InvocationCard } from "../components/InvocationCard";
 import { Page } from "../components/Page";
 
 const ModuleCard = withOwner((module) => {
-  const { name, isInvocable, metadataJSON } = module;
+  const { name, metadataJSON } = module;
 
   const { description } = useMemo(
     () => JSON.parse(metadataJSON),
@@ -24,21 +25,28 @@ const ModuleCard = withOwner((module) => {
         <div className="card-title font-monospace fw-bold d-flex align-items-center">
           {name}
           <OnlyOwner>
-            <Link
-              className="btn btn-sm d-flex align-items-center ms-auto"
-              to={`/modules/edit/${name}`}
-            >
-              <PencilSquare />
-            </Link>
+            {(isOwner) => {
+              return (
+                <Link
+                  className={classNames(
+                    "btn btn-sm d-flex align-items-center ms-auto",
+                    { invisible: !isOwner }
+                  )}
+                  to={`/modules/edit/${name}`}
+                >
+                  <PencilSquare />
+                </Link>
+              );
+            }}
           </OnlyOwner>
         </div>
-        <p className="card-text mb-3">{description}</p>
-        {isInvocable ? (
-          <div className="mb-3">
-            <InvocableBadge {...module} />
+        {hasBadges(module) ? (
+          <div className="d-flex mb-2">
+            <ModuleBadges {...module} />
           </div>
         ) : null}
-        <div className="d-flex gap-2 mt-auto">
+        <p className="card-text mb-3">{description}</p>
+        <div className="d-flex gap-2 mt-auto align-items-end">
           <Link
             className="btn btn-outline-primary btn-sm"
             to={`/modules/details/${name}`}
