@@ -20,11 +20,11 @@ const setTemplate = async (instance) => {
 
 const uploadExampleModules = async (instance) => {
   for await (let fileName of fs
-    .readdirSync(path.resolve(`${__dirname}/../src/example-modules`))
+    .readdirSync(path.resolve(`${__dirname}/../example-modules`))
     .sort()) {
     const moduleName = fileName.replace(/\.js$/, "").replace(/^\d+_/, "");
     const content = fs.readFileSync(
-      path.resolve(`${__dirname}/../src/example-modules/${fileName}`),
+      path.resolve(`${__dirname}/../example-modules/${fileName}`),
       "utf8"
     );
     const [, description, isInvocable, depsStr, code] = content.match(
