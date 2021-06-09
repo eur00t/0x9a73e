@@ -233,3 +233,5 @@ ReactDOM.render(
   </BrowserRouter>,
   document.getElementById("app")
 );
+
+console.log({ version: process.env.GIT_COMMIT });
