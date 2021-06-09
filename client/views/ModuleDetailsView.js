@@ -76,7 +76,7 @@ const ModuleDetails = withOwner((module) => {
 
       {areDependenciesMutable ? (
         <div className="alert alert-warning" style={{ maxWidth: "500px" }}>
-          <h4 className="alert-heading">Mutable Dependencies</h4>
+          <h4 className="alert-heading">Mutable</h4>
           <p>
             Some of the module's dependencies has not been finalized. This means
             that their owners can update them at their will. If you are going to
@@ -95,10 +95,10 @@ const ModuleDetails = withOwner((module) => {
 
       {!areDependenciesMutable && isInvocable && isFinalized ? (
         <div className="alert alert-success" style={{ maxWidth: "500px" }}>
-          <h4 className="alert-heading">Immutable Mints</h4>
+          <h4 className="alert-heading">Immutable</h4>
           <p>
             This module and all its dependencies have been finalized and can't
-            be changed. All its mints are safe on blockchain.
+            be changed. It's secure on blockchain.
           </p>
         </div>
       ) : null}
