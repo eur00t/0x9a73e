@@ -102,6 +102,11 @@ export const useContract = (trackTransaction) => {
     [contract]
   );
 
+  const tokenURI = useCallback(
+    (tokenId) => contract.methods.tokenURI(tokenId).call(),
+    [contract]
+  );
+
   const getHtmlPreview = useCallback(
     (dependencies, code, isInvocable) => {
       let moduleConstructor;
@@ -210,6 +215,7 @@ export const useContract = (trackTransaction) => {
     setModule,
     setTemplate,
     getHtml,
+    tokenURI,
     getHtmlPreview,
     getInvocation,
     getModule,

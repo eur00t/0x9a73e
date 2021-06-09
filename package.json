@@ -1,13 +1,9 @@
 {
   "name": "0x9a73e",
-  "dependencies": {
-    "express": "^4.17.1",
-    "serve-static": "^1.14.1"
-  },
   "scripts": {
     "update-abi": "node scripts/updateAbi.js",
     "compile": "truffle compile && npm run update-abi",
-    "watch-dev": "parcel -p 8080 watch public/index.html",
+    "start-dev": "nodemon server/index.js & parcel watch public/index.html",
     "build-app": "parcel build public/index.html",
     "deploy-app-staging": "ssh root@xxlv.party 'bash -s' -- < ./scripts/deploy_staging.sh",
     "deploy-app-production": "ssh root@xxlv.party 'bash -s' -- < ./scripts/deploy_production.sh",
@@ -29,10 +25,13 @@
     "dotenv": "^5.0.1",
     "envfile": "^6.14.0",
     "events": "^3.3.0",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7",
     "parcel-bundler": "^1.12.5",
     "pluralize": "^8.0.0",
     "prettier": "^2.3.0",
     "prettier-plugin-solidity": "^1.0.0-beta.10",
+    "puppeteer": "^10.0.0",
     "react": "^17.0.2",
     "react-ace": "^9.4.0",
     "react-dom": "^17.0.2",
@@ -42,6 +41,7 @@
     "react-transition-group": "^4.4.1",
     "regenerator-runtime": "^0.13.7",
     "sass": "^1.34.0",
+    "serve-static": "^1.14.1",
     "solc": "^0.8.4",
     "styled-components": "^5.2.3",
     "truffle": "^5.3.7",

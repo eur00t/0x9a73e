@@ -23,6 +23,7 @@ module.exports = {
       chain_id: 1337,
       name: "Ganache",
       etherscan: "https://kovan.etherscan.io/",
+      rpcUrl: "http://127.0.0.1:7545",
     },
     test: {
       host: "127.0.0.1",
@@ -40,6 +41,7 @@ module.exports = {
       chain_id: 42,
       name: "Kovan",
       etherscan: "https://kovan.etherscan.io/",
+      rpcUrl: `https://kovan.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
     },
     ropsten: {
       provider: () => {
@@ -53,6 +55,7 @@ module.exports = {
       name: "Ropsten",
       skipBootstrap: true,
       etherscan: "https://ropsten.etherscan.io/",
+      rpcUrl: `https://ropsten.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
     },
   },
 };

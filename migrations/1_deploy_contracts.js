@@ -59,6 +59,7 @@ const appendNetwork = (
     network_id: networkId,
     etherscan,
     name,
+    rpcUrl,
   } = truffleConfig.networks[networkEnvName];
 
   const itemIndex = parsedConfigValue.findIndex(
@@ -72,6 +73,7 @@ const appendNetwork = (
     chainId,
     networkId,
     etherscan,
+    rpcUrl,
   };
 
   if (itemIndex === -1) {
@@ -86,7 +88,10 @@ const appendNetwork = (
 module.exports = async (deployer, networkEnvName, [contractOwner]) => {
   await deployer.deploy(CodeModulesRendering);
   await deployer.link(CodeModulesRendering, CodeModules);
-  await deployer.deploy(CodeModules);
+  await deployer.deploy(
+    CodeModules,
+    truffleConfig.networks[networkEnvName].network_id
+  );
 
   const instance = await CodeModules.deployed();
 

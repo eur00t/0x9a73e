@@ -36,6 +36,17 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return super.supportsInterface(interfaceId);
     }
 
+    uint256 internal _networkId;
+
+    function _baseURI() internal view override returns (string memory) {
+        return
+            CodeModulesRendering.strConcat3(
+                "https://9a73e.website/network/",
+                _networkId.toString(),
+                "/tokens/"
+            );
+    }
+
     struct ModuleView {
         string name;
         string metadataJSON;
@@ -584,7 +595,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             );
     }
 
-    constructor() ERC721("CodeModules", "CDM") {
+    constructor(uint256 networkId) ERC721("CodeModules", "CDM") {
+        _networkId = networkId;
+
         moduleNameToTokenId["module-preview"] = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         moduleNameToTokenId["module-invocation"] = _tokenIdCounter.current();
