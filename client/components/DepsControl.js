@@ -33,7 +33,7 @@ const DepsControlItem = ({
 
   return (
     <div
-      className={classNames("badge d-flex align-items-center", {
+      className={classNames("badge d-flex align-items-center mb-1 me-1", {
         "bg-secondary": !doesntExist,
         "bg-danger": doesntExist,
       })}
@@ -125,7 +125,7 @@ export const DepsControl = React.forwardRef(
 
     return (
       <form
-        className="d-flex align-items-center gap-1 flex-wrap"
+        className="d-flex align-items-center flex-wrap"
         onSubmit={(e) => {
           e.preventDefault();
           addItemDOM();

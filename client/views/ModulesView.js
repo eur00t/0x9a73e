@@ -126,7 +126,10 @@ export const ModulesView = () => {
           ) : (
             <>
               You don't own any modules. Try to
-              <Link to="/modules/create">create</Link>one
+              <Link to="/modules/create" className="ms-1 me-1">
+                create
+              </Link>
+              one
             </>
           )}
         </div>

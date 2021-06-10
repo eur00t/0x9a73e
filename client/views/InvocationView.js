@@ -71,7 +71,9 @@ export const InvocationView = ({ tokenId }) => {
             />
           </dd>
           <dt>Seed</dt>
-          <dd className="font-monospace">{displayHexString(seed)}</dd>
+          <dd className="font-monospace text-truncate">
+            {displayHexString(seed)}
+          </dd>
         </dl>
 
         <iframe

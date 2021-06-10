@@ -33,7 +33,7 @@ export const EtherscanLink = ({
   return (
     <div className="d-flex align-items-center">
       <a
-        className={classNames(className, "text-decoration-none")}
+        className={classNames(className, "text-decoration-none text-truncate")}
         target="_blank"
         href={url}
         {...props}
@@ -41,7 +41,7 @@ export const EtherscanLink = ({
         {!showFullId ? `${id.slice(0, 10)}...` : id}
       </a>
       <BoxArrowUpRight
-        className="ms-1"
+        className="ms-1 me-1"
         style={{ position: "relative", top: "-2px" }}
       />
     </div>
