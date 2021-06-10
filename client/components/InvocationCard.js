@@ -44,7 +44,7 @@ export const InvocationCard = ({
             </div>
           ) : null}
 
-          <div className="d-flex gap-2">
+          <div className="d-flex">
             <Link
               className="btn btn-outline-primary btn-sm"
               to={`/modules/invocation/${tokenId}`}

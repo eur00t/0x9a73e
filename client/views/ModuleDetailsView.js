@@ -241,15 +241,17 @@ const ModuleDetails = withOwner((module) => {
       ) : (
         <>
           <h3 className="mb-3 mt-5">Mints</h3>
-          <div className="d-flex gap-2 flex-wrap">
+          <div className="d-flex flex-wrap">
             {[...invocations].reverse().map(({ tokenId, ...invocation }, i) => (
-              <InvocationCard
-                key={tokenId}
-                tokenId={tokenId}
-                module={module}
-                noRender={i > 2}
-                {...invocation}
-              />
+              <div className="mb-2 me-2">
+                <InvocationCard
+                  key={tokenId}
+                  tokenId={tokenId}
+                  module={module}
+                  noRender={i > 2}
+                  {...invocation}
+                />
+              </div>
             ))}
           </div>
         </>

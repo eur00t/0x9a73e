@@ -4,6 +4,7 @@ import "./scss/custom.scss";
 
 import { useWeb3React, Web3ReactProvider } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
+import { NetworkConnector } from "@web3-react/network-connector";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import {
@@ -188,6 +189,17 @@ const App = () => {
 };
 
 const injectedConnector = new InjectedConnector();
+const networkConnector = new NetworkConnector({
+  defaultChainId: 4,
+  urls: Object.fromEntries(
+    JSON.parse(process.env.NETWORKS).map(({ networkId, rpcUrl }) => [
+      networkId,
+      rpcUrl,
+    ])
+  ),
+});
+
+const connector = injectedConnector;
 
 const Web3Auth = ({ children }) => {
   const { active, activate } = useWeb3React();
@@ -197,7 +209,11 @@ const Web3Auth = ({ children }) => {
 
   useEffect(() => {
     (async () => {
-      setIsInitiallyAuthorized(await injectedConnector.isAuthorized());
+      if (typeof connector.isAuthorized === "function") {
+        setIsInitiallyAuthorized(await connector.isAuthorized());
+      } else {
+        setIsInitiallyAuthorized(true);
+      }
       setReady(true);
     })();
   }, []);
@@ -207,7 +223,7 @@ const Web3Auth = ({ children }) => {
     // metamask is already authorized.
     // Will require no action from the user.
     if (ready && isInitiallyAuthorized) {
-      activate(injectedConnector);
+      activate(connector);
     }
   }, [ready, isInitiallyAuthorized]);
 

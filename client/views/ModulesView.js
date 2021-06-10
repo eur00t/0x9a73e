@@ -46,7 +46,7 @@ const ModuleCard = withOwner((module) => {
           </div>
         ) : null}
         <p className="card-text mb-3">{description}</p>
-        <div className="d-flex gap-2 mt-auto align-items-end">
+        <div className="d-flex mt-auto align-items-end">
           <Link
             className="btn btn-outline-primary btn-sm"
             to={`/modules/details/${name}`}
@@ -105,19 +105,23 @@ export const ModulesView = () => {
         {featuredModules.length > 0 ? (
           <>
             <h2>Featured</h2>
-            <div className="d-flex gap-2 flex-wrap mb-5">
+            <div className="d-flex flex-wrap mb-5">
               {featuredModules.map((module) => (
-                <ModuleCard key={module.name} {...module} />
+                <div className="mb-2 me-2 d-flex">
+                  <ModuleCard key={module.name} {...module} />
+                </div>
               ))}
             </div>
           </>
         ) : null}
 
         <h2>Your Modules</h2>
-        <div className="d-flex gap-2 flex-wrap items-align-top mb-5">
+        <div className="d-flex flex-wrap items-align-top mb-5">
           {ownedModules.length > 0 ? (
             ownedModules.map((module) => (
-              <ModuleCard key={module.name} {...module} />
+              <div className="mb-2 me-2 d-flex">
+                <ModuleCard key={module.name} {...module} />
+              </div>
             ))
           ) : (
             <>
@@ -128,10 +132,12 @@ export const ModulesView = () => {
         </div>
 
         <h2 className="mt-5">Your Mints</h2>
-        <div className="d-flex gap-2 flex-wrap">
+        <div className="d-flex flex-wrap">
           {ownedInvocations.length > 0 ? (
             ownedInvocations.map((invocation) => (
-              <InvocationCard key={invocation.tokenId} {...invocation} />
+              <div className="mb-2 me-2 d-flex">
+                <InvocationCard key={invocation.tokenId} {...invocation} />
+              </div>
             ))
           ) : (
             <>You don't own any mints. Try to get some from mintable modules.</>

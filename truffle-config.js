@@ -34,7 +34,7 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(
           process.env.WALLET_MNEMONIC,
-          process.env.KOVAN_ENDPOINT_URL
+          `https://kovan.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
         );
       },
       network_id: 42,
@@ -43,11 +43,24 @@ module.exports = {
       etherscan: "https://kovan.etherscan.io/",
       rpcUrl: `https://kovan.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
     },
+    rinkeby: {
+      provider: () => {
+        return new HDWalletProvider(
+          process.env.WALLET_MNEMONIC,
+          `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
+        );
+      },
+      network_id: 4,
+      chain_id: 4,
+      name: "Rinkeby",
+      etherscan: "https://rinkeby.etherscan.io/",
+      rpcUrl: `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+    },
     ropsten: {
       provider: () => {
         return new HDWalletProvider(
           process.env.WALLET_MNEMONIC,
-          process.env.ROPSTEN_ENDPOINT_URL
+          `https://ropsten.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
         );
       },
       network_id: 3,

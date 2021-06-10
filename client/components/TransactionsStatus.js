@@ -111,12 +111,14 @@ export const TransactionsStatus = ({ scopeId }) => {
   const { transactions } = useTransactionsScope(scopeId);
 
   return (
-    <div className="d-flex gap-2 flex-wrap align-items-start">
+    <div className="d-flex flex-wrap align-items-start">
       {transactions.map((transaction) => (
-        <TransactionStatus
-          key={transaction.transactionHash}
-          {...{ ...transaction, scopeId }}
-        />
+        <div className="mb-2 me-2">
+          <TransactionStatus
+            key={transaction.transactionHash}
+            {...{ ...transaction, scopeId }}
+          />
+        </div>
       ))}
     </div>
   );
