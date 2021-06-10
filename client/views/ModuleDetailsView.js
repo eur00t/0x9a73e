@@ -19,6 +19,7 @@ import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
 import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
+import { PreviewIFrame } from "../components/PreviewIFrame";
 
 const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
@@ -236,10 +237,10 @@ const ModuleDetails = withOwner((module) => {
         />
       </OnlyContractOwner>
       {!isInvocable || invocations.length === 0 ? (
-        <iframe
-          src={tokenId ? tokenRenderUrl : null}
-          style={{ width: "100%", height: "500px", border: 0 }}
-        ></iframe>
+        <PreviewIFrame
+          tokenId={tokenId}
+          style={{ width: "100%", height: "500px" }}
+        />
       ) : (
         <>
           <h3 className="mb-3 mt-5">Mints</h3>

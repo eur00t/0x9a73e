@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { useTokenRenderUrl } from "../utils/useTokenRenderUrl";
+import { PreviewIFrame } from "../components/PreviewIFrame";
 
 export const InvocationCard = ({
   tokenId,
@@ -9,16 +9,14 @@ export const InvocationCard = ({
   noTitle = false,
   noRender = false,
 }) => {
-  const tokenRenderUrl = useTokenRenderUrl(tokenId);
-
   return (
     <div className="card" style={{ width: "20rem" }}>
       {!noRender ? (
-        <iframe
-          src={tokenRenderUrl}
+        <PreviewIFrame
           className="card-img-top"
-          style={{ width: "100%", height: "20rem", border: 0 }}
-        ></iframe>
+          tokenId={tokenId}
+          style={{ width: "100%", height: "20rem" }}
+        />
       ) : null}
 
       <div className="card-body">
