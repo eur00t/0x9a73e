@@ -5,14 +5,14 @@ import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { displayHexString } from "../utils/displayHexString";
 import { useNetwork } from "../utils/networks";
+import { useTokenRenderUrl } from "../utils/useTokenRenderUrl";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
 
 export const InvocationView = ({ tokenId }) => {
-  const { getHtml, getInvocation } = useContractContext();
+  const { getInvocation } = useContractContext();
 
-  const [html, setHtml] = useState("");
   const [invocation, setInvocation] = useState({
     module: {
       name: "",
@@ -22,9 +22,7 @@ export const InvocationView = ({ tokenId }) => {
   });
 
   const retrieve = async () => {
-    const html = await getHtml(tokenId);
     const invocation = await getInvocation(tokenId);
-    setHtml(html);
     setInvocation(invocation);
   };
 
@@ -41,6 +39,8 @@ export const InvocationView = ({ tokenId }) => {
   } = invocation;
 
   const { contractAddress } = useNetwork();
+
+  const tokenRenderUrl = useTokenRenderUrl(tokenId);
 
   return (
     <Page>
@@ -77,7 +77,7 @@ export const InvocationView = ({ tokenId }) => {
         </dl>
 
         <iframe
-          srcDoc={html}
+          src={tokenRenderUrl}
           style={{ width: "100%", height: "500px", border: 0 }}
         ></iframe>
       </Loading>

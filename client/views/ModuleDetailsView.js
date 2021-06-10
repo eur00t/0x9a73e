@@ -13,6 +13,7 @@ import { OnlyContractOwner } from "../components/OnlyContractOwner";
 import { InvocationCard } from "../components/InvocationCard";
 import { displayHexString } from "../utils/displayHexString";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
+import { useTokenRenderUrl } from "../utils/useTokenRenderUrl";
 import { useNetwork } from "../utils/networks";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
@@ -25,7 +26,6 @@ const getFinalizeScopeId = (name) => `finalize-action-${name}`;
 
 const ModuleDetails = withOwner((module) => {
   const {
-    html,
     name,
     metadataJSON,
     owner,
@@ -65,6 +65,8 @@ const ModuleDetails = withOwner((module) => {
   );
 
   const { contractAddress } = useNetwork();
+
+  const tokenRenderUrl = useTokenRenderUrl(tokenId);
 
   return (
     <>
@@ -235,7 +237,7 @@ const ModuleDetails = withOwner((module) => {
       </OnlyContractOwner>
       {!isInvocable || invocations.length === 0 ? (
         <iframe
-          srcDoc={html}
+          src={tokenId ? tokenRenderUrl : null}
           style={{ width: "100%", height: "500px", border: 0 }}
         ></iframe>
       ) : (
@@ -260,10 +262,10 @@ const ModuleDetails = withOwner((module) => {
 }, "ModuleDetails");
 
 export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
-  const [html, setHtml] = useState("");
+  const [html] = useState("");
   const [module, setModule] = useState(EMPTY_MODULE_DATA);
 
-  const { getHtml, getModule } = useContractContext();
+  const { getModule } = useContractContext();
 
   const retrieve = async () => {
     if (!moduleName || moduleName === "") {
@@ -272,8 +274,6 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
 
     try {
       const module = await getModule(moduleName);
-      const html = await getHtml(module.tokenId);
-      setHtml(html);
       setModule(module);
     } catch {
       onModuleChange(null);
@@ -303,7 +303,7 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   return (
     <Page>
       <Loading isLoading={isLoading}>
-        <ModuleDetails html={html} {...module} />
+        <ModuleDetails {...module} />
       </Loading>
     </Page>
   );
