@@ -421,7 +421,10 @@ const ModuleEdit = withOwner(
             ) : null}
           </div>
         </Loading>
-        <div style={{ flex: "1 1 0" }} className="ms-2 d-flex flex-column">
+        <div
+          style={{ flex: "1 1 0" }}
+          className="ms-2 d-none d-lg-flex flex-column"
+        >
           <div className="d-flex align-items-center mb-2 ms-auto">
             <div
               className="btn btn-outline-primary btn-sm"

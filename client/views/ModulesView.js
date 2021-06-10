@@ -85,24 +85,23 @@ export const ModulesView = () => {
     setOwnedInvocations(result);
   };
 
-  const retrieve = async () => {
-    await Promise.all([
-      retrieveFeatured(),
-      retrieveOwnedModules(),
-      retrieveOwnedInvocations(),
-    ]);
-  };
-
-  const { isLoading, load } = useLoading(retrieve);
+  const { isLoading: isLoadingFeatured, load: loadFeatured } =
+    useLoading(retrieveFeatured);
+  const { isLoading: isLoadingOwnedModules, load: loadOwnedModules } =
+    useLoading(retrieveOwnedModules);
+  const { isLoading: isLoadingOwnedInvocations, load: loadOwnedInvocations } =
+    useLoading(retrieveOwnedInvocations);
 
   useEffect(() => {
-    load();
+    loadFeatured();
+    loadOwnedModules();
+    loadOwnedInvocations();
   }, []);
 
   return (
     <Page>
-      <Loading isLoading={isLoading}>
-        {featuredModules.length > 0 ? (
+      <Loading isLoading={isLoadingFeatured}>
+        {isLoadingFeatured || featuredModules.length > 0 ? (
           <>
             <h2>Featured</h2>
             <div className="d-flex flex-wrap mb-5">
@@ -114,7 +113,9 @@ export const ModulesView = () => {
             </div>
           </>
         ) : null}
+      </Loading>
 
+      <Loading isLoading={isLoadingOwnedModules}>
         <h2>Your Modules</h2>
         <div className="d-flex flex-wrap items-align-top mb-5">
           {ownedModules.length > 0 ? (
@@ -133,7 +134,9 @@ export const ModulesView = () => {
             </>
           )}
         </div>
+      </Loading>
 
+      <Loading isLoading={isLoadingOwnedInvocations}>
         <h2 className="mt-5">Your Mints</h2>
         <div className="d-flex flex-wrap">
           {ownedInvocations.length > 0 ? (
