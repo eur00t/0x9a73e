@@ -113,11 +113,8 @@ export const TransactionsStatus = ({ scopeId }) => {
   return (
     <div className="d-flex flex-wrap align-items-start">
       {transactions.map((transaction) => (
-        <div className="mb-2 me-2">
-          <TransactionStatus
-            key={transaction.transactionHash}
-            {...{ ...transaction, scopeId }}
-          />
+        <div key={transaction.transactionHash} className="mb-2 me-2">
+          <TransactionStatus {...{ ...transaction, scopeId }} />
         </div>
       ))}
     </div>

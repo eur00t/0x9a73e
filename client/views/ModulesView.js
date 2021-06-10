@@ -107,8 +107,8 @@ export const ModulesView = () => {
             <h2>Featured</h2>
             <div className="d-flex flex-wrap mb-5">
               {featuredModules.map((module) => (
-                <div className="mb-2 me-2 d-flex">
-                  <ModuleCard key={module.name} {...module} />
+                <div key={module.name} className="mb-2 me-2 d-flex">
+                  <ModuleCard {...module} />
                 </div>
               ))}
             </div>
@@ -119,8 +119,8 @@ export const ModulesView = () => {
         <div className="d-flex flex-wrap items-align-top mb-5">
           {ownedModules.length > 0 ? (
             ownedModules.map((module) => (
-              <div className="mb-2 me-2 d-flex">
-                <ModuleCard key={module.name} {...module} />
+              <div key={module.name} className="mb-2 me-2 d-flex">
+                <ModuleCard {...module} />
               </div>
             ))
           ) : (
@@ -138,8 +138,8 @@ export const ModulesView = () => {
         <div className="d-flex flex-wrap">
           {ownedInvocations.length > 0 ? (
             ownedInvocations.map((invocation) => (
-              <div className="mb-2 me-2 d-flex">
-                <InvocationCard key={invocation.tokenId} {...invocation} />
+              <div key={invocation.tokenId} className="mb-2 me-2 d-flex">
+                <InvocationCard {...invocation} />
               </div>
             ))
           ) : (
