@@ -1,6 +1,6 @@
 #!/bin/bash
 
-eval "$(/root/.nodenv/bin/nodenv init -)"
+eval "$(~/.nodenv/bin/nodenv init -)"
 echo "$(node --version)"
 cd 0x9a73e-production
 git pull origin master

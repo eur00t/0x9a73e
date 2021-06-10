@@ -3,9 +3,8 @@ import "regenerator-runtime/runtime";
 import "./scss/custom.scss";
 
 import { useWeb3React, Web3ReactProvider } from "@web3-react/core";
-import { InjectedConnector } from "@web3-react/injected-connector";
-import { NetworkConnector } from "@web3-react/network-connector";
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import ReactDOM from "react-dom";
 import {
   BrowserRouter,
@@ -30,7 +29,9 @@ import {
 import { AppStateProvider } from "./state";
 import { useNetwork } from "./utils/networks";
 import { OnlyContractOwner } from "./components/OnlyContractOwner";
+import { Web3Auth } from "./components/Web3Auth";
 import Plug from "./icons/plug.svg";
+import Metamask from "./icons/metamask.svg";
 
 const ACTIVE = "ACTIVE";
 const DISCONNECTED = "DISCONNECTED";
@@ -172,6 +173,12 @@ const App = () => {
           <div>
             <NetworkIndicator />
           </div>
+
+          <div className="btn btn-outline-primary ms-3 d-none">
+            Connect with Metamask
+            <Metamask style={{ width: "20px" }} />
+          </div>
+
           <NavLink
             to="/modules/create"
             activeClassName="d-none"
@@ -183,58 +190,10 @@ const App = () => {
           </NavLink>
         </div>
       </nav>
+
       <Routes key={`${chainId}-${account}`} />
     </>
   );
-};
-
-const injectedConnector = new InjectedConnector();
-const networkConnector = new NetworkConnector({
-  defaultChainId: 4,
-  urls: Object.fromEntries(
-    JSON.parse(process.env.NETWORKS).map(({ networkId, rpcUrl }) => [
-      networkId,
-      rpcUrl,
-    ])
-  ),
-});
-
-const connector = injectedConnector;
-
-const Web3Auth = ({ children }) => {
-  const { active, activate } = useWeb3React();
-
-  const [isInitiallyAuthorized, setIsInitiallyAuthorized] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      if (typeof connector.isAuthorized === "function") {
-        setIsInitiallyAuthorized(await connector.isAuthorized());
-      } else {
-        setIsInitiallyAuthorized(true);
-      }
-      setReady(true);
-    })();
-  }, []);
-
-  useEffect(() => {
-    // Trigger activate if we know that
-    // metamask is already authorized.
-    // Will require no action from the user.
-    if (ready && isInitiallyAuthorized) {
-      activate(connector);
-    }
-  }, [ready, isInitiallyAuthorized]);
-
-  // Render the app if:
-  // 1. Metamask was not authorized (will render disconnected UI).
-  // or
-  // 2. web3-react is active.
-  //
-  // Will not render the app, if we still waiting for
-  // getting the initial auth state, or activation.
-  return (ready && !isInitiallyAuthorized) || active ? children : null;
 };
 
 ReactDOM.render(
