@@ -20,10 +20,12 @@ export const TransactionButton = ({
   const isDisabled = isReadOnly || disabled || isPending;
 
   return (
-    <div className={classNames("d-flex align-items-start", className)}>
+    <div
+      className={classNames("d-flex align-items-start flex-wrap", className)}
+    >
       <button
         onClick={!isDisabled ? onClick : null}
-        className={classNames("btn", btnClassName, {
+        className={classNames("btn text-nowrap me-2 mb-2", btnClassName, {
           disabled: isDisabled,
         })}
       >
@@ -36,7 +38,7 @@ export const TransactionButton = ({
         ) : null}
         {text}
       </button>
-      <div className="ms-3">
+      <div>
         <TransactionsStatus scopeId={scopeId} />
       </div>
     </div>
