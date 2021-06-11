@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export const useEffectOnValueChange = (callback, [value]) => {
+export const useEffectOnValueChange = (callback, [value, ...otherValues]) => {
   const prevValue = useRef(value);
 
   useEffect(() => {
@@ -8,5 +8,5 @@ export const useEffectOnValueChange = (callback, [value]) => {
       callback(prevValue.current);
     }
     prevValue.current = value;
-  }, [value]);
+  }, [value, ...otherValues]);
 };

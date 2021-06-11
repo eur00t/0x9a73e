@@ -24,7 +24,7 @@ export const ReadOnlyWarning = ({}) => {
         {isInjectedAvailable ? (
           <>
             <hr />
-            <p>
+            <p className="mb-0">
               Please{" "}
               <a
                 href="#"
@@ -41,7 +41,7 @@ export const ReadOnlyWarning = ({}) => {
         ) : (
           <>
             <hr />
-            <p>
+            <p className="mb-0">
               <a
                 href="#"
                 onClick={(e) => {

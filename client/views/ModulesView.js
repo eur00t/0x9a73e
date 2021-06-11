@@ -10,6 +10,8 @@ import { withOwner, OnlyOwner } from "../components/withOwner";
 import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { InvocationCard } from "../components/InvocationCard";
 import { Page } from "../components/Page";
+import { MainNetworkWarning } from "../components/MainNetworkWarning";
+import { useWeb3Auth } from "../components/Web3Auth";
 
 const ModuleCard = withOwner((module) => {
   const { name, metadataJSON } = module;
@@ -67,6 +69,8 @@ export const ModulesView = () => {
   const [ownedModules, setOwnedModules] = useState([]);
   const [ownedInvocations, setOwnedInvocations] = useState([]);
 
+  const { isReadOnly } = useWeb3Auth();
+
   const retrieveFeatured = async () => {
     setFeaturedModules([]);
     const result = await getAllFeatured();
@@ -74,12 +78,20 @@ export const ModulesView = () => {
   };
 
   const retrieveOwnedModules = async () => {
+    if (isReadOnly) {
+      return;
+    }
+
     setOwnedModules([]);
     const result = await getOwnedModules();
     setOwnedModules(result);
   };
 
   const retrieveOwnedInvocations = async () => {
+    if (isReadOnly) {
+      return;
+    }
+
     setOwnedInvocations([]);
     const result = await getOwnedInvocations();
     setOwnedInvocations(result);
@@ -100,6 +112,7 @@ export const ModulesView = () => {
 
   return (
     <Page>
+      <MainNetworkWarning />
       <Loading isLoading={isLoadingFeatured}>
         {isLoadingFeatured || featuredModules.length > 0 ? (
           <>

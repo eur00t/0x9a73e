@@ -55,6 +55,8 @@ export const NetworkIndicator = () => {
           {({ onClose }) => (
             <div className="list-group">
               {allNetworks.map(({ name, networkId }) => {
+                const isActive = networkId === currentNetwork.networkId;
+
                 return (
                   <button
                     key={networkId}
@@ -62,15 +64,17 @@ export const NetworkIndicator = () => {
                     className={classNames(
                       "list-group-item list-group-item-action",
                       {
-                        active:
-                          currentNetwork &&
-                          networkId === currentNetwork.networkId,
+                        active: isActive,
                       }
                     )}
-                    onClick={() => {
-                      setNetwork(networkId);
-                      onClose();
-                    }}
+                    onClick={
+                      !isActive
+                        ? () => {
+                            setNetwork(networkId);
+                            onClose();
+                          }
+                        : null
+                    }
                   >
                     {name}
                   </button>

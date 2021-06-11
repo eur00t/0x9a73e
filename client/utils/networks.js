@@ -8,13 +8,17 @@ const NETWORKS = (() => {
   }
 })();
 
-export const useNetwork = () => {
-  const { chainId } = useWeb3React();
-
+export const getNetwork = (chainId) => {
   return NETWORKS.find(
     ({ chainId: _chainId, networkId }) =>
       _chainId === chainId || networkId === chainId
   );
+};
+
+export const useNetwork = () => {
+  const { chainId } = useWeb3React();
+
+  return getNetwork(chainId);
 };
 
 export const useNetworks = () => {

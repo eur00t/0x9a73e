@@ -60,6 +60,7 @@ const appendNetwork = (
     etherscan,
     name,
     rpcUrl,
+    rpcUrlMetamask,
   } = truffleConfig.networks[networkEnvName];
 
   const itemIndex = parsedConfigValue.findIndex(
@@ -74,6 +75,7 @@ const appendNetwork = (
     networkId,
     etherscan,
     rpcUrl,
+    rpcUrlMetamask: rpcUrlMetamask ?? rpcUrl,
   };
 
   if (itemIndex === -1) {

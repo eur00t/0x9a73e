@@ -1,5 +1,5 @@
 import { useWeb3React } from "@web3-react/core";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import constate from "constate";
 
 import { InjectedConnector } from "@web3-react/injected-connector";
@@ -7,6 +7,7 @@ import { NetworkConnector } from "@web3-react/network-connector";
 
 import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
 import { rpcNetworkPersistence } from "../utils/rpcNetworkPersistence";
+import { getNetwork } from "../utils/networks";
 
 const injectedConnector = new InjectedConnector();
 const rpcConnector = new NetworkConnector({
@@ -20,50 +21,107 @@ const rpcConnector = new NetworkConnector({
 });
 
 const [Web3AuthProvider, _useWeb3Auth] = constate(() => {
-  const [connectorCandidate, setConnectorCandidate] = useState(null);
   const { activate, active, connector } = useWeb3React();
+
+  const activateInjected = async () => {
+    try {
+      await activate(injectedConnector, undefined, true);
+    } catch {
+      activate(rpcConnector);
+    }
+  };
+  const activateRpc = () => {
+    activate(rpcConnector);
+  };
 
   useEffect(() => {
     (async () => {
       const injectedIsAuthorized = await injectedConnector.isAuthorized();
 
       if (injectedIsAuthorized) {
-        setConnectorCandidate(injectedConnector);
+        activateInjected();
       } else {
-        setConnectorCandidate(rpcConnector);
+        activateRpc();
       }
     })();
   }, []);
 
-  useEffect(() => {
-    if (active === false && connectorCandidate === injectedConnector) {
-      setConnectorCandidate(rpcConnector);
-    }
-  }, [active]);
+  const closeEventHappened = useRef(false);
 
   useEffectOnValueChange(
-    (prevConnector) => {
-      activate(connectorCandidate);
+    (prevActive) => {
+      if (prevActive && !active) {
+        if (closeEventHappened.current) {
+          activateInjected();
+        } else {
+          activateRpc();
+        }
+
+        closeEventHappened.current = false;
+      }
     },
-    [connectorCandidate]
+    [active, activate]
   );
+
+  useEffect(() => {
+    if (!window.ethereum) {
+      return;
+    }
+
+    const updateChainId = (chainId) => {
+      rpcConnector.currentChainId = parseInt(chainId.slice(2), 16);
+    };
+
+    const handleClose = () => {
+      closeEventHappened.current = true;
+    };
+
+    window.ethereum.on("chainChanged", updateChainId);
+    window.ethereum.on("close", handleClose);
+
+    return () => {
+      window.ethereum.off("chainChanged", updateChainId);
+      window.ethereum.off("close", handleClose);
+    };
+  }, [closeEventHappened]);
 
   const isReady = connector !== null;
   const isRpc = active && connector === rpcConnector;
   const isInjected = active && connector === injectedConnector;
   const isInjectedAvailable = window.ethereum !== undefined;
   const isReadOnly = isRpc;
-  const activateInjected = () => setConnectorCandidate(injectedConnector);
-  const deactivateInjected = () => setConnectorCandidate(rpcConnector);
 
-  const setNetwork = (networkId) => {
-    if (!isRpc) {
+  const addNetwork = (networkId) => {
+    if (!window.ethereum || !isInjected) {
       return;
     }
 
-    rpcNetworkPersistence.write(networkId);
+    const network = getNetwork(networkId);
 
-    connector.changeChainId(networkId);
+    const { chainId, name, rpcUrl, rpcUrlMetamask, etherscan } = network;
+    window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: `0x${chainId.toString(16)}`,
+          chainName: name,
+          rpcUrls: [rpcUrlMetamask ?? rpcUrl],
+          blockExplorerUrls: [etherscan],
+          nativeCurrency: {
+            symbol: "MATIC",
+            decimals: 18,
+          },
+        },
+      ],
+    });
+  };
+
+  const setNetwork = (networkId) => {
+    if (isRpc) {
+      rpcNetworkPersistence.write(networkId);
+
+      connector.changeChainId(networkId);
+    }
   };
 
   return {
@@ -73,8 +131,8 @@ const [Web3AuthProvider, _useWeb3Auth] = constate(() => {
     isInjectedAvailable,
     isReadOnly,
     activateInjected,
-    deactivateInjected,
     setNetwork,
+    addNetwork,
   };
 });
 

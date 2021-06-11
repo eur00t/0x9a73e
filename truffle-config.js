@@ -41,6 +41,7 @@ module.exports = {
       chain_id: 137,
       name: "Matic",
       etherscan: "https://polygonscan.com/",
+      rpcUrlMetamask: "https://rpc-mainnet.matic.network",
       rpcUrl: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
     },
     kovan: {
