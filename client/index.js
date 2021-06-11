@@ -113,10 +113,21 @@ const App = () => {
       <nav className="navbar navbar-expand navbar-light bg-light">
         <div className="container">
           <NavLink
-            className="navbar-brand"
+            className="navbar-brand position-relative me-5"
             to="/modules/list"
             activeClassName="active"
           >
+            <small
+              className="text-muted"
+              style={{
+                position: "absolute",
+                top: "0",
+                right: "-25px",
+                fontSize: "12px",
+              }}
+            >
+              beta
+            </small>
             0x9a73e
           </NavLink>
           <div className="collapse navbar-collapse">
