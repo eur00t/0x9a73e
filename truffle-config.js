@@ -30,6 +30,19 @@ module.exports = {
       port: 7545,
       network_id: "*",
     },
+    matic: {
+      provider: () => {
+        return new HDWalletProvider(
+          process.env.WALLET_MNEMONIC,
+          `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
+        );
+      },
+      network_id: 137,
+      chain_id: 137,
+      name: "Matic",
+      etherscan: "https://polygonscan.com/",
+      rpcUrl: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+    },
     kovan: {
       provider: () => {
         return new HDWalletProvider(

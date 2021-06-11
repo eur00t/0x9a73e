@@ -2,7 +2,8 @@ import React from "react";
 import classNames from "classnames";
 
 import { useTransactionsScope } from "../state/useTransactionsScope";
-import { TransactionsStatus } from "../components/TransactionsStatus";
+import { TransactionsStatus } from "./TransactionsStatus";
+import { useWeb3Auth } from "./Web3Auth";
 
 export const TransactionButton = ({
   text,
@@ -14,12 +15,16 @@ export const TransactionButton = ({
 }) => {
   const { isPending } = useTransactionsScope(scopeId);
 
+  const { isReadOnly } = useWeb3Auth();
+
+  const isDisabled = isReadOnly || disabled || isPending;
+
   return (
     <div className={classNames("d-flex align-items-start", className)}>
       <button
-        onClick={!isPending && !disabled ? onClick : null}
+        onClick={!isDisabled ? onClick : null}
         className={classNames("btn", btnClassName, {
-          disabled: disabled || isPending,
+          disabled: isDisabled,
         })}
       >
         {isPending ? (

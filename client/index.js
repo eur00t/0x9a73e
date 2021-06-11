@@ -9,7 +9,6 @@ import ReactDOM from "react-dom";
 import {
   BrowserRouter,
   NavLink,
-  Link,
   Redirect,
   Route,
   Switch,
@@ -27,30 +26,21 @@ import {
   InvocationRoute,
 } from "./routes";
 import { AppStateProvider } from "./state";
-import { useNetwork } from "./utils/networks";
 import { OnlyContractOwner } from "./components/OnlyContractOwner";
+import { OnlyConnectorType } from "./components/OnlyConnectorType";
+import { OnlyInjectedAvailable } from "./components/OnlyInjectedAvailable";
+import { OnlyWriteInjector } from "./components/OnlyWriteInjector";
+import { NetworkIndicator } from "./components/NetworkIndicator";
+import { ReadOnlyWarning } from "./components/ReadOnlyWarning";
+
 import { Web3Auth } from "./components/Web3Auth";
-import Plug from "./icons/plug.svg";
-import Metamask from "./icons/metamask.svg";
-
-const ACTIVE = "ACTIVE";
-const DISCONNECTED = "DISCONNECTED";
-const WRONG_NETWORK = "WRONG_NETWORK";
-
-const useAppMode = () => {
-  const { active } = useWeb3React();
-  const network = useNetwork();
-
-  if (!active) {
-    return DISCONNECTED;
-  }
-
-  if (!network) {
-    return WRONG_NETWORK;
-  }
-
-  return ACTIVE;
-};
+import { useWeb3Auth } from "./components/Web3Auth";
+import {
+  useAppMode,
+  ACTIVE,
+  DISCONNECTED,
+  WRONG_NETWORK,
+} from "./components/useAppMode";
 
 const Routes = () => {
   const appMode = useAppMode();
@@ -113,35 +103,9 @@ const Routes = () => {
   }
 };
 
-const NetworkIndicator = () => {
-  const appMode = useAppMode();
-  const network = useNetwork();
-
-  switch (appMode) {
-    case ACTIVE:
-      return (
-        <span className="badge d-block bg-info d-flex align-items-center">
-          <Plug className="me-1" />
-          {network.name}
-        </span>
-      );
-    case DISCONNECTED:
-      return (
-        <span className="badge d-block bg-warning">
-          Wallet is not connected
-        </span>
-      );
-    case WRONG_NETWORK:
-      return (
-        <span className="badge d-block bg-warning">
-          Network is not supported
-        </span>
-      );
-  }
-};
-
 const App = () => {
   const { chainId, account } = useWeb3React();
+  const { activateInjected } = useWeb3Auth();
   const appMode = useAppMode();
 
   return (
@@ -174,22 +138,32 @@ const App = () => {
             <NetworkIndicator />
           </div>
 
-          <div className="btn btn-outline-primary ms-3 d-none">
-            Connect with Metamask
-            <Metamask style={{ width: "20px" }} />
-          </div>
+          <OnlyConnectorType type="rpc">
+            <OnlyInjectedAvailable>
+              <div
+                className="btn btn-outline-primary ms-3"
+                onClick={activateInjected}
+              >
+                Connect Wallet
+              </div>
+            </OnlyInjectedAvailable>
+          </OnlyConnectorType>
 
-          <NavLink
-            to="/modules/create"
-            activeClassName="d-none"
-            className={classNames("btn btn-outline-primary ms-3", {
-              disabled: appMode !== ACTIVE,
-            })}
-          >
-            Create Module
-          </NavLink>
+          <OnlyWriteInjector>
+            <NavLink
+              to="/modules/create"
+              activeClassName="d-none"
+              className={classNames("btn btn-outline-primary ms-3", {
+                disabled: appMode !== ACTIVE,
+              })}
+            >
+              Create Module
+            </NavLink>
+          </OnlyWriteInjector>
         </div>
       </nav>
+
+      <ReadOnlyWarning />
 
       <Routes key={`${chainId}-${account}`} />
     </>

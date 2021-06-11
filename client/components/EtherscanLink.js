@@ -74,7 +74,7 @@ export const EtherscanLink = ({
       <div className="p-2 d-flex" style={{ position: "relative", top: "-2px" }}>
         <BoxArrowUpRight />
       </div>
-      <div className="d-flex" style={{ position: "relative", top: "-2px" }}>
+      <div className="d-flex" style={{ position: "relative", top: "-1px" }}>
         <CopyToClipboard value={id} />
       </div>
     </div>

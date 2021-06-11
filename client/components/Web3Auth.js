@@ -1,12 +1,16 @@
 import { useWeb3React } from "@web3-react/core";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import constate from "constate";
 
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { NetworkConnector } from "@web3-react/network-connector";
 
+import { useEffectOnValueChange } from "../utils/useEffectOnValueChange";
+import { rpcNetworkPersistence } from "../utils/rpcNetworkPersistence";
+
 const injectedConnector = new InjectedConnector();
-const networkConnector = new NetworkConnector({
-  defaultChainId: 4,
+const rpcConnector = new NetworkConnector({
+  defaultChainId: rpcNetworkPersistence.read(),
   urls: Object.fromEntries(
     JSON.parse(process.env.NETWORKS).map(({ networkId, rpcUrl }) => [
       networkId,
@@ -15,40 +19,77 @@ const networkConnector = new NetworkConnector({
   ),
 });
 
-const connector = injectedConnector;
-
-export const Web3Auth = ({ children }) => {
-  const { active, activate } = useWeb3React();
-
-  const [isInitiallyAuthorized, setIsInitiallyAuthorized] = useState(false);
-  const [ready, setReady] = useState(false);
+const [Web3AuthProvider, _useWeb3Auth] = constate(() => {
+  const [connectorCandidate, setConnectorCandidate] = useState(null);
+  const { activate, active, connector } = useWeb3React();
 
   useEffect(() => {
     (async () => {
-      if (typeof connector.isAuthorized === "function") {
-        setIsInitiallyAuthorized(await connector.isAuthorized());
+      const injectedIsAuthorized = await injectedConnector.isAuthorized();
+
+      if (injectedIsAuthorized) {
+        setConnectorCandidate(injectedConnector);
       } else {
-        setIsInitiallyAuthorized(true);
+        setConnectorCandidate(rpcConnector);
       }
-      setReady(true);
     })();
   }, []);
 
   useEffect(() => {
-    // Trigger activate if we know that
-    // metamask is already authorized.
-    // Will require no action from the user.
-    if (ready && isInitiallyAuthorized) {
-      activate(connector);
+    if (active === false && connectorCandidate === injectedConnector) {
+      setConnectorCandidate(rpcConnector);
     }
-  }, [ready, isInitiallyAuthorized]);
+  }, [active]);
 
-  // Render the app if:
-  // 1. Metamask was not authorized (will render disconnected UI).
-  // or
-  // 2. web3-react is active.
-  //
-  // Will not render the app, if we still waiting for
-  // getting the initial auth state, or activation.
-  return (ready && !isInitiallyAuthorized) || active ? children : null;
+  useEffectOnValueChange(
+    (prevConnector) => {
+      activate(connectorCandidate);
+    },
+    [connectorCandidate]
+  );
+
+  const isReady = connector !== null;
+  const isRpc = active && connector === rpcConnector;
+  const isInjected = active && connector === injectedConnector;
+  const isInjectedAvailable = window.ethereum !== undefined;
+  const isReadOnly = isRpc;
+  const activateInjected = () => setConnectorCandidate(injectedConnector);
+  const deactivateInjected = () => setConnectorCandidate(rpcConnector);
+
+  const setNetwork = (networkId) => {
+    if (!isRpc) {
+      return;
+    }
+
+    rpcNetworkPersistence.write(networkId);
+
+    connector.changeChainId(networkId);
+  };
+
+  return {
+    isReady,
+    isRpc,
+    isInjected,
+    isInjectedAvailable,
+    isReadOnly,
+    activateInjected,
+    deactivateInjected,
+    setNetwork,
+  };
+});
+
+export const useWeb3Auth = _useWeb3Auth;
+
+const Web3AuthInner = ({ children }) => {
+  const { active } = useWeb3React();
+
+  return active ? children : null;
+};
+
+export const Web3Auth = (props) => {
+  return (
+    <Web3AuthProvider>
+      <Web3AuthInner {...props} />
+    </Web3AuthProvider>
+  );
 };

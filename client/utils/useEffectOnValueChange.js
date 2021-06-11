@@ -5,7 +5,7 @@ export const useEffectOnValueChange = (callback, [value]) => {
 
   useEffect(() => {
     if (prevValue.current !== value) {
-      callback();
+      callback(prevValue.current);
     }
     prevValue.current = value;
   }, [value]);

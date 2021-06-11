@@ -38,12 +38,12 @@ export const Modal = ({ show, onClose, children }) => {
           enterDone: "show",
         }}
       >
-        <ModalContainer className="modal fade">
-          <div className="modal-dialog">
+        <ModalContainer className="modal fade" onClick={onClose}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
-              {React.cloneElement(header, { onClose })}
-              {React.cloneElement(body, { onClose })}
-              {React.cloneElement(footer, { onClose })}
+              {header ? React.cloneElement(header, { onClose }) : null}
+              {body ? React.cloneElement(body, { onClose }) : null}
+              {footer ? React.cloneElement(footer, { onClose }) : null}
             </div>
           </div>
         </ModalContainer>

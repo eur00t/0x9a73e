@@ -19,6 +19,7 @@ import { Loading } from "../components/Loading";
 import { withOwner, OnlyOwner } from "../components/withOwner";
 import { useAccount } from "../utils/networks";
 import { DEFAULT_MODULE_DATA } from "../utils/defaultModule";
+import { makeFullScreen, resetFullScreen } from "../utils/viewport";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 import Refresh from "../icons/refresh.svg";
 import { DepsControl } from "../components/DepsControl";
@@ -157,7 +158,11 @@ const ModuleEdit = withOwner(
     };
 
     useEffect(() => {
+      makeFullScreen();
       recalcEditorSize();
+      return () => {
+        resetFullScreen();
+      };
     }, []);
 
     const getModuleDOM = useCallback(

@@ -17,6 +17,10 @@ export const useNetwork = () => {
   );
 };
 
+export const useNetworks = () => {
+  return NETWORKS;
+};
+
 export const useSupportedNetworks = () => {
   return NETWORKS.map(({ name }) => name);
 };

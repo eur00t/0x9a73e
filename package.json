@@ -10,9 +10,11 @@
     "deploy-dev": "truffle migrate --network development",
     "deploy-kovan": "truffle migrate --network kovan --skip-dry-run",
     "deploy-rinkeby": "truffle migrate --network rinkeby --skip-dry-run",
-    "deploy-ropsten": "truffle migrate --network ropsten --skip-dry-run"
+    "deploy-ropsten": "truffle migrate --network ropsten --skip-dry-run",
+    "deploy-matic": "truffle migrate --network matic --skip-dry-run"
   },
   "devDependencies": {
+    "@metamask/onboarding": "^1.0.1",
     "@openzeppelin/contracts": "^4.1.0",
     "@svgr/parcel-plugin-svgr": "^5.5.0",
     "@truffle/hdwallet-provider": "^1.4.0",
