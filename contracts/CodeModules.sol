@@ -117,7 +117,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     string[] internal probablyFeaturedList;
     mapping(string => uint8) internal featuredState;
 
-    function finalize(string memory name) external {
+    function finalize(string calldata name) external {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "modules is finalized");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
@@ -126,7 +126,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         moduleFinalized[name] = true;
     }
 
-    function setInvocable(string memory name, uint256 invocationsMax) external {
+    function setInvocable(string calldata name, uint256 invocationsMax)
+        external
+    {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "modules is finalized");
         require(modules[name].isInvocable, "module must be invocable");
@@ -137,7 +139,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         moduleInvocableState[name].invocationsMax = invocationsMax;
     }
 
-    function createInvocation(string memory moduleName)
+    function createInvocation(string calldata moduleName)
         external
         returns (uint256)
     {
@@ -198,7 +200,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return toInvocationView(tokenId);
     }
 
-    function setFeatured(string memory name) external onlyOwner {
+    function setFeatured(string calldata name) external onlyOwner {
         require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_SET) {
             return;
@@ -211,7 +213,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         featuredState[name] = FEATURED_SET;
     }
 
-    function unsetFeatured(string memory name) external onlyOwner {
+    function unsetFeatured(string calldata name) external onlyOwner {
         require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_UNSET) {
             return;
@@ -249,7 +251,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return result;
     }
 
-    function setTemplate(string memory beforeStr, string memory afterStr)
+    function setTemplate(string calldata beforeStr, string calldata afterStr)
         external
         onlyOwner
     {
@@ -257,19 +259,19 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         templateAfter = afterStr;
     }
 
-    function setBefore(string memory str) external onlyOwner {
+    function setBefore(string calldata str) external onlyOwner {
         templateBefore = str;
     }
 
-    function setAfter(string memory str) external onlyOwner {
+    function setAfter(string calldata str) external onlyOwner {
         templateAfter = str;
     }
 
-    function exists(string memory name) external view returns (bool result) {
+    function exists(string calldata name) external view returns (bool result) {
         return moduleExists[name];
     }
 
-    function getModule(string memory name)
+    function getModule(string calldata name)
         external
         view
         returns (ModuleView memory result)
@@ -453,10 +455,10 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function createModule(
-        string memory name,
-        string memory metadataJSON,
-        string[] memory dependencies,
-        string memory code,
+        string calldata name,
+        string calldata metadataJSON,
+        string[] calldata dependencies,
+        string calldata code,
         bool isInvocable
     ) external {
         require(bytes(name).length > 0, "module name must not be empty");
@@ -488,10 +490,10 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function updateModule(
-        string memory name,
-        string memory metadataJSON,
+        string calldata name,
+        string calldata metadataJSON,
         string[] memory dependencies,
-        string memory code,
+        string calldata code,
         bool isInvocable
     ) external {
         require(moduleExists[name], "module must exist");
@@ -547,8 +549,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function getHtmlPreview(
-        string[] memory dependencies,
-        string memory code,
+        string[] calldata dependencies,
+        string calldata code,
         bool isInvocable
     ) external view returns (string memory result) {
         for (uint256 i = 0; i < dependencies.length; i++) {

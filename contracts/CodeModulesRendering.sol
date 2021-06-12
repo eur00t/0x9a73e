@@ -141,7 +141,7 @@ library CodeModulesRendering {
     function getAllDependencies(
         mapping(string => Module) storage modules,
         mapping(string => uint256) storage moduleNameToTokenId,
-        string memory name
+        string calldata name
     ) external view returns (Module[] memory result) {
         Module[] memory resTraversed;
         uint256 size;
@@ -163,7 +163,7 @@ library CodeModulesRendering {
     function getModuleValueJSON(
         mapping(string => Module) storage modules,
         mapping(string => uint256) storage moduleNameToTokenId,
-        Module memory m
+        Module calldata m
     ) external view returns (string memory result) {
         Module[] memory res;
         uint256 size;
@@ -181,7 +181,7 @@ library CodeModulesRendering {
     function getModuleSeedValueJSON(
         mapping(string => Module) storage modules,
         mapping(string => uint256) storage moduleNameToTokenId,
-        Module memory m,
+        Module calldata m,
         uint256 seed
     ) external view returns (string memory result) {
         Module[] memory res;
