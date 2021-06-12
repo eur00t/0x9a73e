@@ -7,6 +7,10 @@ import { useNetwork } from "../utils/networks";
 
 const { asciiToHex, hexToAscii } = web3.utils;
 
+const hexToAsciiWithTrim = (hex) => {
+  return hexToAscii(hex).replace(/(\0)+$/, "");
+};
+
 const parseTemplate = (str) => {
   const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
 
@@ -20,8 +24,8 @@ const parseTemplate = (str) => {
 };
 
 const processModuleResult = ({ name, dependencies, ...rest }) => ({
-  name: hexToAscii(name),
-  dependencies: dependencies.map((hex) => hexToAscii(hex)),
+  name: hexToAsciiWithTrim(name),
+  dependencies: dependencies.map((hex) => hexToAsciiWithTrim(hex)),
   ...rest,
 });
 
