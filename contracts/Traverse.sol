@@ -8,8 +8,8 @@ library Traverse {
     uint256 internal constant MAX_TRAVERSE_RESULT_SIZE = 256;
 
     function traverseDependenciesP(
-        mapping(string => Module) storage modules,
-        mapping(string => uint256) storage moduleNameToTokenId,
+        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module memory entryModule,
         uint256 leftResultPadding,
         function(Module memory) view returns (bool) p
@@ -66,8 +66,8 @@ library Traverse {
     }
 
     function traverseDependencies(
-        mapping(string => Module) storage modules,
-        mapping(string => uint256) storage moduleNameToTokenId,
+        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module memory entryModule,
         uint256 leftResultPadding
     ) internal view returns (Module[] memory result, uint256 size) {

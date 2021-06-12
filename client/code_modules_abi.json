@@ -6,6 +6,11 @@
           "internalType": "uint256",
           "name": "networkId",
           "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "baseURIPrefix",
+          "type": "bytes32"
         }
       ],
       "stateMutability": "nonpayable",
@@ -140,7 +145,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -159,7 +165,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -183,7 +190,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -196,7 +204,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -209,7 +218,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -228,7 +238,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -317,7 +328,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -336,7 +348,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -360,7 +373,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -379,7 +393,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -392,7 +407,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -447,14 +463,15 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "finalize",
@@ -465,9 +482,9 @@
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         },
         {
           "internalType": "uint256",
@@ -483,9 +500,9 @@
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "moduleName",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "createInvocation",
@@ -514,29 +531,9 @@
             {
               "components": [
                 {
-                  "internalType": "string",
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string",
-                  "name": "metadataJSON",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string[]",
-                  "name": "dependencies",
-                  "type": "string[]"
-                },
-                {
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
                 },
                 {
                   "internalType": "bool",
@@ -555,6 +552,11 @@
                 },
                 {
                   "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
                   "name": "invocationsNum",
                   "type": "uint256"
                 },
@@ -562,6 +564,21 @@
                   "internalType": "uint256",
                   "name": "invocationsMax",
                   "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "name",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "dependencies",
+                  "type": "bytes32[]"
+                },
+                {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
                 }
               ],
               "internalType": "struct CodeModules.ModuleViewBrief",
@@ -590,14 +607,15 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "setFeatured",
@@ -608,9 +626,9 @@
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "unsetFeatured",
@@ -625,29 +643,9 @@
         {
           "components": [
             {
-              "internalType": "string",
-              "name": "name",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "metadataJSON",
-              "type": "string"
-            },
-            {
-              "internalType": "string[]",
-              "name": "dependencies",
-              "type": "string[]"
-            },
-            {
               "internalType": "address",
               "name": "owner",
               "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -666,6 +664,11 @@
             },
             {
               "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "invocationsNum",
               "type": "uint256"
             },
@@ -673,6 +676,21 @@
               "internalType": "uint256",
               "name": "invocationsMax",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "name",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "dependencies",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
+              "type": "string"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -681,7 +699,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -730,9 +749,9 @@
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "exists",
@@ -744,14 +763,15 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "getModule",
@@ -759,46 +779,51 @@
         {
           "components": [
             {
-              "internalType": "string",
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "bool",
+              "name": "isFeatured",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isInvocable",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isFinalized",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "invocationsMax",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
               "name": "name",
-              "type": "string"
+              "type": "bytes32"
             },
             {
-              "internalType": "string",
-              "name": "metadataJSON",
-              "type": "string"
-            },
-            {
-              "internalType": "string[]",
+              "internalType": "bytes32[]",
               "name": "dependencies",
-              "type": "string[]"
+              "type": "bytes32[]"
             },
             {
               "components": [
                 {
-                  "internalType": "string",
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string",
-                  "name": "metadataJSON",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string[]",
-                  "name": "dependencies",
-                  "type": "string[]"
-                },
-                {
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
                 },
                 {
                   "internalType": "bool",
@@ -817,6 +842,11 @@
                 },
                 {
                   "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
                   "name": "invocationsNum",
                   "type": "uint256"
                 },
@@ -824,41 +854,26 @@
                   "internalType": "uint256",
                   "name": "invocationsMax",
                   "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "name",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "dependencies",
+                  "type": "bytes32[]"
+                },
+                {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
                 }
               ],
               "internalType": "struct CodeModules.ModuleViewBrief[]",
               "name": "allDependencies",
               "type": "tuple[]"
-            },
-            {
-              "internalType": "string",
-              "name": "code",
-              "type": "string"
-            },
-            {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "isFeatured",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "isInvocable",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "isFinalized",
-              "type": "bool"
             },
             {
               "components": [
@@ -878,9 +893,14 @@
               "type": "tuple[]"
             },
             {
-              "internalType": "uint256",
-              "name": "invocationsMax",
-              "type": "uint256"
+              "internalType": "string",
+              "name": "code",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
+              "type": "string"
             }
           ],
           "internalType": "struct CodeModules.ModuleView",
@@ -889,7 +909,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -898,29 +919,9 @@
         {
           "components": [
             {
-              "internalType": "string",
-              "name": "name",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "metadataJSON",
-              "type": "string"
-            },
-            {
-              "internalType": "string[]",
-              "name": "dependencies",
-              "type": "string[]"
-            },
-            {
               "internalType": "address",
               "name": "owner",
               "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -939,6 +940,11 @@
             },
             {
               "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "invocationsNum",
               "type": "uint256"
             },
@@ -946,6 +952,21 @@
               "internalType": "uint256",
               "name": "invocationsMax",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "name",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "dependencies",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
+              "type": "string"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -954,7 +975,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -963,29 +985,9 @@
         {
           "components": [
             {
-              "internalType": "string",
-              "name": "name",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "metadataJSON",
-              "type": "string"
-            },
-            {
-              "internalType": "string[]",
-              "name": "dependencies",
-              "type": "string[]"
-            },
-            {
               "internalType": "address",
               "name": "owner",
               "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
             },
             {
               "internalType": "bool",
@@ -1004,6 +1006,11 @@
             },
             {
               "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "invocationsNum",
               "type": "uint256"
             },
@@ -1011,6 +1018,21 @@
               "internalType": "uint256",
               "name": "invocationsMax",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "name",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "dependencies",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataJSON",
+              "type": "string"
             }
           ],
           "internalType": "struct CodeModules.ModuleViewBrief[]",
@@ -1019,7 +1041,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -1030,29 +1053,9 @@
             {
               "components": [
                 {
-                  "internalType": "string",
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string",
-                  "name": "metadataJSON",
-                  "type": "string"
-                },
-                {
-                  "internalType": "string[]",
-                  "name": "dependencies",
-                  "type": "string[]"
-                },
-                {
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
                 },
                 {
                   "internalType": "bool",
@@ -1071,6 +1074,11 @@
                 },
                 {
                   "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
                   "name": "invocationsNum",
                   "type": "uint256"
                 },
@@ -1078,6 +1086,21 @@
                   "internalType": "uint256",
                   "name": "invocationsMax",
                   "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "name",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "dependencies",
+                  "type": "bytes32[]"
+                },
+                {
+                  "internalType": "string",
+                  "name": "metadataJSON",
+                  "type": "string"
                 }
               ],
               "internalType": "struct CodeModules.ModuleViewBrief",
@@ -1106,14 +1129,15 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         },
         {
           "internalType": "string",
@@ -1121,9 +1145,9 @@
           "type": "string"
         },
         {
-          "internalType": "string[]",
+          "internalType": "bytes32[]",
           "name": "dependencies",
-          "type": "string[]"
+          "type": "bytes32[]"
         },
         {
           "internalType": "string",
@@ -1144,9 +1168,9 @@
     {
       "inputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "name",
-          "type": "string"
+          "type": "bytes32"
         },
         {
           "internalType": "string",
@@ -1154,9 +1178,9 @@
           "type": "string"
         },
         {
-          "internalType": "string[]",
+          "internalType": "bytes32[]",
           "name": "dependencies",
-          "type": "string[]"
+          "type": "bytes32[]"
         },
         {
           "internalType": "string",
@@ -1191,14 +1215,15 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
-          "internalType": "string[]",
+          "internalType": "bytes32[]",
           "name": "dependencies",
-          "type": "string[]"
+          "type": "bytes32[]"
         },
         {
           "internalType": "string",
@@ -1220,7 +1245,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ]
 }

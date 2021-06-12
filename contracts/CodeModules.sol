@@ -37,42 +37,46 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     uint256 internal _networkId;
+    bytes32 internal _baseURIPrefix;
 
     function _baseURI() internal view override returns (string memory) {
         return
-            CodeModulesRendering.strConcat3(
-                "https://9a73e.website/network/",
-                _networkId.toString(),
-                "/tokens/"
+            string(
+                abi.encodePacked(
+                    _baseURIPrefix,
+                    bytes("/network/"),
+                    bytes(_networkId.toString()),
+                    bytes("/tokens/")
+                )
             );
     }
 
     struct ModuleView {
-        string name;
-        string metadataJSON;
-        string[] dependencies;
-        ModuleViewBrief[] allDependencies;
-        string code;
         address owner;
-        uint256 tokenId;
         bool isFeatured;
         bool isInvocable;
         bool isFinalized;
-        InvocationModuleView[] invocations;
+        uint256 tokenId;
         uint256 invocationsMax;
+        bytes32 name;
+        bytes32[] dependencies;
+        ModuleViewBrief[] allDependencies;
+        InvocationModuleView[] invocations;
+        string code;
+        string metadataJSON;
     }
 
     struct ModuleViewBrief {
-        string name;
-        string metadataJSON;
-        string[] dependencies;
         address owner;
-        uint256 tokenId;
         bool isFeatured;
         bool isInvocable;
         bool isFinalized;
+        uint256 tokenId;
         uint256 invocationsNum;
         uint256 invocationsMax;
+        bytes32 name;
+        bytes32[] dependencies;
+        string metadataJSON;
     }
 
     struct InvocableState {
@@ -81,7 +85,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     struct Invocation {
-        string moduleName;
+        bytes32 moduleName;
         uint256 seed;
     }
 
@@ -97,27 +101,27 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string seed;
     }
 
-    mapping(string => Module) internal modules;
-    mapping(string => bool) internal moduleExists;
+    mapping(bytes32 => Module) internal modules;
+    mapping(bytes32 => bool) internal moduleExists;
 
-    mapping(string => bool) internal moduleFinalized;
-    mapping(string => InvocableState) internal moduleInvocableState;
+    mapping(bytes32 => bool) internal moduleFinalized;
+    mapping(bytes32 => InvocableState) internal moduleInvocableState;
 
     mapping(uint256 => Invocation) internal tokenIdToInvocation;
 
-    mapping(uint256 => string) internal tokenIdToModuleName;
-    mapping(string => uint256) internal moduleNameToTokenId;
+    mapping(uint256 => bytes32) internal tokenIdToModuleName;
+    mapping(bytes32 => uint256) internal moduleNameToTokenId;
 
     string internal templateBefore;
     string internal templateAfter;
 
-    uint8 internal constant FEATURED_UNKNOWN = 0;
-    uint8 internal constant FEATURED_SET = 1;
-    uint8 internal constant FEATURED_UNSET = 2;
-    string[] internal probablyFeaturedList;
-    mapping(string => uint8) internal featuredState;
+    uint256 internal constant FEATURED_UNKNOWN = 0;
+    uint256 internal constant FEATURED_SET = 1;
+    uint256 internal constant FEATURED_UNSET = 2;
+    bytes32[] internal probablyFeaturedList;
+    mapping(bytes32 => uint256) internal featuredState;
 
-    function finalize(string calldata name) external {
+    function finalize(bytes32 name) external {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "modules is finalized");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
@@ -126,9 +130,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         moduleFinalized[name] = true;
     }
 
-    function setInvocable(string calldata name, uint256 invocationsMax)
-        external
-    {
+    function setInvocable(bytes32 name, uint256 invocationsMax) external {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "modules is finalized");
         require(modules[name].isInvocable, "module must be invocable");
@@ -139,10 +141,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         moduleInvocableState[name].invocationsMax = invocationsMax;
     }
 
-    function createInvocation(string calldata moduleName)
-        external
-        returns (uint256)
-    {
+    function createInvocation(bytes32 moduleName) external returns (uint256) {
         require(moduleExists[moduleName], "module must exist");
         require(modules[moduleName].isInvocable, "module must be invocable");
         require(moduleFinalized[moduleName], "module must be finalized");
@@ -200,7 +199,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return toInvocationView(tokenId);
     }
 
-    function setFeatured(string calldata name) external onlyOwner {
+    function setFeatured(bytes32 name) external onlyOwner {
         require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_SET) {
             return;
@@ -213,7 +212,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         featuredState[name] = FEATURED_SET;
     }
 
-    function unsetFeatured(string calldata name) external onlyOwner {
+    function unsetFeatured(bytes32 name) external onlyOwner {
         require(moduleExists[name], "module must exist");
         if (featuredState[name] == FEATURED_UNSET) {
             return;
@@ -229,8 +228,8 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (ModuleViewBrief[] memory result)
     {
-        string[] memory featuredList =
-            new string[](probablyFeaturedList.length);
+        bytes32[] memory featuredList =
+            new bytes32[](probablyFeaturedList.length);
         uint256 featuredListLength = 0;
 
         for (uint256 i = 0; i < probablyFeaturedList.length; i++) {
@@ -267,11 +266,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         templateAfter = str;
     }
 
-    function exists(string calldata name) external view returns (bool result) {
+    function exists(bytes32 name) external view returns (bool result) {
         return moduleExists[name];
     }
 
-    function getModule(string calldata name)
+    function getModule(bytes32 name)
         external
         view
         returns (ModuleView memory result)
@@ -455,13 +454,13 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function createModule(
-        string calldata name,
+        bytes32 name,
         string calldata metadataJSON,
-        string[] calldata dependencies,
+        bytes32[] calldata dependencies,
         string calldata code,
         bool isInvocable
     ) external {
-        require(bytes(name).length > 0, "module name must not be empty");
+        require(name != "", "module name must not be empty");
         for (uint256 i = 0; i < dependencies.length; i++) {
             require(
                 moduleExists[dependencies[i]],
@@ -490,9 +489,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function updateModule(
-        string calldata name,
+        bytes32 name,
         string calldata metadataJSON,
-        string[] memory dependencies,
+        bytes32[] memory dependencies,
         string calldata code,
         bool isInvocable
     ) external {
@@ -549,7 +548,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     }
 
     function getHtmlPreview(
-        string[] calldata dependencies,
+        bytes32[] calldata dependencies,
         string calldata code,
         bool isInvocable
     ) external view returns (string memory result) {
@@ -597,8 +596,11 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             );
     }
 
-    constructor(uint256 networkId) ERC721("CodeModules", "CDM") {
+    constructor(uint256 networkId, bytes32 baseURIPrefix)
+        ERC721("CodeModules", "CDM")
+    {
         _networkId = networkId;
+        _baseURIPrefix = baseURIPrefix;
 
         moduleNameToTokenId["module-preview"] = _tokenIdCounter.current();
         _tokenIdCounter.increment();

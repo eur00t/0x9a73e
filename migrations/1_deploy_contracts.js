@@ -1,6 +1,7 @@
 const { parse, stringify } = require("envfile");
 const fs = require("fs");
 const path = require("path");
+const web3 = require("web3");
 
 const truffleConfig = require("../truffle-config");
 
@@ -32,9 +33,9 @@ const uploadExampleModules = async (instance) => {
     );
 
     await instance.createModule(
-      moduleName,
+      web3.utils.asciiToHex(moduleName),
       JSON.stringify({ description: description.slice(1, -1) }),
-      JSON.parse(depsStr),
+      JSON.parse(depsStr).map((str) => web3.utils.asciiToHex(str)),
       Buffer.from(code).toString("base64"),
       JSON.parse(isInvocable)
     );
@@ -92,7 +93,8 @@ module.exports = async (deployer, networkEnvName, [contractOwner]) => {
   await deployer.link(CodeModulesRendering, CodeModules);
   await deployer.deploy(
     CodeModules,
-    truffleConfig.networks[networkEnvName].network_id
+    truffleConfig.networks[networkEnvName].network_id,
+    web3.utils.asciiToHex(process.env.WEB_URL_ROOT)
   );
 
   const instance = await CodeModules.deployed();

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 struct Module {
-    string name;
+    bytes32 name;
     string metadataJSON;
-    string[] dependencies;
+    bytes32[] dependencies;
     string code;
     bool isInvocable;
 }

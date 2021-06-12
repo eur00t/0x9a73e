@@ -18,12 +18,28 @@ library CodeModulesRendering {
         result = string(abi.encodePacked(bytes(_a), bytes(_b)));
     }
 
+    function strConcat(string memory _a, bytes32 _b)
+        internal
+        pure
+        returns (string memory result)
+    {
+        result = string(abi.encodePacked(bytes(_a), _b));
+    }
+
     function strConcat3(
         string memory s1,
         string memory s2,
         string memory s3
     ) internal pure returns (string memory result) {
         result = string(abi.encodePacked(bytes(s1), bytes(s2), bytes(s3)));
+    }
+
+    function strConcat3(
+        string memory s1,
+        bytes32 s2,
+        string memory s3
+    ) internal pure returns (string memory result) {
+        result = string(abi.encodePacked(bytes(s1), s2, bytes(s3)));
     }
 
     function strConcat4(
@@ -63,7 +79,31 @@ library CodeModulesRendering {
         result = strConcat(result, arr[arr.length - 1]);
     }
 
+    function join(bytes32[] memory arr, string memory sep)
+        internal
+        pure
+        returns (string memory result)
+    {
+        if (arr.length == 0) {
+            return "";
+        }
+
+        for (uint256 i = 0; i < arr.length - 1; i++) {
+            result = strConcat3(result, arr[i], sep);
+        }
+
+        result = strConcat(result, arr[arr.length - 1]);
+    }
+
     function stringToJSON(string memory str)
+        internal
+        pure
+        returns (string memory result)
+    {
+        return strConcat3('"', str, '"');
+    }
+
+    function stringToJSON(bytes32 str)
         internal
         pure
         returns (string memory result)
@@ -81,7 +121,7 @@ library CodeModulesRendering {
         string[] memory arr = new string[](keys.length);
 
         for (uint256 i = 0; i < keys.length; i++) {
-            arr[i] = strConcat3(stringToJSON(keys[i]), ": ", values[i]);
+            arr[i] = strConcat3(stringToJSON(keys[i]), string(": "), values[i]);
         }
 
         return strConcat3("{", join(arr, ", "), "}");
@@ -96,6 +136,18 @@ library CodeModulesRendering {
     }
 
     function strArrToJSON(string[] memory arr)
+        internal
+        pure
+        returns (string memory result)
+    {
+        if (arr.length == 0) {
+            return "[]";
+        }
+
+        return strConcat3('["', join(arr, '", "'), '"]');
+    }
+
+    function strArrToJSON(bytes32[] memory arr)
         internal
         pure
         returns (string memory result)
@@ -139,9 +191,9 @@ library CodeModulesRendering {
     }
 
     function getAllDependencies(
-        mapping(string => Module) storage modules,
-        mapping(string => uint256) storage moduleNameToTokenId,
-        string calldata name
+        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => uint256) storage moduleNameToTokenId,
+        bytes32 name
     ) external view returns (Module[] memory result) {
         Module[] memory resTraversed;
         uint256 size;
@@ -161,8 +213,8 @@ library CodeModulesRendering {
     }
 
     function getModuleValueJSON(
-        mapping(string => Module) storage modules,
-        mapping(string => uint256) storage moduleNameToTokenId,
+        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module calldata m
     ) external view returns (string memory result) {
         Module[] memory res;
@@ -179,15 +231,15 @@ library CodeModulesRendering {
     }
 
     function getModuleSeedValueJSON(
-        mapping(string => Module) storage modules,
-        mapping(string => uint256) storage moduleNameToTokenId,
+        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module calldata m,
         uint256 seed
     ) external view returns (string memory result) {
         Module[] memory res;
         uint256 size;
 
-        string[] memory dependencies = new string[](1);
+        bytes32[] memory dependencies = new bytes32[](1);
         dependencies[0] = m.name;
 
         (res, size) = Traverse.traverseDependencies(

@@ -1,7 +1,11 @@
 import { useWeb3React } from "@web3-react/core";
+import web3 from "web3";
 import { useCallback, useMemo, useState } from "react";
+
 import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
+
+const { asciiToHex, hexToAscii } = web3.utils;
 
 const parseTemplate = (str) => {
   const match = str.match(/^([\s\S]*){{inject}}([\s\S]*)$/m);
@@ -14,6 +18,21 @@ const parseTemplate = (str) => {
 
   return { before, after };
 };
+
+const processModuleResult = ({ name, dependencies, ...rest }) => ({
+  name: hexToAscii(name),
+  dependencies: dependencies.map((hex) => hexToAscii(hex)),
+  ...rest,
+});
+
+const processModulesResult = (arr) => {
+  return arr.map((module) => processModuleResult(module));
+};
+
+const processInvocationResult = ({ module, ...rest }) => ({
+  module: processModuleResult(module),
+  ...rest,
+});
 
 export const useContract = (trackTransaction) => {
   const { account, library: web3 } = useWeb3React();
@@ -32,7 +51,7 @@ export const useContract = (trackTransaction) => {
   );
 
   const checkIfModuleExists = useCallback(
-    (name) => contract.methods.exists(name).call(),
+    (name) => contract.methods.exists(asciiToHex(name)).call(),
     [contract]
   );
 
@@ -44,15 +63,15 @@ export const useContract = (trackTransaction) => {
       try {
         setProgress(true);
 
-        const exists = await contract.methods.exists(name).call();
+        const exists = await contract.methods.exists(asciiToHex(name)).call();
         if (exists) {
           await trackTransaction(
             scopeId,
             contract.methods
               .updateModule(
-                name,
+                asciiToHex(name),
                 metadataJSON,
-                dependencies,
+                dependencies.map((str) => asciiToHex(str)),
                 btoa(code),
                 isInvocable
               )
@@ -63,9 +82,9 @@ export const useContract = (trackTransaction) => {
             scopeId,
             contract.methods
               .createModule(
-                name,
+                asciiToHex(name),
                 metadataJSON,
-                dependencies,
+                dependencies.map((str) => asciiToHex(str)),
                 btoa(code),
                 isInvocable
               )
@@ -122,34 +141,47 @@ export const useContract = (trackTransaction) => {
       }
 
       return contract.methods
-        .getHtmlPreview(dependencies, btoa(code), isInvocable)
+        .getHtmlPreview(
+          dependencies.map((str) => asciiToHex(str)),
+          btoa(code),
+          isInvocable
+        )
         .call();
     },
     [contract]
   );
 
   const getInvocation = useCallback(
-    (tokenId) => contract.methods.getInvocation(tokenId).call(),
+    async (tokenId) =>
+      processInvocationResult(
+        await contract.methods.getInvocation(tokenId).call()
+      ),
     [contract]
   );
 
   const getAllModules = useCallback(
-    () => contract.methods.getAllModules().call(),
+    async () =>
+      processModulesResult(await contract.methods.getAllModules().call()),
     [contract]
   );
 
   const getOwnedModules = useCallback(
-    () => contract.methods.getOwnedModules().call(),
+    async () =>
+      processModulesResult(await contract.methods.getOwnedModules().call()),
     [contract]
   );
 
   const getOwnedInvocations = useCallback(
-    () => contract.methods.getOwnedInvocations().call(),
+    async () =>
+      (await contract.methods.getOwnedInvocations().call()).map(
+        processInvocationResult
+      ),
     [contract]
   );
 
   const getAllFeatured = useCallback(
-    () => contract.methods.getAllFeatured().call(),
+    async () =>
+      processModulesResult(await contract.methods.getAllFeatured().call()),
     [contract]
   );
 
@@ -157,7 +189,7 @@ export const useContract = (trackTransaction) => {
     (scopeId, moduleName) =>
       trackTransaction(
         scopeId,
-        contract.methods.setFeatured(moduleName).send()
+        contract.methods.setFeatured(asciiToHex(moduleName)).send()
       ),
     [contract, trackTransaction]
   );
@@ -166,28 +198,33 @@ export const useContract = (trackTransaction) => {
     (scopeId, moduleName) =>
       trackTransaction(
         scopeId,
-        contract.methods.unsetFeatured(moduleName).send()
+        contract.methods.unsetFeatured(asciiToHex(moduleName)).send()
       ),
     [contract, trackTransaction]
   );
 
   const getModule = useCallback(
     async (moduleName) => {
-      const { code, ...rest } = await contract.methods
-        .getModule(moduleName)
-        .call();
+      const { code, name, dependencies, allDependencies, ...rest } =
+        await contract.methods.getModule(asciiToHex(moduleName)).call();
 
-      return {
+      return processModuleResult({
         code: atob(code),
+        name,
+        dependencies,
+        allDependencies: processModulesResult(allDependencies),
         ...rest,
-      };
+      });
     },
     [contract]
   );
 
   const finalize = useCallback(
     (scopeId, moduleName) =>
-      trackTransaction(scopeId, contract.methods.finalize(moduleName).send()),
+      trackTransaction(
+        scopeId,
+        contract.methods.finalize(asciiToHex(moduleName)).send()
+      ),
     [contract, trackTransaction]
   );
 
@@ -195,7 +232,9 @@ export const useContract = (trackTransaction) => {
     (scopeId, moduleName, invocationsMax) =>
       trackTransaction(
         scopeId,
-        contract.methods.setInvocable(moduleName, invocationsMax).send()
+        contract.methods
+          .setInvocable(asciiToHex(moduleName), invocationsMax)
+          .send()
       ),
     [contract, trackTransaction]
   );
@@ -204,7 +243,7 @@ export const useContract = (trackTransaction) => {
     (scopeId, moduleName, doneOptions) =>
       trackTransaction(
         scopeId,
-        contract.methods.createInvocation(moduleName).send(),
+        contract.methods.createInvocation(asciiToHex(moduleName)).send(),
         doneOptions
       ),
     [contract, trackTransaction]
