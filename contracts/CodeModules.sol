@@ -53,7 +53,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     struct ModuleView {
         address owner;
-        bool isFeatured;
         bool isInvocable;
         bool isFinalized;
         uint256 tokenId;
@@ -68,7 +67,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     struct ModuleViewBrief {
         address owner;
-        bool isFeatured;
         bool isInvocable;
         bool isFinalized;
         uint256 tokenId;
@@ -103,23 +101,108 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
     mapping(bytes32 => Module) internal modules;
     mapping(bytes32 => bool) internal moduleExists;
-
     mapping(bytes32 => bool) internal moduleFinalized;
     mapping(bytes32 => InvocableState) internal moduleInvocableState;
-
-    mapping(uint256 => Invocation) internal tokenIdToInvocation;
-
-    mapping(uint256 => bytes32) internal tokenIdToModuleName;
     mapping(bytes32 => uint256) internal moduleNameToTokenId;
 
-    string internal templateBefore;
-    string internal templateAfter;
+    mapping(uint256 => Invocation) internal tokenIdToInvocation;
+    mapping(uint256 => bytes32) internal tokenIdToModuleName;
 
-    uint256 internal constant FEATURED_UNKNOWN = 0;
-    uint256 internal constant FEATURED_SET = 1;
-    uint256 internal constant FEATURED_UNSET = 2;
-    bytes32[] internal probablyFeaturedList;
-    mapping(bytes32 => uint256) internal featuredState;
+    struct Template {
+        string beforeInject;
+        string afterInject;
+    }
+
+    Template internal template;
+
+    function toInvocationView(uint256 tokenId)
+        internal
+        view
+        returns (InvocationView memory res)
+    {
+        res.module = toModuleViewBrief(
+            modules[tokenIdToInvocation[tokenId].moduleName]
+        );
+        res.seed = tokenIdToInvocation[tokenId].seed.toHexString();
+        res.owner = ownerOf(tokenId);
+        res.tokenId = tokenId;
+    }
+
+    function toModuleView(Module memory m)
+        internal
+        view
+        returns (ModuleView memory result)
+    {
+        InvocationModuleView[] memory invocations =
+            new InvocationModuleView[](
+                moduleInvocableState[m.name].invocations.length
+            );
+
+        for (
+            uint256 i = 0;
+            i < moduleInvocableState[m.name].invocations.length;
+            i++
+        ) {
+            invocations[i] = InvocationModuleView({
+                seed: tokenIdToInvocation[
+                    moduleInvocableState[m.name].invocations[i]
+                ]
+                    .seed
+                    .toHexString(),
+                tokenId: moduleInvocableState[m.name].invocations[i]
+            });
+        }
+
+        Module[] memory allDependencies =
+            CodeModulesRendering.getAllDependencies(
+                modules,
+                moduleNameToTokenId,
+                m.name
+            );
+
+        ModuleViewBrief[] memory allDependenciesViewBrief =
+            new ModuleViewBrief[](allDependencies.length);
+
+        for (uint256 i = 0; i < allDependencies.length; i++) {
+            allDependenciesViewBrief[i] = toModuleViewBrief(allDependencies[i]);
+        }
+
+        result.name = m.name;
+        result.metadataJSON = m.metadataJSON;
+        result.dependencies = m.dependencies;
+        result.allDependencies = allDependenciesViewBrief;
+        result.code = m.code;
+        result.owner = ownerOf(moduleNameToTokenId[m.name]);
+        result.tokenId = moduleNameToTokenId[m.name];
+        result.isInvocable = m.isInvocable;
+        result.isFinalized = moduleFinalized[m.name];
+        result.invocations = invocations;
+        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
+    }
+
+    function toModuleViewBrief(Module memory m)
+        internal
+        view
+        returns (ModuleViewBrief memory result)
+    {
+        result.name = m.name;
+        result.metadataJSON = m.metadataJSON;
+        result.dependencies = m.dependencies;
+        result.owner = ownerOf(moduleNameToTokenId[m.name]);
+        result.tokenId = moduleNameToTokenId[m.name];
+        result.isInvocable = m.isInvocable;
+        result.isFinalized = moduleFinalized[m.name];
+        result.invocationsNum = moduleInvocableState[m.name].invocations.length;
+        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
+    }
+
+    function tokenIsModule(uint256 tokenId) internal view returns (bool) {
+        return moduleExists[tokenIdToModuleName[tokenId]];
+    }
+
+    function tokenIsInvocation(uint256 tokenId) internal view returns (bool) {
+        return tokenIdToInvocation[tokenId].seed != 0;
+    }
 
     function finalize(bytes32 name) external {
         require(moduleExists[name], "module must exist");
@@ -173,17 +256,68 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return tokenId;
     }
 
-    function toInvocationView(uint256 tokenId)
-        internal
-        view
-        returns (InvocationView memory res)
+    function setTemplate(string calldata beforeStr, string calldata afterStr)
+        external
+        onlyOwner
     {
-        res.module = toModuleViewBrief(
-            modules[tokenIdToInvocation[tokenId].moduleName]
-        );
-        res.seed = tokenIdToInvocation[tokenId].seed.toHexString();
-        res.owner = ownerOf(tokenId);
-        res.tokenId = tokenId;
+        template.beforeInject = beforeStr;
+        template.afterInject = afterStr;
+    }
+
+    function createModule(
+        bytes32 name,
+        string calldata metadataJSON,
+        bytes32[] calldata dependencies,
+        string calldata code,
+        bool isInvocable
+    ) external {
+        require(name != "", "module name must not be empty");
+        for (uint256 i = 0; i < dependencies.length; i++) {
+            require(
+                moduleExists[dependencies[i]],
+                "all dependencies must exist"
+            );
+        }
+        require(!moduleExists[name], "module already exists");
+
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(msg.sender, tokenId);
+
+        tokenIdToModuleName[tokenId] = name;
+        moduleNameToTokenId[name] = tokenId;
+
+        modules[name] = Module({
+            name: name,
+            metadataJSON: metadataJSON,
+            dependencies: dependencies,
+            code: code,
+            isInvocable: isInvocable
+        });
+        moduleExists[name] = true;
+    }
+
+    function updateModule(
+        bytes32 name,
+        string calldata metadataJSON,
+        bytes32[] memory dependencies,
+        string calldata code,
+        bool isInvocable
+    ) external {
+        require(moduleExists[name], "module must exist");
+        require(!moduleFinalized[name], "module is finalized");
+        address tokenOwner = ownerOf(moduleNameToTokenId[name]);
+        require(tokenOwner == msg.sender, "only module owner can update it");
+
+        modules[name].metadataJSON = metadataJSON;
+        modules[name].dependencies = dependencies;
+        modules[name].code = code;
+        modules[name].isInvocable = isInvocable;
+    }
+
+    function exists(bytes32 name) external view returns (bool result) {
+        return moduleExists[name];
     }
 
     function getInvocation(uint256 tokenId)
@@ -196,159 +330,24 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return toInvocationView(tokenId);
     }
 
-    function setFeatured(bytes32 name) external onlyOwner {
-        require(moduleExists[name], "module must exist");
-        if (featuredState[name] == FEATURED_SET) {
-            return;
-        }
-
-        if (featuredState[name] == FEATURED_UNKNOWN) {
-            probablyFeaturedList.push(name);
-        }
-
-        featuredState[name] = FEATURED_SET;
-    }
-
-    function unsetFeatured(bytes32 name) external onlyOwner {
-        require(moduleExists[name], "module must exist");
-        if (featuredState[name] == FEATURED_UNSET) {
-            return;
-        }
-
-        if (featuredState[name] == FEATURED_SET) {
-            featuredState[name] = FEATURED_UNSET;
-        }
-    }
-
-    function getAllFeatured()
+    function getModules(bytes32[] memory moduleNames)
         external
         view
         returns (ModuleViewBrief[] memory result)
     {
-        bytes32[] memory featuredList =
-            new bytes32[](probablyFeaturedList.length);
-        uint256 featuredListLength = 0;
+        result = new ModuleViewBrief[](moduleNames.length);
 
-        for (uint256 i = 0; i < probablyFeaturedList.length; i++) {
-            if (featuredState[probablyFeaturedList[i]] == FEATURED_SET) {
-                featuredList[featuredListLength] = probablyFeaturedList[i];
-                featuredListLength++;
-            }
-        }
-
-        result = new ModuleViewBrief[](featuredListLength);
-
-        for (uint256 i = 0; i < featuredListLength; i++) {
-            Module storage m = modules[featuredList[i]];
+        for (uint256 i = 0; i < moduleNames.length; i++) {
+            Module storage m = modules[moduleNames[i]];
 
             result[i] = toModuleViewBrief(m);
         }
-
-        return result;
-    }
-
-    function setTemplate(string calldata beforeStr, string calldata afterStr)
-        external
-        onlyOwner
-    {
-        templateBefore = beforeStr;
-        templateAfter = afterStr;
-    }
-
-    function setBefore(string calldata str) external onlyOwner {
-        templateBefore = str;
-    }
-
-    function setAfter(string calldata str) external onlyOwner {
-        templateAfter = str;
-    }
-
-    function exists(bytes32 name) external view returns (bool result) {
-        return moduleExists[name];
     }
 
     function getModule(bytes32 name) external view returns (ModuleView memory) {
         require(moduleExists[name], "module must exist");
 
         return toModuleView(modules[name]);
-    }
-
-    function toModuleView(Module memory m)
-        internal
-        view
-        returns (ModuleView memory result)
-    {
-        InvocationModuleView[] memory invocations =
-            new InvocationModuleView[](
-                moduleInvocableState[m.name].invocations.length
-            );
-
-        for (
-            uint256 i = 0;
-            i < moduleInvocableState[m.name].invocations.length;
-            i++
-        ) {
-            invocations[i] = InvocationModuleView({
-                seed: tokenIdToInvocation[
-                    moduleInvocableState[m.name].invocations[i]
-                ]
-                    .seed
-                    .toHexString(),
-                tokenId: moduleInvocableState[m.name].invocations[i]
-            });
-        }
-
-        Module[] memory allDependencies =
-            CodeModulesRendering.getAllDependencies(
-                modules,
-                moduleNameToTokenId,
-                m.name
-            );
-
-        ModuleViewBrief[] memory allDependenciesViewBrief =
-            new ModuleViewBrief[](allDependencies.length);
-
-        for (uint256 i = 0; i < allDependencies.length; i++) {
-            allDependenciesViewBrief[i] = toModuleViewBrief(allDependencies[i]);
-        }
-
-        result.name = m.name;
-        result.metadataJSON = m.metadataJSON;
-        result.dependencies = m.dependencies;
-        result.allDependencies = allDependenciesViewBrief;
-        result.code = m.code;
-        result.owner = ownerOf(moduleNameToTokenId[m.name]);
-        result.tokenId = moduleNameToTokenId[m.name];
-        result.isFeatured = (featuredState[m.name] == 1) ? true : false;
-        result.isInvocable = m.isInvocable;
-        result.isFinalized = moduleFinalized[m.name];
-        result.invocations = invocations;
-        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
-    }
-
-    function toModuleViewBrief(Module memory m)
-        internal
-        view
-        returns (ModuleViewBrief memory result)
-    {
-        result.name = m.name;
-        result.metadataJSON = m.metadataJSON;
-        result.dependencies = m.dependencies;
-        result.owner = ownerOf(moduleNameToTokenId[m.name]);
-        result.tokenId = moduleNameToTokenId[m.name];
-        result.isFeatured = (featuredState[m.name] == 1) ? true : false;
-        result.isInvocable = m.isInvocable;
-        result.isFinalized = moduleFinalized[m.name];
-        result.invocationsNum = moduleInvocableState[m.name].invocations.length;
-        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
-    }
-
-    function tokenIsModule(uint256 tokenId) internal view returns (bool) {
-        return moduleExists[tokenIdToModuleName[tokenId]];
-    }
-
-    function tokenIsInvocation(uint256 tokenId) internal view returns (bool) {
-        return tokenIdToInvocation[tokenId].seed != 0;
     }
 
     function getAllModules()
@@ -434,59 +433,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         }
     }
 
-    function createModule(
-        bytes32 name,
-        string calldata metadataJSON,
-        bytes32[] calldata dependencies,
-        string calldata code,
-        bool isInvocable
-    ) external {
-        require(name != "", "module name must not be empty");
-        for (uint256 i = 0; i < dependencies.length; i++) {
-            require(
-                moduleExists[dependencies[i]],
-                "all dependencies must exist"
-            );
-        }
-
-        require(!moduleExists[name], "module already exists");
-
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-
-        _safeMint(msg.sender, tokenId);
-
-        tokenIdToModuleName[tokenId] = name;
-        moduleNameToTokenId[name] = tokenId;
-
-        modules[name] = Module({
-            name: name,
-            metadataJSON: metadataJSON,
-            dependencies: dependencies,
-            code: code,
-            isInvocable: isInvocable
-        });
-        moduleExists[name] = true;
-    }
-
-    function updateModule(
-        bytes32 name,
-        string calldata metadataJSON,
-        bytes32[] memory dependencies,
-        string calldata code,
-        bool isInvocable
-    ) external {
-        require(moduleExists[name], "module must exist");
-        require(!moduleFinalized[name], "module is finalized");
-        address tokenOwner = ownerOf(moduleNameToTokenId[name]);
-        require(tokenOwner == msg.sender, "only module owner can update it");
-
-        modules[name].metadataJSON = metadataJSON;
-        modules[name].dependencies = dependencies;
-        modules[name].code = code;
-        modules[name].isInvocable = isInvocable;
-    }
-
     function getHtml(uint256 tokenId) external view returns (string memory) {
         string memory modulesJSON;
 
@@ -518,9 +464,9 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
 
         return
             CodeModulesRendering.strConcat3(
-                templateBefore,
+                template.beforeInject,
                 modulesJSON,
-                templateAfter
+                template.afterInject
             );
     }
 
@@ -537,39 +483,35 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         }
 
         string memory modulesJSON;
+        Module memory preview;
+
+        preview.name = "module-preview";
+        preview.metadataJSON = "";
+        preview.dependencies = dependencies;
+        preview.code = code;
 
         if (!isInvocable) {
+            preview.isInvocable = false;
             modulesJSON = CodeModulesRendering.getModuleValueJSON(
                 modules,
                 moduleNameToTokenId,
-                Module({
-                    name: "module-preview",
-                    metadataJSON: "",
-                    dependencies: dependencies,
-                    code: code,
-                    isInvocable: false
-                })
+                preview
             );
         } else {
+            preview.isInvocable = true;
             modulesJSON = CodeModulesRendering.getModuleSeedValueJSON(
                 modules,
                 moduleNameToTokenId,
-                Module({
-                    name: "module-preview",
-                    metadataJSON: "",
-                    dependencies: dependencies,
-                    code: code,
-                    isInvocable: true
-                }),
+                preview,
                 0
             );
         }
 
         return
             CodeModulesRendering.strConcat3(
-                templateBefore,
+                template.beforeInject,
                 modulesJSON,
-                templateAfter
+                template.afterInject
             );
     }
 

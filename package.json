@@ -16,6 +16,7 @@
   "devDependencies": {
     "@metamask/onboarding": "^1.0.1",
     "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/truffle-upgrades": "^1.7.0",
     "@svgr/parcel-plugin-svgr": "^5.5.0",
     "@truffle/hdwallet-provider": "^1.4.0",
     "@web3-react/core": "^6.1.9",

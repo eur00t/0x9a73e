@@ -145,8 +145,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -165,8 +164,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -190,8 +188,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -204,8 +201,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -218,8 +214,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -238,8 +233,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -328,8 +322,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -348,8 +341,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -373,8 +365,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -393,8 +384,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -407,8 +397,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -463,8 +452,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -519,6 +507,109 @@
     {
       "inputs": [
         {
+          "internalType": "string",
+          "name": "beforeStr",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "afterStr",
+          "type": "string"
+        }
+      ],
+      "name": "setTemplate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "metadataJSON",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "dependencies",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "string",
+          "name": "code",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isInvocable",
+          "type": "bool"
+        }
+      ],
+      "name": "createModule",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "metadataJSON",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "dependencies",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "string",
+          "name": "code",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "isInvocable",
+          "type": "bool"
+        }
+      ],
+      "name": "updateModule",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        }
+      ],
+      "name": "exists",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "result",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
@@ -534,11 +625,6 @@
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "isFeatured",
-                  "type": "bool"
                 },
                 {
                   "internalType": "bool",
@@ -607,38 +693,17 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "name",
-          "type": "bytes32"
-        }
-      ],
-      "name": "setFeatured",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "name",
-          "type": "bytes32"
+          "internalType": "bytes32[]",
+          "name": "moduleNames",
+          "type": "bytes32[]"
         }
       ],
-      "name": "unsetFeatured",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getAllFeatured",
+      "name": "getModules",
       "outputs": [
         {
           "components": [
@@ -646,11 +711,6 @@
               "internalType": "address",
               "name": "owner",
               "type": "address"
-            },
-            {
-              "internalType": "bool",
-              "name": "isFeatured",
-              "type": "bool"
             },
             {
               "internalType": "bool",
@@ -699,72 +759,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "beforeStr",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "afterStr",
-          "type": "string"
-        }
-      ],
-      "name": "setTemplate",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "str",
-          "type": "string"
-        }
-      ],
-      "name": "setBefore",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "str",
-          "type": "string"
-        }
-      ],
-      "name": "setAfter",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "name",
-          "type": "bytes32"
-        }
-      ],
-      "name": "exists",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "result",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
     },
     {
       "inputs": [
@@ -782,11 +777,6 @@
               "internalType": "address",
               "name": "owner",
               "type": "address"
-            },
-            {
-              "internalType": "bool",
-              "name": "isFeatured",
-              "type": "bool"
             },
             {
               "internalType": "bool",
@@ -824,11 +814,6 @@
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "isFeatured",
-                  "type": "bool"
                 },
                 {
                   "internalType": "bool",
@@ -904,13 +889,12 @@
             }
           ],
           "internalType": "struct CodeModules.ModuleView",
-          "name": "result",
+          "name": "",
           "type": "tuple"
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -925,11 +909,6 @@
             },
             {
               "internalType": "bool",
-              "name": "isFeatured",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
               "name": "isInvocable",
               "type": "bool"
             },
@@ -975,8 +954,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -991,11 +969,6 @@
             },
             {
               "internalType": "bool",
-              "name": "isFeatured",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
               "name": "isInvocable",
               "type": "bool"
             },
@@ -1041,8 +1014,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -1056,11 +1028,6 @@
                   "internalType": "address",
                   "name": "owner",
                   "type": "address"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "isFeatured",
-                  "type": "bool"
                 },
                 {
                   "internalType": "bool",
@@ -1129,73 +1096,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "name",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "string",
-          "name": "metadataJSON",
-          "type": "string"
-        },
-        {
-          "internalType": "bytes32[]",
-          "name": "dependencies",
-          "type": "bytes32[]"
-        },
-        {
-          "internalType": "string",
-          "name": "code",
-          "type": "string"
-        },
-        {
-          "internalType": "bool",
-          "name": "isInvocable",
-          "type": "bool"
-        }
-      ],
-      "name": "createModule",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "name",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "string",
-          "name": "metadataJSON",
-          "type": "string"
-        },
-        {
-          "internalType": "bytes32[]",
-          "name": "dependencies",
-          "type": "bytes32[]"
-        },
-        {
-          "internalType": "string",
-          "name": "code",
-          "type": "string"
-        },
-        {
-          "internalType": "bool",
-          "name": "isInvocable",
-          "type": "bool"
-        }
-      ],
-      "name": "updateModule",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1210,13 +1110,12 @@
       "outputs": [
         {
           "internalType": "string",
-          "name": "result",
+          "name": "",
           "type": "string"
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -1245,8 +1144,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ]
 }

@@ -180,27 +180,13 @@ export const useContract = (trackTransaction) => {
   );
 
   const getAllFeatured = useCallback(
-    async () =>
-      processModulesResult(await contract.methods.getAllFeatured().call()),
+    async (moduleNames = []) =>
+      processModulesResult(
+        await contract.methods
+          .getModules(moduleNames.map((str) => asciiToHex(str)))
+          .call()
+      ),
     [contract]
-  );
-
-  const setFeatured = useCallback(
-    (scopeId, moduleName) =>
-      trackTransaction(
-        scopeId,
-        contract.methods.setFeatured(asciiToHex(moduleName)).send()
-      ),
-    [contract, trackTransaction]
-  );
-
-  const unsetFeatured = useCallback(
-    (scopeId, moduleName) =>
-      trackTransaction(
-        scopeId,
-        contract.methods.unsetFeatured(asciiToHex(moduleName)).send()
-      ),
-    [contract, trackTransaction]
   );
 
   const getModule = useCallback(
@@ -262,8 +248,6 @@ export const useContract = (trackTransaction) => {
     getOwnedModules,
     getOwnedInvocations,
     getAllFeatured,
-    setFeatured,
-    unsetFeatured,
     finalize,
     setInvocable,
     createInvocation,

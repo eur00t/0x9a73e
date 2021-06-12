@@ -9,11 +9,9 @@ import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { TransactionButton } from "../components/TransactionButton";
 import { withOwner, OnlyOwner } from "../components/withOwner";
-import { OnlyContractOwner } from "../components/OnlyContractOwner";
 import { InvocationCard } from "../components/InvocationCard";
 import { displayHexString } from "../utils/displayHexString";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
-import { useTokenRenderUrl } from "../utils/useTokenRenderUrl";
 import { useNetwork } from "../utils/networks";
 import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
@@ -21,7 +19,6 @@ import { Page } from "../components/Page";
 import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 
-const getFeaturedScopeId = (name) => `featured-action-${name}`;
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
 const getFinalizeScopeId = (name) => `finalize-action-${name}`;
 
@@ -33,19 +30,12 @@ const ModuleDetails = withOwner((module) => {
     dependencies,
     allDependencies = [],
     tokenId,
-    isFeatured,
     isInvocable,
     isFinalized,
     invocationsMax,
     invocations,
   } = module;
-  const {
-    setFeatured,
-    unsetFeatured,
-    setInvocable,
-    createInvocation,
-    finalize,
-  } = useContractContext();
+  const { setInvocable, createInvocation, finalize } = useContractContext();
 
   const notFinalizedDependencies = useMemo(
     () => allDependencies.filter(({ isFinalized }) => !isFinalized),
@@ -54,7 +44,6 @@ const ModuleDetails = withOwner((module) => {
 
   const areDependenciesMutable = notFinalizedDependencies.length > 0;
 
-  const featuredScopeId = getFeaturedScopeId(name);
   const invocableScopeId = getInvocableScopeId(name);
   const finalizeScopeId = getFinalizeScopeId(name);
 
@@ -66,8 +55,6 @@ const ModuleDetails = withOwner((module) => {
   );
 
   const { contractAddress } = useNetwork();
-
-  const tokenRenderUrl = useTokenRenderUrl(tokenId);
 
   return (
     <>
@@ -221,21 +208,6 @@ const ModuleDetails = withOwner((module) => {
         )
       ) : null}
 
-      <OnlyContractOwner>
-        <TransactionButton
-          className="mb-3"
-          btnClassName="btn-outline-primary btn-sm"
-          scopeId={featuredScopeId}
-          text={!isFeatured ? "Make Featured" : "Remove from Featured"}
-          onClick={() => {
-            if (isFeatured) {
-              unsetFeatured(featuredScopeId, name);
-            } else {
-              setFeatured(featuredScopeId, name);
-            }
-          }}
-        />
-      </OnlyContractOwner>
       {!isInvocable || invocations.length === 0 ? (
         <PreviewIFrame
           tokenId={tokenId}
@@ -287,7 +259,6 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
     load();
   }, [moduleName]);
 
-  const featuredScopeId = getFeaturedScopeId(moduleName);
   const invocableScopeId = getInvocableScopeId(moduleName);
   const finalizeScopeId = getFinalizeScopeId(moduleName);
 
@@ -297,7 +268,6 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
     }
   };
 
-  useTransactionsPendingChange(featuredScopeId, reloadOnDone);
   useTransactionsPendingChange(invocableScopeId, reloadOnDone);
   useTransactionsPendingChange(finalizeScopeId, reloadOnDone);
 
