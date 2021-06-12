@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const web3 = require("web3");
+
 const puppeteer = require("puppeteer");
 const express = require("express");
 const serveStatic = require("serve-static");
@@ -86,6 +88,12 @@ appUseWrapCache(
   }
 );
 
+const { hexToAscii } = web3.utils;
+
+const hexToAsciiWithTrim = (hex) => {
+  return hexToAscii(hex).replace(/(\0)+$/, "");
+};
+
 appUseWrapCache(
   app,
   "json",
@@ -97,7 +105,9 @@ appUseWrapCache(
         .call();
 
       req.content = {
-        name: `${invocation.module.name}#${invocation.tokenId}`,
+        name: `${hexToAsciiWithTrim(invocation.module.name)}#${
+          invocation.tokenId
+        }`,
         description: JSON.parse(invocation.module.metadataJSON).description,
         image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
         external_url: `${process.env.WEB_URL_ROOT}/modules/invocation/${req.id}`,
