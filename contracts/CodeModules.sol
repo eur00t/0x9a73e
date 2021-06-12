@@ -1,36 +1,42 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
 import "./Base64.sol";
-import "./definitions.sol";
+import "./SharedDefinitions.sol";
 import "./CodeModulesRendering.sol";
 
-contract CodeModules is ERC721, ERC721Enumerable, Ownable {
-    using Counters for Counters.Counter;
+contract CodeModules is
+    Initializable,
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    OwnableUpgradeable
+{
+    using CountersUpgradeable for CountersUpgradeable.Counter;
     using Base64 for string;
-    using Strings for uint256;
+    using StringsUpgradeable for uint256;
 
-    Counters.Counter private _tokenIdCounter;
+    CountersUpgradeable.Counter private _tokenIdCounter;
 
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 tokenId
-    ) internal override(ERC721, ERC721Enumerable) {
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable)
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -99,7 +105,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         string seed;
     }
 
-    mapping(bytes32 => Module) internal modules;
+    mapping(bytes32 => SharedDefinitions.Module) internal modules;
     mapping(bytes32 => bool) internal moduleExists;
     mapping(bytes32 => bool) internal moduleFinalized;
     mapping(bytes32 => InvocableState) internal moduleInvocableState;
@@ -128,7 +134,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         res.tokenId = tokenId;
     }
 
-    function toModuleView(Module memory m)
+    function toModuleView(SharedDefinitions.Module memory m)
         internal
         view
         returns (ModuleView memory result)
@@ -153,7 +159,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             });
         }
 
-        Module[] memory allDependencies =
+        SharedDefinitions.Module[] memory allDependencies =
             CodeModulesRendering.getAllDependencies(
                 modules,
                 moduleNameToTokenId,
@@ -180,7 +186,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
     }
 
-    function toModuleViewBrief(Module memory m)
+    function toModuleViewBrief(SharedDefinitions.Module memory m)
         internal
         view
         returns (ModuleViewBrief memory result)
@@ -288,7 +294,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         tokenIdToModuleName[tokenId] = name;
         moduleNameToTokenId[name] = tokenId;
 
-        modules[name] = Module({
+        modules[name] = SharedDefinitions.Module({
             name: name,
             metadataJSON: metadataJSON,
             dependencies: dependencies,
@@ -338,7 +344,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         result = new ModuleViewBrief[](moduleNames.length);
 
         for (uint256 i = 0; i < moduleNames.length; i++) {
-            Module storage m = modules[moduleNames[i]];
+            SharedDefinitions.Module storage m = modules[moduleNames[i]];
 
             result[i] = toModuleViewBrief(m);
         }
@@ -483,7 +489,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         }
 
         string memory modulesJSON;
-        Module memory preview;
+        SharedDefinitions.Module memory preview;
 
         preview.name = "module-preview";
         preview.metadataJSON = "";
@@ -515,9 +521,13 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             );
     }
 
-    constructor(uint256 networkId, bytes32 baseURIPrefix)
-        ERC721("CodeModules", "CDM")
+    function initialize(uint256 networkId, bytes32 baseURIPrefix)
+        public
+        initializer
     {
+        __ERC721_init("CodeModules", "CDM");
+        __Ownable_init();
+
         _networkId = networkId;
         _baseURIPrefix = baseURIPrefix;
 

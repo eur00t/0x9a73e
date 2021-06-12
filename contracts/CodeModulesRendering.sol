@@ -1,14 +1,15 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+
 import "./Base64.sol";
 import "./Traverse.sol";
-import "./definitions.sol";
+import "./SharedDefinitions.sol";
 
 library CodeModulesRendering {
     using Base64 for string;
-    using Strings for uint256;
+    using StringsUpgradeable for uint256;
 
     function strConcat(string memory _a, string memory _b)
         internal
@@ -155,7 +156,7 @@ library CodeModulesRendering {
         return strConcat3('["', join(arr, '", "'), '"]');
     }
 
-    function moduleToJSON(Module memory m)
+    function moduleToJSON(SharedDefinitions.Module memory m)
         internal
         pure
         returns (string memory)
@@ -173,11 +174,10 @@ library CodeModulesRendering {
         return dictToJSON(keys, values);
     }
 
-    function getJSONForModules(Module[] memory traversedModules, uint256 size)
-        internal
-        pure
-        returns (string memory)
-    {
+    function getJSONForModules(
+        SharedDefinitions.Module[] memory traversedModules,
+        uint256 size
+    ) internal pure returns (string memory) {
         string[] memory arr = new string[](size);
         for (uint256 i = 0; i < size; i++) {
             arr[i] = moduleToJSON(traversedModules[i]);
@@ -187,11 +187,11 @@ library CodeModulesRendering {
     }
 
     function getAllDependencies(
-        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => SharedDefinitions.Module) storage modules,
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
         bytes32 name
-    ) external view returns (Module[] memory result) {
-        Module[] memory resTraversed;
+    ) external view returns (SharedDefinitions.Module[] memory result) {
+        SharedDefinitions.Module[] memory resTraversed;
         uint256 size;
 
         (resTraversed, size) = Traverse.traverseDependencies(
@@ -201,7 +201,7 @@ library CodeModulesRendering {
             0
         );
 
-        result = new Module[](size - 1);
+        result = new SharedDefinitions.Module[](size - 1);
 
         for (uint256 i = 0; i < size - 1; i++) {
             result[i] = resTraversed[i + 1];
@@ -209,11 +209,11 @@ library CodeModulesRendering {
     }
 
     function getModuleValueJSON(
-        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => SharedDefinitions.Module) storage modules,
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
-        Module calldata m
+        SharedDefinitions.Module calldata m
     ) external view returns (string memory) {
-        Module[] memory res;
+        SharedDefinitions.Module[] memory res;
         uint256 size;
 
         (res, size) = Traverse.traverseDependencies(
@@ -227,12 +227,12 @@ library CodeModulesRendering {
     }
 
     function getModuleSeedValueJSON(
-        mapping(bytes32 => Module) storage modules,
+        mapping(bytes32 => SharedDefinitions.Module) storage modules,
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
-        Module calldata m,
+        SharedDefinitions.Module calldata m,
         uint256 seed
     ) external view returns (string memory) {
-        Module[] memory res;
+        SharedDefinitions.Module[] memory res;
         uint256 size;
 
         bytes32[] memory dependencies = new bytes32[](1);
@@ -245,7 +245,7 @@ library CodeModulesRendering {
             1
         );
 
-        res[0] = Module({
+        res[0] = SharedDefinitions.Module({
             name: "module-invocation",
             metadataJSON: "",
             dependencies: dependencies,

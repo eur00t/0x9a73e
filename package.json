@@ -2,20 +2,21 @@
   "name": "0x9a73e",
   "scripts": {
     "update-abi": "node scripts/updateAbi.js",
-    "compile": "truffle compile && npm run update-abi",
+    "compile": "truffle compile --all && npm run update-abi",
     "start-dev": "nodemon server/index.js & parcel watch public/index.html",
     "build-app": "parcel build public/index.html",
     "deploy-app-staging": "ssh eur00t@xxlv.party 'bash -s' -- < ./scripts/deploy_staging.sh",
     "deploy-app-production": "ssh eur00t@xxlv.party 'bash -s' -- < ./scripts/deploy_production.sh",
-    "deploy-dev": "truffle migrate --network development",
-    "deploy-kovan": "truffle migrate --network kovan --skip-dry-run",
-    "deploy-rinkeby": "truffle migrate --network rinkeby --skip-dry-run",
-    "deploy-ropsten": "truffle migrate --network ropsten --skip-dry-run",
-    "deploy-matic": "truffle migrate --network matic --skip-dry-run"
+    "deploy-dev": "npm run compile && truffle migrate --network development",
+    "deploy-kovan": "npm run compile && truffle migrate --network kovan --skip-dry-run",
+    "deploy-rinkeby": "npm run compile && truffle migrate --network rinkeby --skip-dry-run",
+    "deploy-ropsten": "npm run compile && truffle migrate --network ropsten --skip-dry-run",
+    "deploy-matic": "npm run compile && truffle migrate --network matic --skip-dry-run"
   },
   "devDependencies": {
     "@metamask/onboarding": "^1.0.1",
     "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/contracts-upgradeable": "^4.1.0",
     "@openzeppelin/truffle-upgrades": "^1.7.0",
     "@svgr/parcel-plugin-svgr": "^5.5.0",
     "@truffle/hdwallet-provider": "^1.4.0",

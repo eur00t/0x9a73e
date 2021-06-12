@@ -1,22 +1,6 @@
 {
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "networkId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseURIPrefix",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
       "anonymous": false,
       "inputs": [
         {
@@ -1144,6 +1128,24 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "networkId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "baseURIPrefix",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ]

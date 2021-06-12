@@ -2,6 +2,7 @@ const { parse, stringify } = require("envfile");
 const fs = require("fs");
 const path = require("path");
 const web3 = require("web3");
+const { deployProxy, upgradeProxy } = require("@openzeppelin/truffle-upgrades");
 
 const truffleConfig = require("../truffle-config");
 
@@ -91,19 +92,34 @@ const appendNetwork = (
 module.exports = async (deployer, networkEnvName, [contractOwner]) => {
   await deployer.deploy(CodeModulesRendering);
   await deployer.link(CodeModulesRendering, CodeModules);
-  await deployer.deploy(
-    CodeModules,
-    truffleConfig.networks[networkEnvName].network_id,
-    web3.utils.asciiToHex(process.env.WEB_URL_ROOT)
-  );
 
-  const instance = await CodeModules.deployed();
+  let instance;
+  try {
+    instance = await CodeModules.deployed();
+  } catch {}
 
-  const skipBootstrap =
+  let skipBootstrap =
     truffleConfig.networks[networkEnvName] &&
     truffleConfig.networks[networkEnvName].skipBootstrap
       ? true
       : false;
+
+  if (instance) {
+    await upgradeProxy(instance.address, CodeModules, {
+      deployer,
+      unsafeAllow: ["external-library-linking"],
+    });
+    skipBootstrap = true;
+  } else {
+    instance = await deployProxy(
+      CodeModules,
+      [
+        truffleConfig.networks[networkEnvName].network_id,
+        web3.utils.asciiToHex(process.env.WEB_URL_ROOT),
+      ],
+      { deployer, unsafeAllow: ["external-library-linking"] }
+    );
+  }
 
   if (!skipBootstrap) {
     await setTemplate(instance);
