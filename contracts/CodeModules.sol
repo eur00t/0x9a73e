@@ -176,17 +176,14 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
     function toInvocationView(uint256 tokenId)
         internal
         view
-        returns (InvocationView memory)
+        returns (InvocationView memory res)
     {
-        return
-            InvocationView({
-                module: toModuleViewBrief(
-                    modules[tokenIdToInvocation[tokenId].moduleName]
-                ),
-                seed: tokenIdToInvocation[tokenId].seed.toHexString(),
-                owner: ownerOf(tokenId),
-                tokenId: tokenId
-            });
+        res.module = toModuleViewBrief(
+            modules[tokenIdToInvocation[tokenId].moduleName]
+        );
+        res.seed = tokenIdToInvocation[tokenId].seed.toHexString();
+        res.owner = ownerOf(tokenId);
+        res.tokenId = tokenId;
     }
 
     function getInvocation(uint256 tokenId)
@@ -270,11 +267,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         return moduleExists[name];
     }
 
-    function getModule(bytes32 name)
-        external
-        view
-        returns (ModuleView memory result)
-    {
+    function getModule(bytes32 name) external view returns (ModuleView memory) {
         require(moduleExists[name], "module must exist");
 
         return toModuleView(modules[name]);
@@ -319,21 +312,18 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
             allDependenciesViewBrief[i] = toModuleViewBrief(allDependencies[i]);
         }
 
-        return
-            ModuleView({
-                name: m.name,
-                metadataJSON: m.metadataJSON,
-                dependencies: m.dependencies,
-                allDependencies: allDependenciesViewBrief,
-                code: m.code,
-                owner: ownerOf(moduleNameToTokenId[m.name]),
-                tokenId: moduleNameToTokenId[m.name],
-                isFeatured: (featuredState[m.name] == 1) ? true : false,
-                isInvocable: m.isInvocable,
-                isFinalized: moduleFinalized[m.name],
-                invocations: invocations,
-                invocationsMax: moduleInvocableState[m.name].invocationsMax
-            });
+        result.name = m.name;
+        result.metadataJSON = m.metadataJSON;
+        result.dependencies = m.dependencies;
+        result.allDependencies = allDependenciesViewBrief;
+        result.code = m.code;
+        result.owner = ownerOf(moduleNameToTokenId[m.name]);
+        result.tokenId = moduleNameToTokenId[m.name];
+        result.isFeatured = (featuredState[m.name] == 1) ? true : false;
+        result.isInvocable = m.isInvocable;
+        result.isFinalized = moduleFinalized[m.name];
+        result.invocations = invocations;
+        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
     }
 
     function toModuleViewBrief(Module memory m)
@@ -341,19 +331,16 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         view
         returns (ModuleViewBrief memory result)
     {
-        return
-            ModuleViewBrief({
-                name: m.name,
-                metadataJSON: m.metadataJSON,
-                dependencies: m.dependencies,
-                owner: ownerOf(moduleNameToTokenId[m.name]),
-                tokenId: moduleNameToTokenId[m.name],
-                isFeatured: (featuredState[m.name] == 1) ? true : false,
-                isInvocable: m.isInvocable,
-                isFinalized: moduleFinalized[m.name],
-                invocationsNum: moduleInvocableState[m.name].invocations.length,
-                invocationsMax: moduleInvocableState[m.name].invocationsMax
-            });
+        result.name = m.name;
+        result.metadataJSON = m.metadataJSON;
+        result.dependencies = m.dependencies;
+        result.owner = ownerOf(moduleNameToTokenId[m.name]);
+        result.tokenId = moduleNameToTokenId[m.name];
+        result.isFeatured = (featuredState[m.name] == 1) ? true : false;
+        result.isInvocable = m.isInvocable;
+        result.isFinalized = moduleFinalized[m.name];
+        result.invocationsNum = moduleInvocableState[m.name].invocations.length;
+        result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
     }
 
     function tokenIsModule(uint256 tokenId) internal view returns (bool) {
@@ -389,8 +376,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 j++;
             }
         }
-
-        return result;
     }
 
     function getOwnedModules()
@@ -420,8 +405,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 j++;
             }
         }
-
-        return result;
     }
 
     function getOwnedInvocations()
@@ -449,8 +432,6 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
                 j++;
             }
         }
-
-        return result;
     }
 
     function createModule(
@@ -506,11 +487,7 @@ contract CodeModules is ERC721, ERC721Enumerable, Ownable {
         modules[name].isInvocable = isInvocable;
     }
 
-    function getHtml(uint256 tokenId)
-        external
-        view
-        returns (string memory result)
-    {
+    function getHtml(uint256 tokenId) external view returns (string memory) {
         string memory modulesJSON;
 
         if (tokenIsInvocation(tokenId)) {

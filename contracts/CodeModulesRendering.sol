@@ -98,23 +98,19 @@ library CodeModulesRendering {
     function stringToJSON(string memory str)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         return strConcat3('"', str, '"');
     }
 
-    function stringToJSON(bytes32 str)
-        internal
-        pure
-        returns (string memory result)
-    {
+    function stringToJSON(bytes32 str) internal pure returns (string memory) {
         return strConcat3('"', str, '"');
     }
 
     function dictToJSON(string[] memory keys, string[] memory values)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         assert(keys.length == values.length);
 
@@ -130,7 +126,7 @@ library CodeModulesRendering {
     function arrToJSON(string[] memory arr)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         return strConcat3("[", join(arr, ", "), "]");
     }
@@ -138,7 +134,7 @@ library CodeModulesRendering {
     function strArrToJSON(string[] memory arr)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         if (arr.length == 0) {
             return "[]";
@@ -150,7 +146,7 @@ library CodeModulesRendering {
     function strArrToJSON(bytes32[] memory arr)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         if (arr.length == 0) {
             return "[]";
@@ -162,7 +158,7 @@ library CodeModulesRendering {
     function moduleToJSON(Module memory m)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         string[] memory keys = new string[](3);
         keys[0] = "name";
@@ -180,7 +176,7 @@ library CodeModulesRendering {
     function getJSONForModules(Module[] memory traversedModules, uint256 size)
         internal
         pure
-        returns (string memory result)
+        returns (string memory)
     {
         string[] memory arr = new string[](size);
         for (uint256 i = 0; i < size; i++) {
@@ -216,7 +212,7 @@ library CodeModulesRendering {
         mapping(bytes32 => Module) storage modules,
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module calldata m
-    ) external view returns (string memory result) {
+    ) external view returns (string memory) {
         Module[] memory res;
         uint256 size;
 
@@ -235,7 +231,7 @@ library CodeModulesRendering {
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module calldata m,
         uint256 seed
-    ) external view returns (string memory result) {
+    ) external view returns (string memory) {
         Module[] memory res;
         uint256 size;
 

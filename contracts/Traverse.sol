@@ -70,7 +70,7 @@ library Traverse {
         mapping(bytes32 => uint256) storage moduleNameToTokenId,
         Module memory entryModule,
         uint256 leftResultPadding
-    ) internal view returns (Module[] memory result, uint256 size) {
+    ) internal view returns (Module[] memory, uint256) {
         return
             traverseDependenciesP(
                 modules,
