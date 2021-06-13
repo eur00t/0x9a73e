@@ -14,6 +14,8 @@ export const PreviewIFrame = ({
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadingDone = () => setIsLoading(false);
+
   return (
     <Loading
       isLoading={isLoading}
@@ -21,7 +23,8 @@ export const PreviewIFrame = ({
       style={style}
     >
       <iframe
-        onLoad={() => setIsLoading(false)}
+        onLoad={loadingDone}
+        onError={loadingDone}
         src={tokenId ? tokenRenderUrl : null}
         style={{ border: 0, width: "100%", height: "100%" }}
         {...props}

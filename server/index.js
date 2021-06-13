@@ -1,14 +1,101 @@
 require("dotenv").config();
 
 const web3 = require("web3");
-
+const crypto = require("crypto");
+const path = require("path");
+const fsPromises = require("fs/promises");
 const puppeteer = require("puppeteer");
 const express = require("express");
 const serveStatic = require("serve-static");
+const { recoverPersonalSignature } = require("eth-sig-util");
 const app = express();
 
 const { getContract } = require("./web3");
 const { appUseWrapCache } = require("./cache");
+const { featuredStorage } = require("./featuredStorage");
+
+const { asciiToHex, hexToAscii } = web3.utils;
+
+app.use(express.json());
+
+let currentNonce;
+const changeNonce = () => {
+  currentNonce = crypto.randomBytes(16).toString("hex");
+};
+changeNonce();
+
+const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS;
+
+app.use("/protected", (req, res, next) => {
+  if (req.method === "GET") {
+    next();
+    return;
+  }
+
+  const { signature } = req.body;
+  if (!signature) {
+    res.status(401).send({
+      error: "Signature is missing",
+    });
+    return;
+  }
+
+  const address = recoverPersonalSignature({
+    data: asciiToHex(JSON.stringify({ nonce: currentNonce })),
+    sig: signature,
+  });
+
+  if (address !== ADMIN_ADDRESS) {
+    res.status(403).send({
+      error: `Address ${address} is not allowed to perform this action`,
+    });
+    return;
+  }
+
+  req.changeNonce = changeNonce;
+  changeNonce();
+
+  next();
+});
+
+app.get("/protected/nonce", (req, res) => {
+  res.send({ nonce: currentNonce });
+});
+
+app.get("/protected/featured", (req, res) => {
+  res.send(featuredStorage.getAll());
+});
+
+app.post("/protected/featured", (req, res) => {
+  const { moduleName } = req.body;
+
+  if (!moduleName) {
+    res.status(400).send({ error: "Wrong input" });
+    return;
+  }
+
+  featuredStorage.add(moduleName);
+  res.send({ status: "OK" });
+});
+
+app.get("/protected/featured/:moduleName", (req, res) => {
+  let { moduleName } = req.params;
+
+  if (featuredStorage.has(moduleName)) {
+    res.send({ status: "OK" });
+    return;
+  } else {
+    res.status(404).send({ error: `Module "${moduleName}" was not featured` });
+    return;
+  }
+});
+
+app.delete("/protected/featured/:moduleName", (req, res) => {
+  let { moduleName } = req.params;
+
+  featuredStorage.remove(moduleName);
+  res.send({ status: "OK" });
+});
 
 app.use("/network/:networkId", (req, res, next) => {
   let { networkId } = req.params;
@@ -56,6 +143,18 @@ appUseWrapCache(
     puppeteerInstancesCount += 1;
 
     try {
+      const { module } = await req.contract.methods
+        .getInvocation(req.id)
+        .call();
+
+      if (!featuredStorage.has(hexToAsciiWithTrim(module.name))) {
+        req.content = await fsPromises.readFile(
+          path.resolve(`${__dirname}/../images/non-featured.png`)
+        );
+        next();
+        return;
+      }
+
       const html = await req.contract.methods.getHtml(req.id).call();
 
       const browser = await puppeteer.launch({
@@ -92,8 +191,6 @@ appUseWrapCache(
     }
   }
 );
-
-const { hexToAscii } = web3.utils;
 
 const hexToAsciiWithTrim = (hex) => {
   return hexToAscii(hex).replace(/(\0)+$/, "");

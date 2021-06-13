@@ -11,8 +11,9 @@ import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { InvocationCard } from "../components/InvocationCard";
 import { Page } from "../components/Page";
 import { MainNetworkWarning } from "../components/MainNetworkWarning";
-import { useWeb3Auth } from "../components/Web3Auth";
 import { usePagination } from "../components/usePagination";
+import { fetchServerMethod } from "../utils/fetchServerMethod";
+import { OnlyWriteInjector } from "../components/OnlyWriteInjector";
 
 const ModuleCard = withOwner((module) => {
   const { name, metadataJSON } = module;
@@ -68,11 +69,10 @@ export const ModulesView = () => {
 
   const [featuredModules, setFeaturedModules] = useState([]);
 
-  const { isReadOnly } = useWeb3Auth();
-
   const retrieveFeatured = async () => {
     setFeaturedModules([]);
-    const result = await getAllFeatured();
+    const featured = await fetchServerMethod("/protected/featured", "GET");
+    const result = await getAllFeatured(featured);
     setFeaturedModules(result);
   };
 
@@ -101,7 +101,7 @@ export const ModulesView = () => {
       <Loading isLoading={isLoadingFeatured}>
         {isLoadingFeatured || featuredModules.length > 0 ? (
           <>
-            <h2>Featured</h2>
+            <h2 className="mt-3">Featured</h2>
             <div className="d-flex flex-wrap mb-5">
               {featuredModules.map((module) => (
                 <div key={module.name} className="mb-2 me-2 d-flex">
@@ -114,7 +114,7 @@ export const ModulesView = () => {
       </Loading>
 
       <h2>Your Modules</h2>
-      <div className="mt-3">{ownedModulesPagination}</div>
+      <div className="mb-3">{ownedModulesPagination}</div>
       <Loading isLoading={isLoadingOwnedModules}>
         <div className="d-flex flex-wrap items-align-top mb-5">
           {ownedModules.length > 0 ? (
@@ -125,11 +125,14 @@ export const ModulesView = () => {
             ))
           ) : (
             <>
-              You don't own any modules. Try to
-              <Link to="/modules/create" className="ms-1 me-1">
-                create
-              </Link>
-              one
+              You don't own any modules.{" "}
+              <OnlyWriteInjector>
+                Try to
+                <Link to="/modules/create" className="ms-1 me-1">
+                  create
+                </Link>
+                one
+              </OnlyWriteInjector>
             </>
           )}
         </div>

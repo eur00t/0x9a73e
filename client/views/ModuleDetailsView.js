@@ -9,6 +9,7 @@ import { useLoading } from "../components/useLoading";
 import { Loading } from "../components/Loading";
 import { TransactionButton } from "../components/TransactionButton";
 import { withOwner, OnlyOwner } from "../components/withOwner";
+import { OnlyContractOwner } from "../components/OnlyContractOwner";
 import { InvocationCard } from "../components/InvocationCard";
 import { displayHexString } from "../utils/displayHexString";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
@@ -19,6 +20,7 @@ import { Page } from "../components/Page";
 import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 import { usePagination } from "../components/usePagination";
+import { FeaturedControl } from "../components/FeaturedControl";
 
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
 const getFinalizeScopeId = (name) => `finalize-action-${name}`;
@@ -135,6 +137,12 @@ const ModuleDetails = withOwner((module) => {
           Edit
         </Link>
       </OnlyOwner>
+
+      <OnlyContractOwner>
+        <div className="mb-3">
+          <FeaturedControl moduleName={name} />
+        </div>
+      </OnlyContractOwner>
 
       {!isInvocable ? (
         <OnlyOwner>
