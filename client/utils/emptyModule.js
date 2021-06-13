@@ -6,5 +6,6 @@ export const EMPTY_MODULE_DATA = {
   metadataJSON: JSON.stringify({ description: "" }),
   isInvocable: false,
   isFinalized: false,
-  invocations: [],
+  invocationsNum: 0,
+  invocationsMax: 0,
 };

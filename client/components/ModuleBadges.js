@@ -14,15 +14,12 @@ export const hasBadges = ({ isFinalized, isInvocable }) => {
 };
 
 export const ModuleBadges = ({
-  invocations,
   invocationsNum,
   invocationsMax,
   isFinalized,
   isInvocable,
 }) => {
-  const invocationsLeftNum =
-    invocationsMax -
-    (invocationsNum ? parseInt(invocationsNum, 10) : invocations.length);
+  const invocationsLeftNum = invocationsMax - invocationsNum;
 
   return (
     <>
@@ -32,14 +29,7 @@ export const ModuleBadges = ({
 
       {isFinalized && isInvocable && invocationsLeftNum > 0 ? (
         <span className="badge bg-success">
-          {pluralize(
-            "mint",
-            invocationsMax -
-              (invocationsNum
-                ? parseInt(invocationsNum, 10)
-                : invocations.length),
-            true
-          )}
+          {pluralize("mint", invocationsLeftNum, true)}
           {" left"}
         </span>
       ) : null}

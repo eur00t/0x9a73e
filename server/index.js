@@ -38,17 +38,22 @@ app.use("/network/:networkId/tokens/:id", (req, res, next) => {
 });
 
 let puppeteerInstancesCount = 0;
-const MAC_PUPPETEER_INSTANCES = 10;
+const MAX_PUPPETEER_INSTANCES = JSON.parse(
+  process.env.MAX_PUPPETEER_INSTANCES,
+  10
+);
 
 appUseWrapCache(
   app,
   "png",
   "/network/:networkId/tokens/:id/image",
   async (req, res, next) => {
-    if (puppeteerInstancesCount >= MAC_PUPPETEER_INSTANCES) {
+    if (puppeteerInstancesCount >= MAX_PUPPETEER_INSTANCES) {
       res.send(503, "Max capacity reached, please try again later");
       return;
     }
+
+    puppeteerInstancesCount += 1;
 
     try {
       const html = await req.contract.methods.getHtml(req.id).call();
@@ -56,7 +61,7 @@ appUseWrapCache(
       const browser = await puppeteer.launch({
         defaultViewport: { width: 350, height: 350 },
       });
-      puppeteerInstancesCount += 1;
+
       const page = await browser.newPage();
       await page.setContent(html);
 
@@ -105,7 +110,7 @@ appUseWrapCache(
         .call();
 
       req.content = {
-        name: `${hexToAsciiWithTrim(invocation.module.name)}#${
+        name: `${hexToAsciiWithTrim(invocation.module.name)}@${
           invocation.tokenId
         }`,
         description: JSON.parse(invocation.module.metadataJSON).description,

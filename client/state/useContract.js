@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
+import { wrapFuncCancelable } from "../utils/wrapFuncCancelable";
 
 const { asciiToHex, hexToAscii } = web3.utils;
 
@@ -23,9 +24,17 @@ const parseTemplate = (str) => {
   return { before, after };
 };
 
-const processModuleResult = ({ name, dependencies, ...rest }) => ({
+const processModuleResult = ({
+  name,
+  dependencies,
+  invocationsNum,
+  invocationsMax,
+  ...rest
+}) => ({
   name: hexToAsciiWithTrim(name),
   dependencies: dependencies.map((hex) => hexToAsciiWithTrim(hex)),
+  invocationsNum: invocationsNum ? parseInt(invocationsNum, 10) : undefined,
+  invocationsMax: invocationsMax ? parseInt(invocationsMax, 10) : undefined,
   ...rest,
 });
 
@@ -55,55 +64,59 @@ export const useContract = (trackTransaction) => {
   );
 
   const checkIfModuleExists = useCallback(
-    (name) => contract.methods.exists(asciiToHex(name)).call(),
+    wrapFuncCancelable((name) =>
+      contract.methods.exists(asciiToHex(name)).call()
+    ),
     [contract]
   );
 
   const setModule = useCallback(
-    async (
-      scopeId,
-      { name, dependencies, code, metadataJSON, isInvocable }
-    ) => {
-      try {
-        setProgress(true);
+    wrapFuncCancelable(
+      async (
+        scopeId,
+        { name, dependencies, code, metadataJSON, isInvocable }
+      ) => {
+        try {
+          setProgress(true);
 
-        const exists = await contract.methods.exists(asciiToHex(name)).call();
-        if (exists) {
-          await trackTransaction(
-            scopeId,
-            contract.methods
-              .updateModule(
-                asciiToHex(name),
-                metadataJSON,
-                dependencies.map((str) => asciiToHex(str)),
-                btoa(code),
-                isInvocable
-              )
-              .send()
-          );
-        } else {
-          await trackTransaction(
-            scopeId,
-            contract.methods
-              .createModule(
-                asciiToHex(name),
-                metadataJSON,
-                dependencies.map((str) => asciiToHex(str)),
-                btoa(code),
-                isInvocable
-              )
-              .send()
-          );
+          const exists = await contract.methods.exists(asciiToHex(name)).call();
+          if (exists) {
+            await trackTransaction(
+              scopeId,
+              contract.methods
+                .updateModule(
+                  asciiToHex(name),
+                  metadataJSON,
+                  dependencies.map((str) => asciiToHex(str)),
+                  btoa(code),
+                  isInvocable
+                )
+                .send()
+            );
+          } else {
+            await trackTransaction(
+              scopeId,
+              contract.methods
+                .createModule(
+                  asciiToHex(name),
+                  metadataJSON,
+                  dependencies.map((str) => asciiToHex(str)),
+                  btoa(code),
+                  isInvocable
+                )
+                .send()
+            );
+          }
+        } finally {
+          setProgress(false);
         }
-      } finally {
-        setProgress(false);
       }
-    },
+    ),
     [contract, setProgress, trackTransaction]
   );
 
   const setTemplate = useCallback(
-    async (scopeId, templateValue) => {
+    wrapFuncCancelable(async (scopeId, templateValue) => {
       try {
         setProgress(true);
 
@@ -116,22 +129,22 @@ export const useContract = (trackTransaction) => {
       } finally {
         setProgress(false);
       }
-    },
+    }),
     [contract, setProgress, trackTransaction]
   );
 
   const getHtml = useCallback(
-    (tokenId) => contract.methods.getHtml(tokenId).call(),
+    wrapFuncCancelable((tokenId) => contract.methods.getHtml(tokenId).call()),
     [contract]
   );
 
   const tokenURI = useCallback(
-    (tokenId) => contract.methods.tokenURI(tokenId).call(),
+    wrapFuncCancelable((tokenId) => contract.methods.tokenURI(tokenId).call()),
     [contract]
   );
 
   const getHtmlPreview = useCallback(
-    (dependencies, code, isInvocable) => {
+    wrapFuncCancelable((dependencies, code, isInvocable) => {
       let moduleConstructor;
 
       try {
@@ -151,50 +164,61 @@ export const useContract = (trackTransaction) => {
           isInvocable
         )
         .call();
-    },
+    }),
     [contract]
   );
 
   const getInvocation = useCallback(
-    async (tokenId) =>
+    wrapFuncCancelable(async (tokenId) =>
       processInvocationResult(
         await contract.methods.getInvocation(tokenId).call()
-      ),
+      )
+    ),
     [contract]
   );
 
   const getAllModules = useCallback(
-    async () =>
-      processModulesResult(await contract.methods.getAllModules().call()),
+    wrapFuncCancelable(async () =>
+      processModulesResult(await contract.methods.getAllModules().call())
+    ),
     [contract]
   );
 
   const getOwnedModules = useCallback(
-    async () =>
-      processModulesResult(await contract.methods.getOwnedModules().call()),
+    wrapFuncCancelable(async (page = 0, size = 10) => {
+      const { result, total } = await contract.methods
+        .getOwnedModules(page, size)
+        .call();
+
+      return { result: processModulesResult(result), total };
+    }),
     [contract]
   );
 
   const getOwnedInvocations = useCallback(
-    async () =>
-      (await contract.methods.getOwnedInvocations().call()).map(
-        processInvocationResult
-      ),
+    wrapFuncCancelable(async (page = 0, size = 10) => {
+      const { result, total } = await contract.methods
+        .getOwnedInvocations(page, size)
+        .call();
+
+      return { result: result.map(processInvocationResult), total };
+    }),
     [contract]
   );
 
   const getAllFeatured = useCallback(
-    async (moduleNames = []) =>
+    wrapFuncCancelable(async (moduleNames = []) =>
       processModulesResult(
         await contract.methods
           .getModules(moduleNames.map((str) => asciiToHex(str)))
           .call()
-      ),
+      )
+    ),
     [contract]
   );
 
   const getModule = useCallback(
-    async (moduleName) => {
+    wrapFuncCancelable(async (moduleName) => {
       const { code, name, dependencies, allDependencies, ...rest } =
         await contract.methods.getModule(asciiToHex(moduleName)).call();
 
@@ -205,37 +229,50 @@ export const useContract = (trackTransaction) => {
         allDependencies: processModulesResult(allDependencies),
         ...rest,
       });
-    },
+    }),
+    [contract]
+  );
+
+  const getModuleInvocations = useCallback(
+    wrapFuncCancelable(
+      async (moduleName, page = 0, size = 10) =>
+        await contract.methods
+          .getModuleInvocations(asciiToHex(moduleName), page, size)
+          .call()
+    ),
     [contract]
   );
 
   const finalize = useCallback(
-    (scopeId, moduleName) =>
+    wrapFuncCancelable((scopeId, moduleName) =>
       trackTransaction(
         scopeId,
         contract.methods.finalize(asciiToHex(moduleName)).send()
-      ),
+      )
+    ),
     [contract, trackTransaction]
   );
 
   const setInvocable = useCallback(
-    (scopeId, moduleName, invocationsMax) =>
+    wrapFuncCancelable((scopeId, moduleName, invocationsMax) =>
       trackTransaction(
         scopeId,
         contract.methods
           .setInvocable(asciiToHex(moduleName), invocationsMax)
           .send()
-      ),
+      )
+    ),
     [contract, trackTransaction]
   );
 
   const createInvocation = useCallback(
-    (scopeId, moduleName, doneOptions) =>
+    wrapFuncCancelable((scopeId, moduleName, doneOptions) =>
       trackTransaction(
         scopeId,
         contract.methods.createInvocation(asciiToHex(moduleName)).send(),
         doneOptions
-      ),
+      )
+    ),
     [contract, trackTransaction]
   );
 
@@ -248,6 +285,7 @@ export const useContract = (trackTransaction) => {
     getHtmlPreview,
     getInvocation,
     getModule,
+    getModuleInvocations,
     getAllModules,
     getOwnedModules,
     getOwnedInvocations,

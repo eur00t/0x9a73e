@@ -779,6 +779,11 @@
             },
             {
               "internalType": "uint256",
+              "name": "invocationsNum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "invocationsMax",
               "type": "uint256"
             },
@@ -845,23 +850,6 @@
               "type": "tuple[]"
             },
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "string",
-                  "name": "seed",
-                  "type": "string"
-                }
-              ],
-              "internalType": "struct CodeModules.InvocationModuleView[]",
-              "name": "invocations",
-              "type": "tuple[]"
-            },
-            {
               "internalType": "string",
               "name": "code",
               "type": "string"
@@ -881,67 +869,64 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "getAllModules",
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "moduleName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "size",
+          "type": "uint256"
+        }
+      ],
+      "name": "getModuleInvocations",
       "outputs": [
         {
           "components": [
-            {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "bool",
-              "name": "isInvocable",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "isFinalized",
-              "type": "bool"
-            },
             {
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "invocationsNum",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "invocationsMax",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "name",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "dependencies",
-              "type": "bytes32[]"
-            },
-            {
               "internalType": "string",
-              "name": "metadataJSON",
+              "name": "seed",
               "type": "string"
             }
           ],
-          "internalType": "struct CodeModules.ModuleViewBrief[]",
+          "internalType": "struct CodeModules.InvocationModuleView[]",
           "name": "result",
           "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "size",
+          "type": "uint256"
+        }
+      ],
       "name": "getOwnedModules",
       "outputs": [
         {
@@ -995,13 +980,29 @@
           "internalType": "struct CodeModules.ModuleViewBrief[]",
           "name": "result",
           "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "size",
+          "type": "uint256"
+        }
+      ],
       "name": "getOwnedInvocations",
       "outputs": [
         {
@@ -1077,6 +1078,11 @@
           "internalType": "struct CodeModules.InvocationView[]",
           "name": "result",
           "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",

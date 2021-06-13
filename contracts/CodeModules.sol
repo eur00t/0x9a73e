@@ -62,11 +62,11 @@ contract CodeModules is
         bool isInvocable;
         bool isFinalized;
         uint256 tokenId;
+        uint256 invocationsNum;
         uint256 invocationsMax;
         bytes32 name;
         bytes32[] dependencies;
         ModuleViewBrief[] allDependencies;
-        InvocationModuleView[] invocations;
         string code;
         string metadataJSON;
     }
@@ -139,26 +139,6 @@ contract CodeModules is
         view
         returns (ModuleView memory result)
     {
-        InvocationModuleView[] memory invocations =
-            new InvocationModuleView[](
-                moduleInvocableState[m.name].invocations.length
-            );
-
-        for (
-            uint256 i = 0;
-            i < moduleInvocableState[m.name].invocations.length;
-            i++
-        ) {
-            invocations[i] = InvocationModuleView({
-                seed: tokenIdToInvocation[
-                    moduleInvocableState[m.name].invocations[i]
-                ]
-                    .seed
-                    .toHexString(),
-                tokenId: moduleInvocableState[m.name].invocations[i]
-            });
-        }
-
         SharedDefinitions.Module[] memory allDependencies =
             CodeModulesRendering.getAllDependencies(
                 modules,
@@ -182,7 +162,7 @@ contract CodeModules is
         result.tokenId = moduleNameToTokenId[m.name];
         result.isInvocable = m.isInvocable;
         result.isFinalized = moduleFinalized[m.name];
-        result.invocations = invocations;
+        result.invocationsNum = moduleInvocableState[m.name].invocations.length;
         result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
     }
 
@@ -356,86 +336,144 @@ contract CodeModules is
         return toModuleView(modules[name]);
     }
 
-    function getAllModules()
+    function getModuleInvocations(
+        bytes32 moduleName,
+        uint256 page,
+        uint256 size
+    )
         external
         view
-        returns (ModuleViewBrief[] memory result)
+        returns (InvocationModuleView[] memory result, uint256 total)
     {
-        uint256 totalTokens = totalSupply();
-        uint256 totalModuleTokens = 0;
+        uint256 resultSize;
+        uint256[] memory resultTokenIds;
+        total = moduleInvocableState[moduleName].invocations.length;
+        (resultTokenIds, resultSize) = getPagedResultIds(
+            moduleInvocableState[moduleName].invocations,
+            total,
+            page,
+            size,
+            true
+        );
+        result = new InvocationModuleView[](resultSize);
 
-        for (uint256 i = 0; i < totalTokens; i++) {
-            if (tokenIsModule(tokenByIndex(i))) {
-                totalModuleTokens++;
-            }
+        if (resultSize == 0) {
+            return (result, total);
         }
 
-        result = new ModuleViewBrief[](totalModuleTokens);
-
-        uint256 j = 0;
-        for (uint256 i = 0; i < totalTokens; i++) {
-            if (tokenIsModule(tokenByIndex(i))) {
-                result[j] = toModuleViewBrief(
-                    modules[tokenIdToModuleName[tokenByIndex(i)]]
-                );
-                j++;
-            }
+        for (uint256 i = 0; i < resultSize; i++) {
+            result[i].seed = tokenIdToInvocation[resultTokenIds[i]]
+                .seed
+                .toHexString();
+            result[i].tokenId = resultTokenIds[i];
         }
     }
 
-    function getOwnedModules()
+    function getOwnedModules(uint256 page, uint256 size)
         external
         view
-        returns (ModuleViewBrief[] memory result)
+        returns (ModuleViewBrief[] memory result, uint256 total)
     {
         uint256 totalOwnedTokens = balanceOf(msg.sender);
-        uint256 totalOwnedModuleTokens = 0;
 
+        uint256[] memory moduleTokenIds = new uint256[](totalOwnedTokens);
         for (uint256 i = 0; i < totalOwnedTokens; i++) {
-            if (tokenIsModule(tokenOfOwnerByIndex(msg.sender, i))) {
-                totalOwnedModuleTokens++;
+            uint256 tokenId = tokenOfOwnerByIndex(msg.sender, i);
+            if (tokenIsModule(tokenId)) {
+                moduleTokenIds[total] = tokenId;
+                total++;
             }
         }
 
-        result = new ModuleViewBrief[](totalOwnedModuleTokens);
+        uint256 resultSize;
+        uint256[] memory resultTokenIds;
+        (resultTokenIds, resultSize) = getPagedResultIds(
+            moduleTokenIds,
+            total,
+            page,
+            size,
+            true
+        );
+        result = new ModuleViewBrief[](resultSize);
 
-        uint256 j = 0;
-        for (uint256 i = 0; i < totalOwnedTokens; i++) {
-            if (tokenIsModule(tokenOfOwnerByIndex(msg.sender, i))) {
-                result[j] = toModuleViewBrief(
-                    modules[
-                        tokenIdToModuleName[tokenOfOwnerByIndex(msg.sender, i)]
-                    ]
-                );
-                j++;
-            }
+        if (resultSize == 0) {
+            return (result, total);
+        }
+
+        for (uint256 i = 0; i < resultSize; i++) {
+            result[i] = toModuleViewBrief(
+                modules[tokenIdToModuleName[resultTokenIds[i]]]
+            );
         }
     }
 
-    function getOwnedInvocations()
-        external
-        view
-        returns (InvocationView[] memory result)
-    {
-        uint256 totalOwnedTokens = balanceOf(msg.sender);
-        uint256 totalOwnedInvocationTokens = 0;
+    function getPagedResultIds(
+        uint256[] memory all,
+        uint256 total,
+        uint256 page,
+        uint256 size,
+        bool reversed
+    ) internal pure returns (uint256[] memory result, uint256) {
+        uint256 tokensAfterPage = total - page * size;
+        uint256 resultSize =
+            tokensAfterPage < 0
+                ? 0
+                : (tokensAfterPage > size ? size : tokensAfterPage);
+        result = new uint256[](resultSize);
 
-        for (uint256 i = 0; i < totalOwnedTokens; i++) {
-            if (tokenIsInvocation(tokenOfOwnerByIndex(msg.sender, i))) {
-                totalOwnedInvocationTokens++;
+        if (resultSize == 0) {
+            return (result, resultSize);
+        }
+
+        uint256 i = reversed ? total - page * size : page * size;
+        for (uint256 j = 0; j < resultSize; j++) {
+            if (reversed) {
+                i--;
+            }
+
+            result[j] = all[i];
+
+            if (!reversed) {
+                i++;
             }
         }
 
-        result = new InvocationView[](totalOwnedInvocationTokens);
+        return (result, resultSize);
+    }
 
-        uint256 j = 0;
+    function getOwnedInvocations(uint256 page, uint256 size)
+        external
+        view
+        returns (InvocationView[] memory result, uint256 total)
+    {
+        uint256 totalOwnedTokens = balanceOf(msg.sender);
+
+        uint256[] memory invocationTokenIds = new uint256[](totalOwnedTokens);
         for (uint256 i = 0; i < totalOwnedTokens; i++) {
-            if (tokenIsInvocation(tokenOfOwnerByIndex(msg.sender, i))) {
-                result[j] = toInvocationView(
-                    tokenOfOwnerByIndex(msg.sender, i)
-                );
-                j++;
+            uint256 tokenId = tokenOfOwnerByIndex(msg.sender, i);
+            if (tokenIsInvocation(tokenId)) {
+                invocationTokenIds[total] = tokenId;
+                total++;
             }
+        }
+
+        uint256 resultSize;
+        uint256[] memory resultTokenIds;
+        (resultTokenIds, resultSize) = getPagedResultIds(
+            invocationTokenIds,
+            total,
+            page,
+            size,
+            true
+        );
+        result = new InvocationView[](resultSize);
+
+        if (resultSize == 0) {
+            return (result, total);
+        }
+
+        for (uint256 i = 0; i < resultSize; i++) {
+            result[i] = toInvocationView(resultTokenIds[i]);
         }
     }
 

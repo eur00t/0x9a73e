@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import pluralize from "pluralize";
 import classNames from "classnames";
@@ -18,6 +18,7 @@ import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
 import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { PreviewIFrame } from "../components/PreviewIFrame";
+import { usePagination } from "../components/usePagination";
 
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
 const getFinalizeScopeId = (name) => `finalize-action-${name}`;
@@ -32,8 +33,8 @@ const ModuleDetails = withOwner((module) => {
     tokenId,
     isInvocable,
     isFinalized,
+    invocationsNum,
     invocationsMax,
-    invocations,
   } = module;
   const { setInvocable, createInvocation, finalize } = useContractContext();
 
@@ -182,7 +183,7 @@ const ModuleDetails = withOwner((module) => {
       ) : null}
 
       {isInvocable && isFinalized ? (
-        parseInt(invocationsMax, 10) === invocations.length ? (
+        invocationsMax === invocationsNum ? (
           <div className="mb-3">
             <div className="btn btn-outline-primary btn-lg disabled">
               No more mints left
@@ -198,8 +199,8 @@ const ModuleDetails = withOwner((module) => {
             scopeId={invocableScopeId}
             text={
               !areDependenciesMutable
-                ? `Mint (${invocationsMax - invocations.length} left)`
-                : `Mint Mutable (${invocationsMax - invocations.length} left)`
+                ? `Mint (${invocationsMax - invocationsNum} left)`
+                : `Mint Mutable (${invocationsMax - invocationsNum} left)`
             }
             onClick={() => {
               createInvocation(invocableScopeId, name);
@@ -207,29 +208,6 @@ const ModuleDetails = withOwner((module) => {
           />
         )
       ) : null}
-
-      {!isInvocable || invocations.length === 0 ? (
-        <PreviewIFrame
-          tokenId={tokenId}
-          style={{ width: "100%", height: "500px" }}
-        />
-      ) : (
-        <>
-          <h3 className="mb-3 mt-5">Mints</h3>
-          <div className="d-flex flex-wrap">
-            {[...invocations].reverse().map(({ tokenId, ...invocation }, i) => (
-              <div key={tokenId} className="mb-2 me-2">
-                <InvocationCard
-                  tokenId={tokenId}
-                  module={module}
-                  noRender={i > 2}
-                  {...invocation}
-                />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
     </>
   );
 }, "ModuleDetails");
@@ -238,7 +216,7 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   const [html] = useState("");
   const [module, setModule] = useState(EMPTY_MODULE_DATA);
 
-  const { getModule } = useContractContext();
+  const { getModule, getModuleInvocations } = useContractContext();
 
   const retrieve = async () => {
     if (!moduleName || moduleName === "") {
@@ -255,6 +233,19 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
 
   const { isLoading, load } = useLoading(retrieve);
 
+  const {
+    isLoading: isLoadingInvocations,
+    result: invocations,
+    pagination: invocationsPagination,
+    reset: invocationsReset,
+  } = usePagination({
+    getPage: useCallback(
+      (...args) => getModuleInvocations(moduleName, ...args),
+      [moduleName]
+    ),
+    pageSize: 10,
+  });
+
   useEffect(() => {
     load();
   }, [moduleName]);
@@ -265,17 +256,47 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
   const reloadOnDone = (isPending) => {
     if (isPending === false) {
       load();
+      invocationsReset();
     }
   };
 
   useTransactionsPendingChange(invocableScopeId, reloadOnDone);
   useTransactionsPendingChange(finalizeScopeId, reloadOnDone);
 
+  const { isInvocable, tokenId, invocationsNum } = module;
+
   return (
     <Page>
       <Loading isLoading={isLoading}>
-        <ModuleDetails {...module} />
+        <ModuleDetails invocations={invocations} {...module} />
       </Loading>
+
+      {!isInvocable || invocationsNum === 0 ? (
+        <PreviewIFrame
+          tokenId={tokenId}
+          style={{ width: "100%", height: "500px" }}
+        />
+      ) : null}
+
+      {invocations.length > 0 ? (
+        <>
+          <h3 className="mb-3 mt-5">Mints</h3>
+          <div className="mb-3">{invocationsPagination}</div>
+          <Loading isLoading={isLoadingInvocations}>
+            <div className="d-flex flex-wrap">
+              {invocations.map(({ tokenId, ...invocation }, i) => (
+                <div key={tokenId} className="mb-2 me-2">
+                  <InvocationCard
+                    tokenId={tokenId}
+                    module={module}
+                    {...invocation}
+                  />
+                </div>
+              ))}
+            </div>
+          </Loading>
+        </>
+      ) : null}
     </Page>
   );
 };

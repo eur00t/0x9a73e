@@ -12,6 +12,7 @@ import { InvocationCard } from "../components/InvocationCard";
 import { Page } from "../components/Page";
 import { MainNetworkWarning } from "../components/MainNetworkWarning";
 import { useWeb3Auth } from "../components/Web3Auth";
+import { usePagination } from "../components/usePagination";
 
 const ModuleCard = withOwner((module) => {
   const { name, metadataJSON } = module;
@@ -66,8 +67,6 @@ export const ModulesView = () => {
     useContractContext();
 
   const [featuredModules, setFeaturedModules] = useState([]);
-  const [ownedModules, setOwnedModules] = useState([]);
-  const [ownedInvocations, setOwnedInvocations] = useState([]);
 
   const { isReadOnly } = useWeb3Auth();
 
@@ -77,38 +76,24 @@ export const ModulesView = () => {
     setFeaturedModules(result);
   };
 
-  const retrieveOwnedModules = async () => {
-    if (isReadOnly) {
-      return;
-    }
-
-    setOwnedModules([]);
-    const result = await getOwnedModules();
-    setOwnedModules(result);
-  };
-
-  const retrieveOwnedInvocations = async () => {
-    if (isReadOnly) {
-      return;
-    }
-
-    setOwnedInvocations([]);
-    const result = await getOwnedInvocations();
-    setOwnedInvocations(result);
-  };
-
   const { isLoading: isLoadingFeatured, load: loadFeatured } =
     useLoading(retrieveFeatured);
-  const { isLoading: isLoadingOwnedModules, load: loadOwnedModules } =
-    useLoading(retrieveOwnedModules);
-  const { isLoading: isLoadingOwnedInvocations, load: loadOwnedInvocations } =
-    useLoading(retrieveOwnedInvocations);
 
   useEffect(() => {
     loadFeatured();
-    loadOwnedModules();
-    loadOwnedInvocations();
   }, []);
+
+  const {
+    isLoading: isLoadingOwnedModules,
+    result: ownedModules,
+    pagination: ownedModulesPagination,
+  } = usePagination({ getPage: getOwnedModules, pageSize: 10 });
+
+  const {
+    isLoading: isLoadingOwnedInvocations,
+    result: ownedInvocations,
+    pagination: ownedInvocationsPagination,
+  } = usePagination({ getPage: getOwnedInvocations, pageSize: 10 });
 
   return (
     <Page>
@@ -128,8 +113,9 @@ export const ModulesView = () => {
         ) : null}
       </Loading>
 
+      <h2>Your Modules</h2>
+      <div className="mt-3">{ownedModulesPagination}</div>
       <Loading isLoading={isLoadingOwnedModules}>
-        <h2>Your Modules</h2>
         <div className="d-flex flex-wrap items-align-top mb-5">
           {ownedModules.length > 0 ? (
             ownedModules.map((module) => (
@@ -149,8 +135,9 @@ export const ModulesView = () => {
         </div>
       </Loading>
 
+      <h2 className="mt-5">Your Mints</h2>
+      <div className="mt-3">{ownedInvocationsPagination}</div>
       <Loading isLoading={isLoadingOwnedInvocations}>
-        <h2 className="mt-5">Your Mints</h2>
         <div className="d-flex flex-wrap">
           {ownedInvocations.length > 0 ? (
             ownedInvocations.map((invocation) => (

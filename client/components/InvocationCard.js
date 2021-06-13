@@ -22,7 +22,7 @@ export const InvocationCard = ({
       <div className="card-body">
         {!noTitle ? (
           <div className="card-title font-monospace fw-bold">
-            {moduleName}#{tokenId}
+            {moduleName}@{tokenId}
           </div>
         ) : null}
 
