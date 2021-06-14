@@ -174,9 +174,9 @@ const App = () => {
         </div>
       </nav>
 
-      <ReadOnlyWarning />
-
       <Routes key={`${chainId}-${account}`} />
+
+      <ReadOnlyWarning />
     </>
   );
 };

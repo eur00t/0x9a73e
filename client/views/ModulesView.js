@@ -14,9 +14,10 @@ import { MainNetworkWarning } from "../components/MainNetworkWarning";
 import { usePagination } from "../components/usePagination";
 import { fetchServerMethod } from "../utils/fetchServerMethod";
 import { OnlyWriteInjector } from "../components/OnlyWriteInjector";
+import { PreviewIFrame } from "../components/PreviewIFrame";
 
-const ModuleCard = withOwner((module) => {
-  const { name, metadataJSON } = module;
+const ModuleCard = withOwner(({ noRender = false, ...module }) => {
+  const { name, metadataJSON, tokenId } = module;
 
   const { description } = useMemo(
     () => JSON.parse(metadataJSON),
@@ -25,6 +26,13 @@ const ModuleCard = withOwner((module) => {
 
   return (
     <div className="card" style={{ width: "20rem" }}>
+      {!noRender ? (
+        <PreviewIFrame
+          className="card-img-top"
+          tokenId={tokenId}
+          style={{ width: "100%", height: "20rem" }}
+        />
+      ) : null}
       <div className="card-body d-flex flex-column">
         <div className="card-title font-monospace fw-bold d-flex align-items-center">
           {name}
@@ -101,7 +109,7 @@ export const ModulesView = () => {
       <Loading isLoading={isLoadingFeatured}>
         {isLoadingFeatured || featuredModules.length > 0 ? (
           <>
-            <h2 className="mt-3">Featured</h2>
+            <h2 className="mt-3 mb-3">Featured</h2>
             <div className="d-flex flex-wrap mb-5">
               {featuredModules.map((module) => (
                 <div key={module.name} className="mb-2 me-2 d-flex">
@@ -121,12 +129,12 @@ export const ModulesView = () => {
             {ownedModules.length > 0 ? (
               ownedModules.map((module) => (
                 <div key={module.name} className="mb-2 me-2 d-flex">
-                  <ModuleCard {...module} />
+                  <ModuleCard noRender {...module} />
                 </div>
               ))
             ) : (
               <>
-                You don't own any modules. Try to
+                You don't own any modules. You can
                 <Link to="/modules/create" className="ms-1 me-1">
                   create
                 </Link>

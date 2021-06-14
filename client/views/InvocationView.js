@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useContractContext } from "../state";
 import { useLoading } from "../components/useLoading";
@@ -45,7 +46,14 @@ export const InvocationView = ({ tokenId }) => {
       <Loading isLoading={isLoading}>
         <dl>
           <dt>Module Name</dt>
-          <dd className="font-monospace">{moduleName}</dd>
+          <dd className="font-monospace">
+            <Link
+              className="text-decoration-none"
+              to={`/modules/details/${moduleName}`}
+            >
+              {moduleName}
+            </Link>
+          </dd>
           <dt>ERC721 Token Contract</dt>
           <dd className="font-monospace">
             <EtherscanLink
