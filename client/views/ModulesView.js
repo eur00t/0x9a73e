@@ -113,46 +113,49 @@ export const ModulesView = () => {
         ) : null}
       </Loading>
 
-      <h2>Your Modules</h2>
-      <div className="mb-3">{ownedModulesPagination}</div>
-      <Loading isLoading={isLoadingOwnedModules}>
-        <div className="d-flex flex-wrap items-align-top mb-5">
-          {ownedModules.length > 0 ? (
-            ownedModules.map((module) => (
-              <div key={module.name} className="mb-2 me-2 d-flex">
-                <ModuleCard {...module} />
-              </div>
-            ))
-          ) : (
-            <>
-              You don't own any modules.{" "}
-              <OnlyWriteInjector>
-                Try to
+      <OnlyWriteInjector>
+        <h2>Your Modules</h2>
+        <div className="mb-3">{ownedModulesPagination}</div>
+        <Loading isLoading={isLoadingOwnedModules}>
+          <div className="d-flex flex-wrap items-align-top mb-5">
+            {ownedModules.length > 0 ? (
+              ownedModules.map((module) => (
+                <div key={module.name} className="mb-2 me-2 d-flex">
+                  <ModuleCard {...module} />
+                </div>
+              ))
+            ) : (
+              <>
+                You don't own any modules. Try to
                 <Link to="/modules/create" className="ms-1 me-1">
                   create
                 </Link>
                 one
-              </OnlyWriteInjector>
-            </>
-          )}
-        </div>
-      </Loading>
+              </>
+            )}
+          </div>
+        </Loading>
+      </OnlyWriteInjector>
 
-      <h2 className="mt-5">Your Mints</h2>
-      <div className="mt-3">{ownedInvocationsPagination}</div>
-      <Loading isLoading={isLoadingOwnedInvocations}>
-        <div className="d-flex flex-wrap">
-          {ownedInvocations.length > 0 ? (
-            ownedInvocations.map((invocation) => (
-              <div key={invocation.tokenId} className="mb-2 me-2 d-flex">
-                <InvocationCard {...invocation} />
-              </div>
-            ))
-          ) : (
-            <>You don't own any mints. Try to get some from mintable modules.</>
-          )}
-        </div>
-      </Loading>
+      <OnlyWriteInjector>
+        <h2 className="mt-5">Your Mints</h2>
+        <div className="mt-3">{ownedInvocationsPagination}</div>
+        <Loading isLoading={isLoadingOwnedInvocations}>
+          <div className="d-flex flex-wrap">
+            {ownedInvocations.length > 0 ? (
+              ownedInvocations.map((invocation) => (
+                <div key={invocation.tokenId} className="mb-2 me-2 d-flex">
+                  <InvocationCard {...invocation} />
+                </div>
+              ))
+            ) : (
+              <>
+                You don't own any mints. Try to get some from mintable modules.
+              </>
+            )}
+          </div>
+        </Loading>
+      </OnlyWriteInjector>
     </Page>
   );
 };

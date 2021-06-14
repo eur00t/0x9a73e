@@ -103,7 +103,7 @@ const writeResponse = (ext) => (req, res) => {
   res.send(req.content);
 };
 
-const appUseWrapCache = (app, ext, url, route) => {
+const useWrapCache = (app, ext, url, route) => {
   app.use(`${url}/invalidate`, invalidateCache(ext));
   app.use(url, readCache(ext));
   app.use(url, route);
@@ -112,5 +112,5 @@ const appUseWrapCache = (app, ext, url, route) => {
 };
 
 module.exports = {
-  appUseWrapCache,
+  useWrapCache,
 };
