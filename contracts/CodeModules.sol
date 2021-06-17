@@ -134,17 +134,18 @@ contract CodeModules is
         res.tokenId = tokenId;
     }
 
-    function toModuleView(SharedDefinitions.Module memory m)
-        internal
-        view
-        returns (ModuleView memory result)
-    {
+    function toModuleView(
+        SharedDefinitions.Module memory m,
+        bool skipAllDependencies
+    ) internal view returns (ModuleView memory result) {
         SharedDefinitions.Module[] memory allDependencies =
-            CodeModulesRendering.getAllDependencies(
-                modules,
-                moduleNameToTokenId,
-                m.name
-            );
+            !skipAllDependencies
+                ? CodeModulesRendering.getAllDependencies(
+                    modules,
+                    moduleNameToTokenId,
+                    m.name
+                )
+                : new SharedDefinitions.Module[](0);
 
         ModuleViewBrief[] memory allDependenciesViewBrief =
             new ModuleViewBrief[](allDependencies.length);
@@ -330,10 +331,14 @@ contract CodeModules is
         }
     }
 
-    function getModule(bytes32 name) external view returns (ModuleView memory) {
+    function getModule(bytes32 name, bool skipAllDependencies)
+        external
+        view
+        returns (ModuleView memory)
+    {
         require(moduleExists[name], "module must exist");
 
-        return toModuleView(modules[name]);
+        return toModuleView(modules[name], skipAllDependencies);
     }
 
     function getModuleInvocations(

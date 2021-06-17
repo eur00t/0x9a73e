@@ -751,6 +751,11 @@
           "internalType": "bytes32",
           "name": "name",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "skipAllDependencies",
+          "type": "bool"
         }
       ],
       "name": "getModule",

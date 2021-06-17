@@ -491,7 +491,7 @@ export const ModuleEditView = ({
     }));
 
     try {
-      const module = await getModule(moduleName);
+      const module = await getModule(moduleName, true);
       setExists(true);
       if (!isCreateMode) {
         setModuleData(module);

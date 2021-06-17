@@ -218,9 +218,11 @@ export const useContract = (trackTransaction) => {
   );
 
   const getModule = useCallback(
-    wrapFuncCancelable(async (moduleName) => {
+    wrapFuncCancelable(async (moduleName, skipAllDependencies = false) => {
       const { code, name, dependencies, allDependencies, ...rest } =
-        await contract.methods.getModule(asciiToHex(moduleName)).call();
+        await contract.methods
+          .getModule(asciiToHex(moduleName), skipAllDependencies)
+          .call();
 
       return processModuleResult({
         code: atob(code),
