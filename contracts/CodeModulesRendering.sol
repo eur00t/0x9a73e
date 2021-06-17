@@ -242,10 +242,10 @@ library CodeModulesRendering {
             modules,
             moduleNameToTokenId,
             m,
-            1
+            0
         );
 
-        res[0] = SharedDefinitions.Module({
+        res[size] = SharedDefinitions.Module({
             name: "module-invocation",
             metadataJSON: "",
             dependencies: dependencies,
@@ -253,6 +253,6 @@ library CodeModulesRendering {
             isInvocable: false
         });
 
-        return getJSONForModules(res, size);
+        return getJSONForModules(res, size + 1);
     }
 }
