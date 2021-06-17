@@ -563,7 +563,7 @@ contract CodeModules is
         public
         initializer
     {
-        __ERC721_init("CodeModules", "CDM");
+        __ERC721_init("lambdaNFT", "LNFT");
         __Ownable_init();
 
         _networkId = networkId;

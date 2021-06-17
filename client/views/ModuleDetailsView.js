@@ -71,9 +71,9 @@ const ModuleDetails = withOwner((module) => {
         <div className="alert alert-warning" style={{ maxWidth: "500px" }}>
           <h4 className="alert-heading">Mutable</h4>
           <p>
-            Some of the module's dependencies has not been finalized. This means
+            Some of the lambda's dependencies has not been finalized. This means
             that their owners can update them at their will. If you are going to
-            mint this module, the output you get can change.
+            mint this lambda, the output you get can change.
           </p>
           <hr />
           <p className="mb-0">
@@ -90,7 +90,7 @@ const ModuleDetails = withOwner((module) => {
         <div className="alert alert-success" style={{ maxWidth: "500px" }}>
           <h4 className="alert-heading">Immutable</h4>
           <p>
-            This module and all its dependencies have been finalized and can't
+            This lambda and all its dependencies have been finalized and can't
             be changed. It's secure on blockchain.
           </p>
         </div>

@@ -45,7 +45,7 @@ export const InvocationView = ({ tokenId }) => {
     <Page>
       <Loading isLoading={isLoading}>
         <dl>
-          <dt>Module Name</dt>
+          <dt>Lambda Name</dt>
           <dd className="font-monospace">
             <Link
               className="text-decoration-none"

@@ -81,7 +81,7 @@ const validateModuleDOM = (module, isCreateMode, exists) => {
     errors.push("The name must not be empty");
   } else {
     if (exists && isCreateMode) {
-      errors.push(`Module with the name "${name}" already exists`);
+      errors.push(`Lambda with the name "${name}" already exists`);
     }
   }
 
@@ -399,8 +399,8 @@ const ModuleEdit = withOwner(
                     scopeId={scopeId}
                     text={
                       isCreateMode || (!isCreateMode && !exists)
-                        ? "Create Module"
-                        : "Update Module"
+                        ? "Create Lambda"
+                        : "Update Lambda"
                     }
                     onClick={onSetModuleDOM}
                     disabled={

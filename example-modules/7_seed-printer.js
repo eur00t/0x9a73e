@@ -1,4 +1,4 @@
-`Invocable module which displays a given seed for each invocation.`;
+`Invocable lambda which displays a given seed for each invocation.`;
 true;
 [];
 () => {

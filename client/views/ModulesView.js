@@ -122,7 +122,7 @@ export const ModulesView = () => {
       </Loading>
 
       <OnlyWriteInjector>
-        <h2>Your Modules</h2>
+        <h2>Your λ's</h2>
         <div className="mb-3">{ownedModulesPagination}</div>
         <Loading isLoading={isLoadingOwnedModules}>
           <div className="d-flex flex-wrap items-align-top mb-5">
@@ -134,7 +134,7 @@ export const ModulesView = () => {
               ))
             ) : (
               <>
-                You don't own any modules. You can
+                You don't own any lambdas. You can
                 <Link to="/modules/create" className="ms-1 me-1">
                   create
                 </Link>
@@ -158,7 +158,7 @@ export const ModulesView = () => {
               ))
             ) : (
               <>
-                You don't own any mints. Try to get some from mintable modules.
+                You don't own any mints. Try to get some from mintable lambdas.
               </>
             )}
           </div>

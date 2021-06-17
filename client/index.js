@@ -128,7 +128,7 @@ const App = () => {
             >
               beta
             </small>
-            0x9a73e
+            <em style={{ color: "rgb(140, 140, 140)" }}>λ</em>NFT
           </NavLink>
           <div className="collapse navbar-collapse">
             <ul className="navbar-nav">
@@ -168,7 +168,7 @@ const App = () => {
                 disabled: appMode !== ACTIVE,
               })}
             >
-              Create Module
+              Create Lambda
             </NavLink>
           </OnlyWriteInjector>
         </div>
