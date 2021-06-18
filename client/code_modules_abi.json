@@ -442,6 +442,19 @@
       "inputs": [
         {
           "internalType": "bytes32",
+          "name": "baseURIPrefix",
+          "type": "bytes32"
+        }
+      ],
+      "name": "setBaseURIPrefix",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
           "name": "name",
           "type": "bytes32"
         }

@@ -45,6 +45,10 @@ contract CodeModules is
     uint256 internal _networkId;
     bytes32 internal _baseURIPrefix;
 
+    function setBaseURIPrefix(bytes32 baseURIPrefix) external onlyOwner {
+        _baseURIPrefix = baseURIPrefix;
+    }
+
     function _baseURI() internal view override returns (string memory) {
         return
             string(
