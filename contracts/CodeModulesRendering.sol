@@ -204,7 +204,7 @@ library CodeModulesRendering {
         result = new SharedDefinitions.Module[](size - 1);
 
         for (uint256 i = 0; i < size - 1; i++) {
-            result[i] = resTraversed[i + 1];
+            result[i] = resTraversed[i];
         }
     }
 

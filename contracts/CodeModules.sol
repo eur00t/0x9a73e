@@ -197,7 +197,7 @@ contract CodeModules is
 
     function finalize(bytes32 name) external {
         require(moduleExists[name], "module must exist");
-        require(!moduleFinalized[name], "modules is finalized");
+        require(!moduleFinalized[name], "module is finalized");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can change it");
 
@@ -206,7 +206,7 @@ contract CodeModules is
 
     function setInvocable(bytes32 name, uint256 invocationsMax) external {
         require(moduleExists[name], "module must exist");
-        require(!moduleFinalized[name], "modules is finalized");
+        require(!moduleFinalized[name], "module is finalized");
         require(modules[name].isInvocable, "module must be invocable");
         address tokenOwner = ownerOf(moduleNameToTokenId[name]);
         require(tokenOwner == msg.sender, "only module owner can change it");

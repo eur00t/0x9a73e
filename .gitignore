@@ -16,3 +16,5 @@ bin
 nft-cache
 .openzeppelin
 node-storage
+artifacts
+cache
