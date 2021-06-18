@@ -1,4 +1,5 @@
 export const EMPTY_MODULE_DATA = {
+  isEmptyData: true,
   name: "",
   dependencies: [],
   code: "",

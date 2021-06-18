@@ -118,7 +118,7 @@ export const DepsControl = React.forwardRef(
 
     const addItemDOM = () => {
       if (addInputRef.current.value !== "") {
-        addItem(addInputRef.current.value);
+        addItem(addInputRef.current.value.trim());
         addInputRef.current.value = "";
       }
     };

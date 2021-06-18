@@ -8,7 +8,7 @@ export const rpcNetworkPersistence = {
   read() {
     const storedValue = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-    return storedValue ? JSON.parse(storedValue, 10) : DEFAULT_NETWORK_ID;
+    return storedValue ? parseInt(storedValue, 10) : DEFAULT_NETWORK_ID;
   },
 
   write(value) {

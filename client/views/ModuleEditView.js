@@ -23,6 +23,8 @@ import { makeFullScreen, resetFullScreen } from "../utils/viewport";
 import { EMPTY_MODULE_DATA } from "../utils/emptyModule";
 import Refresh from "../icons/refresh.svg";
 import { DepsControl } from "../components/DepsControl";
+import { editModulePersistence } from "../utils/editModulePersistence";
+import { compareModuleData } from "../utils/compareModuleData";
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
@@ -33,8 +35,6 @@ const Preview = ({ isLoadingPreview, previewHtml }) => {
       style={{
         width: "100%",
         height: "100%",
-        border: "1px solid #ced4da",
-        borderRadius: "0.2rem",
       }}
       isLoading={isLoadingPreview}
     >
@@ -119,6 +119,8 @@ const ModuleEdit = withOwner(
     changeModuleName,
     onSetModule,
     exists,
+    cachedModuleData,
+    onResetCache,
   }) => {
     const nameRef = useRef();
     const depsRef = useRef();
@@ -127,9 +129,11 @@ const ModuleEdit = withOwner(
     const descriptionRef = useRef();
     const invocableOnRef = useRef();
     const invocableOffRef = useRef();
+    const autoRefreshRef = useRef();
 
     const { dependencies, code, metadataJSON, isInvocable, isFinalized } =
-      module;
+      cachedModuleData !== null ? cachedModuleData : module;
+
     const { description } = useMemo(
       () => JSON.parse(metadataJSON),
       [metadataJSON]
@@ -201,8 +205,8 @@ const ModuleEdit = withOwner(
     }, [showErrors, isCreateMode, exists]);
 
     const onSetModuleDOM = useCallback(() => {
-      const module = getModuleDOM();
-      const errors = validateModuleDOM(module, isCreateMode, exists);
+      const moduleDOM = getModuleDOM();
+      const errors = validateModuleDOM(moduleDOM, isCreateMode, exists);
 
       if (errors.length > 0) {
         setValidationsErrors(errors);
@@ -210,7 +214,7 @@ const ModuleEdit = withOwner(
         return;
       }
 
-      onSetModule(module);
+      onSetModule(moduleDOM);
     }, [
       getModuleDOM,
       validateModuleDOM,
@@ -222,24 +226,39 @@ const ModuleEdit = withOwner(
 
     const { loadPreview, preview } = usePreview();
 
-    const onLoadPreviewDOM = useCallback(() => {
-      const module = getModuleDOM();
+    const onLoadPreviewDOM = useCallback(
+      (force = false) => {
+        const moduleDOM = getModuleDOM();
 
-      if (showErrors) {
-        setValidationsErrors(validateModuleDOM(module, isCreateMode, exists));
-      }
+        if (showErrors) {
+          setValidationsErrors(
+            validateModuleDOM(moduleDOM, isCreateMode, exists)
+          );
+        }
 
-      loadPreview(module);
-    }, [
-      codeRef,
-      loadPreview,
-      getModuleDOM,
-      showErrors,
-      validateModuleDOM,
-      setValidationsErrors,
-      isCreateMode,
-      exists,
-    ]);
+        if (!compareModuleData(moduleDOM, module)) {
+          editModulePersistence.write(isCreateMode ? "" : moduleName, {
+            edit: moduleDOM,
+            original: module,
+          });
+        }
+
+        if (force || autoRefreshRef.current.checked) {
+          loadPreview(moduleDOM);
+        }
+      },
+      [
+        module,
+        codeRef,
+        loadPreview,
+        getModuleDOM,
+        showErrors,
+        validateModuleDOM,
+        setValidationsErrors,
+        isCreateMode,
+        exists,
+      ]
+    );
 
     const onLoadPreviewDOMDebounced = useMemo(
       () => debounce(onLoadPreviewDOM, 1000),
@@ -261,8 +280,10 @@ const ModuleEdit = withOwner(
     };
 
     useEffect(() => {
-      loadPreview(module);
-    }, [module.dependencies, module.code, module.isInvocable]);
+      if (showPreview) {
+        loadPreview({ dependencies, code, isInvocable });
+      }
+    }, [dependencies, code, isInvocable]);
 
     const isInvocableSelect = (
       <div
@@ -303,6 +324,13 @@ const ModuleEdit = withOwner(
         </label>
       </div>
     );
+
+    const [showPreview, setShowPreview] = useState(false);
+
+    const onShowPreview = () => {
+      setShowPreview(true);
+      onLoadPreviewDOM(true);
+    };
 
     return (
       <div
@@ -431,23 +459,79 @@ const ModuleEdit = withOwner(
           className="ms-2 d-none d-lg-flex flex-column"
         >
           <div className="d-flex align-items-center mb-2 ms-auto">
+            {cachedModuleData !== null ? (
+              <div
+                className="btn btn-outline-secondary btn-sm me-2"
+                onClick={() => onResetCache()}
+              >
+                Cancel Edit
+              </div>
+            ) : null}
             <div
-              className="btn btn-outline-primary btn-sm"
-              onClick={onLoadPreviewDOM}
+              className="btn-group btn-group-sm ms-auto me-2"
+              style={{ whiteSpace: "nowrap" }}
             >
-              <Refresh />
+              <input
+                ref={autoRefreshRef}
+                type="checkbox"
+                className="btn-check"
+                name="btn-auto-refresh"
+                id="btn-auto-refresh"
+                autoComplete="off"
+              />
+              <label
+                className="btn btn-outline-secondary"
+                htmlFor="btn-auto-refresh"
+              >
+                Auto Refresh
+              </label>
+            </div>
+
+            <div
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => onLoadPreviewDOM(true)}
+            >
+              <Refresh style={{ position: "relative", top: "-1px" }} />
             </div>
 
             {exists ? (
               <Link
-                className="btn btn-outline-primary btn-sm ms-2"
+                className="btn btn-outline-secondary btn-sm ms-2"
                 to={`/modules/details/${moduleName}`}
               >
                 View
               </Link>
             ) : null}
           </div>
-          <div style={{ flex: "1 1 0" }}>{preview}</div>
+          <div
+            style={{
+              flex: "1 1 0",
+              position: "relative",
+              border: "1px solid #ced4da",
+              borderRadius: "0.2rem",
+            }}
+          >
+            {!showPreview ? (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  marginTop: "-15px",
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <div
+                  className="btn btn-outline-secondary"
+                  onClick={() => onShowPreview()}
+                >
+                  Show Preview
+                </div>
+              </div>
+            ) : null}
+            {showPreview ? preview : null}
+          </div>
         </div>
       </div>
     );
@@ -473,10 +557,35 @@ export const ModuleEditView = ({
   const account = useAccount();
 
   const [moduleData, setModuleData] = useState({
-    ...(isCreateMode ? DEFAULT_MODULE_DATA : EMPTY_MODULE_DATA),
+    ...(isCreateMode
+      ? (() => {
+          const storageData = editModulePersistence.read("");
+
+          return storageData === null ? DEFAULT_MODULE_DATA : storageData.edit;
+        })()
+      : EMPTY_MODULE_DATA),
     name: moduleName,
     owner: account,
   });
+  const [cachedModuleData, setCachedModuleData] = useState(null);
+
+  const processCache = (moduleDataParam) => {
+    const storedData = editModulePersistence.read(moduleName);
+
+    if (
+      storedData !== null &&
+      compareModuleData(storedData.original, moduleDataParam)
+    ) {
+      setCachedModuleData(storedData.edit);
+    }
+  };
+
+  const onResetCache = () => {
+    if (cachedModuleData !== null) {
+      setCachedModuleData(null);
+      editModulePersistence.remove(moduleName);
+    }
+  };
 
   const retrieve = async () => {
     if (!moduleName || moduleName === "") {
@@ -495,6 +604,7 @@ export const ModuleEditView = ({
       setExists(true);
       if (!isCreateMode) {
         setModuleData(module);
+        processCache(module);
       }
     } catch {
       setExists(false);
@@ -507,14 +617,16 @@ export const ModuleEditView = ({
     load();
   }, [moduleName]);
 
-  useTransactionsPendingChange(scopeId, (isPending) => {
+  useTransactionsPendingChange(scopeId, async (isPending) => {
     if (isPending === false && isCreateMode) {
       onCreateDone(moduleName);
+      editModulePersistence.remove("");
       return;
     }
 
     if (isPending === false) {
-      load();
+      await load();
+      onResetCache();
     }
   });
 
@@ -547,6 +659,8 @@ export const ModuleEditView = ({
         exists,
         onSetModule,
         changeModuleName,
+        cachedModuleData,
+        onResetCache,
       }}
     />
   );

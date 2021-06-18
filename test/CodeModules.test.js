@@ -93,7 +93,6 @@ describe("CodeModules", function () {
   let owner, addr1, addr2;
   before(async () => {
     [owner, addr1, addr2] = await ethers.getSigners();
-    console.log("before");
     const CodeModulesRendering = await ethers.getContractFactory(
       "CodeModulesRendering"
     );
