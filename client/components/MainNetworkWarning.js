@@ -26,8 +26,8 @@ export const MainNetworkWarning = ({}) => {
       <p>
         You are currently connected to <strong>{currentNetwork.name}</strong>{" "}
         network. Our master app version is deployed to{" "}
-        <strong>{mainNetwork.name}</strong>. Please go there if you want to
-        check it out.
+        <strong>{mainNetwork.name}</strong>. Go there if you want to check it
+        out.
       </p>
       <p className="mb-0">
         <span

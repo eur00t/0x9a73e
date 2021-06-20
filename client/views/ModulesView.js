@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
+import styled from "styled-components";
 
 import PencilSquare from "../icons/pencil-square.svg";
 import { useContractContext } from "../state";
@@ -15,6 +16,11 @@ import { usePagination } from "../components/usePagination";
 import { fetchServerMethod } from "../utils/fetchServerMethod";
 import { OnlyWriteInjector } from "../components/OnlyWriteInjector";
 import { PreviewIFrame } from "../components/PreviewIFrame";
+
+import JSLogo from "../icons/javascript-logo.svg";
+import Diagram from "../icons/diagram.svg";
+import Images from "../icons/images.svg";
+import ShieldLock from "../icons/shield-lock.svg";
 
 const ModuleCard = withOwner(({ noRender = false, ...module }) => {
   const { name, metadataJSON, tokenId } = module;
@@ -71,6 +77,29 @@ const ModuleCard = withOwner(({ noRender = false, ...module }) => {
   );
 }, "ModuleCard");
 
+const HeroFeatureBlock = styled.div`
+  width: 180px;
+
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+  margin-bottom: 3rem;
+
+  & > div {
+    width: 70px;
+    height: 70px;
+
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  & > div > svg {
+    height: 60px;
+  }
+`;
+
 export const ModulesView = () => {
   const { getAllFeatured, getOwnedModules, getOwnedInvocations } =
     useContractContext();
@@ -103,23 +132,92 @@ export const ModulesView = () => {
     pagination: ownedInvocationsPagination,
   } = usePagination({ getPage: getOwnedInvocations, pageSize: 10 });
 
+  const featuredBlockRef = useRef(null);
+
   return (
     <Page>
-      <MainNetworkWarning />
-      <Loading isLoading={isLoadingFeatured}>
-        {isLoadingFeatured || featuredModules.length > 0 ? (
-          <>
-            <h2 className="mt-3 mb-3">Featured</h2>
-            <div className="d-flex flex-wrap mb-5">
-              {featuredModules.map((module) => (
-                <div key={module.name} className="mb-2 me-2 d-flex">
-                  <ModuleCard {...module} />
-                </div>
-              ))}
+      <div>
+        <div className="ms-auto me-auto" style={{ marginBottom: "6rem" }}>
+          <div className="mt-5 mb-3 text-center display-3">
+            Fully On-Chain <span className="text-nowrap">Generative NFTs</span>
+          </div>
+          <div className="d-flex flex-wrap justify-content-center pt-5">
+            <HeroFeatureBlock>
+              <div>
+                <JSLogo className="ms-auto d-block me-auto pb-3" />
+              </div>
+              <h6 className="text-center pt-2 pb-1">Familiar Technology</h6>
+              <p>Deploy JavaScript lambdas directly on the blockchain.</p>
+            </HeroFeatureBlock>
+
+            <HeroFeatureBlock>
+              <div>
+                <Diagram className="ms-auto d-block me-auto pb-3" />
+              </div>
+              <h6 className="text-center pt-2 pb-1">Code Reuse</h6>
+              <p>
+                Leverage dependency mechanism to use less blockchain storage
+                space.
+              </p>
+            </HeroFeatureBlock>
+
+            <HeroFeatureBlock>
+              <div>
+                <Images className="ms-auto d-block me-auto pb-3" />
+              </div>
+              <h6 className="text-center pt-2 pb-1">f(x) == NFT</h6>
+              <p>
+                Transform JS code into mintable{" "}
+                <span className="text-nowrap">ERC-721</span> tokens.
+              </p>
+            </HeroFeatureBlock>
+
+            <HeroFeatureBlock>
+              <div>
+                <ShieldLock className="ms-auto d-block me-auto pb-3" />
+              </div>
+              <h6 className="text-center pt-2 pb-1">Standalone</h6>
+              <p>
+                Get full HTML page from the contract. Everything is on the
+                blockchain.
+              </p>
+            </HeroFeatureBlock>
+          </div>
+          <div className="d-flex justify-content-center mt-5">
+            <div
+              className="btn btn-lg btn-outline-primary"
+              onClick={() =>
+                window.scrollTo({
+                  left: 0,
+                  top: featuredBlockRef.current.offsetParent.offsetTop - 15,
+                  behavior: "smooth",
+                })
+              }
+            >
+              Browse Featured
             </div>
-          </>
-        ) : null}
-      </Loading>
+          </div>
+        </div>
+        <MainNetworkWarning />
+        <div>
+          <Loading isLoading={isLoadingFeatured}>
+            {isLoadingFeatured || featuredModules.length > 0 ? (
+              <div>
+                <h2 ref={featuredBlockRef} className="mt-3 mb-3">
+                  Featured
+                </h2>
+                <div className="d-flex overflow-auto mb-5 me-n2">
+                  {featuredModules.map((module) => (
+                    <div key={module.name} className="mb-2 me-2 d-flex">
+                      <ModuleCard {...module} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </Loading>
+        </div>
+      </div>
 
       <OnlyWriteInjector>
         <h2>Your λ's</h2>
