@@ -1,15 +1,16 @@
 import { useWeb3Auth } from "../components/Web3Auth";
+import { ConditionalVisibility } from "../components/ConditionalVisibility";
 
-export const OnlyConnectorType = ({ type, children }) => {
+export const OnlyConnectorType = ConditionalVisibility(({ type }) => {
   const { isRpc, isInjected } = useWeb3Auth();
 
   if (type === "rpc" && isRpc) {
-    return children;
+    return true;
   }
 
   if (type === "injected" && isInjected) {
-    return children;
+    return true;
   }
 
-  return null;
-};
+  return false;
+});

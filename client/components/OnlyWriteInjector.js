@@ -1,11 +1,12 @@
 import { useWeb3Auth } from "../components/Web3Auth";
+import { ConditionalVisibility } from "../components/ConditionalVisibility";
 
-export const OnlyWriteInjector = ({ children }) => {
+export const OnlyWriteInjector = ConditionalVisibility(() => {
   const { isReadOnly } = useWeb3Auth();
 
   if (!isReadOnly) {
-    return children;
+    return true;
   }
 
-  return null;
-};
+  return false;
+});

@@ -1,5 +1,7 @@
 import { useWeb3React } from "@web3-react/core";
 
+export const MAINNET_ID = 137;
+
 const NETWORKS = (() => {
   try {
     return JSON.parse(process.env.NETWORKS);

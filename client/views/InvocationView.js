@@ -10,6 +10,10 @@ import { EtherscanLink } from "../components/EtherscanLink";
 import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
 import { PreviewIFrame } from "../components/PreviewIFrame";
+import { OnlyMainnet } from "../components/OnlyMainnet";
+
+import BoxArrowUpRight from "../icons/box-arrow-up-right.svg";
+import OpenSea from "../icons/opensea-logomark-full-colored.svg";
 
 export const InvocationView = ({ tokenId }) => {
   const { getInvocation } = useContractContext();
@@ -39,7 +43,7 @@ export const InvocationView = ({ tokenId }) => {
     seed,
   } = invocation;
 
-  const { contractAddress } = useNetwork();
+  const { contractAddress, networkId } = useNetwork();
 
   return (
     <Page>
@@ -81,6 +85,36 @@ export const InvocationView = ({ tokenId }) => {
             {displayHexString(seed)}
           </dd>
         </dl>
+
+        <div className="mb-2">
+          <a
+            className="btn btn-outline-primary btn-sm"
+            target="_blank"
+            href={`/network/${networkId}/tokens/${tokenId}/render`}
+          >
+            Render Full{" "}
+            <BoxArrowUpRight
+              className="ms-1"
+              style={{ position: "relative", top: "-3px" }}
+            />
+          </a>
+        </div>
+
+        <OnlyMainnet>
+          <div className="mb-2">
+            <a
+              className="btn btn-outline-primary btn-sm"
+              target="_blank"
+              href={`https://opensea.io/assets/matic/${contractAddress}/${tokenId}`}
+            >
+              View on OpenSea{" "}
+              <OpenSea
+                className="ms-1"
+                style={{ height: "18px", position: "relative", top: "-1px" }}
+              />
+            </a>
+          </div>
+        </OnlyMainnet>
 
         <PreviewIFrame
           tokenId={tokenId}
