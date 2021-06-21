@@ -31,7 +31,6 @@ import { OnlyConnectorType } from "./components/OnlyConnectorType";
 import { OnlyInjectedAvailable } from "./components/OnlyInjectedAvailable";
 import { OnlyWriteInjector } from "./components/OnlyWriteInjector";
 import { NetworkIndicator } from "./components/NetworkIndicator";
-import { ReadOnlyWarning } from "./components/ReadOnlyWarning";
 
 import { Web3Auth } from "./components/Web3Auth";
 import { useWeb3Auth } from "./components/Web3Auth";
@@ -175,8 +174,6 @@ const App = () => {
       </nav>
 
       <Routes key={`${chainId}-${account}`} />
-
-      <ReadOnlyWarning />
     </>
   );
 };
