@@ -53,11 +53,20 @@ protectedRouter.get("/nonce", (req, res) => {
   res.send({ nonce: currentNonce });
 });
 
-protectedRouter.get("/featured", (req, res) => {
-  res.send(featuredStorage.getAll());
+protectedRouter.use("/network/:networkId", (req, res, next) => {
+  let { networkId } = req.params;
+
+  networkId = parseInt(networkId, 10);
+
+  req.networkId = networkId;
+  next();
 });
 
-protectedRouter.post("/featured", (req, res) => {
+protectedRouter.get("/network/:networkId/featured", (req, res) => {
+  res.send(featuredStorage.getAll(req.networkId));
+});
+
+protectedRouter.post("/network/:networkId/featured", (req, res) => {
   const { moduleName } = req.body;
 
   if (!moduleName) {
@@ -65,14 +74,14 @@ protectedRouter.post("/featured", (req, res) => {
     return;
   }
 
-  featuredStorage.add(moduleName);
+  featuredStorage.add(req.networkId, moduleName);
   res.send({ status: "OK" });
 });
 
-protectedRouter.get("/featured/:moduleName", (req, res) => {
+protectedRouter.get("/network/:networkId/featured/:moduleName", (req, res) => {
   let { moduleName } = req.params;
 
-  if (featuredStorage.has(moduleName)) {
+  if (featuredStorage.has(req.networkId, moduleName)) {
     res.send({ status: "OK" });
     return;
   } else {
@@ -81,11 +90,14 @@ protectedRouter.get("/featured/:moduleName", (req, res) => {
   }
 });
 
-protectedRouter.delete("/featured/:moduleName", (req, res) => {
-  let { moduleName } = req.params;
+protectedRouter.delete(
+  "/network/:networkId/featured/:moduleName",
+  (req, res) => {
+    let { moduleName } = req.params;
 
-  featuredStorage.remove(moduleName);
-  res.send({ status: "OK" });
-});
+    featuredStorage.remove(req.networkId, moduleName);
+    res.send({ status: "OK" });
+  }
+);
 
 module.exports = { protectedRouter };

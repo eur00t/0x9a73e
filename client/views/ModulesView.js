@@ -16,6 +16,7 @@ import { usePagination } from "../components/usePagination";
 import { fetchServerMethod } from "../utils/fetchServerMethod";
 import { OnlyWriteInjector } from "../components/OnlyWriteInjector";
 import { PreviewIFrame } from "../components/PreviewIFrame";
+import { useNetwork } from "../utils/networks";
 
 import JSLogo from "../icons/javascript-logo.svg";
 import Diagram from "../icons/diagram.svg";
@@ -107,9 +108,14 @@ export const ModulesView = () => {
 
   const [featuredModules, setFeaturedModules] = useState([]);
 
+  const { networkId } = useNetwork();
+
   const retrieveFeatured = async () => {
     setFeaturedModules([]);
-    const featured = await fetchServerMethod("/protected/featured", "GET");
+    const featured = await fetchServerMethod(
+      `/protected/network/${networkId}/featured`,
+      "GET"
+    );
     const result = await getAllFeatured(featured);
     setFeaturedModules(result);
   };
@@ -185,18 +191,20 @@ export const ModulesView = () => {
             </HeroFeatureBlock>
           </div>
           <div className="d-flex flex-wrap justify-content-center mt-5">
-            <div
-              className="btn btn-lg btn-primary mt-2"
-              onClick={() =>
-                window.scrollTo({
-                  left: 0,
-                  top: featuredBlockRef.current.offsetParent.offsetTop - 15,
-                  behavior: "smooth",
-                })
-              }
-            >
-              Browse Featured
-            </div>
+            {featuredModules.length > 0 ? (
+              <div
+                className="btn btn-lg btn-primary mt-2"
+                onClick={() =>
+                  window.scrollTo({
+                    left: 0,
+                    top: featuredBlockRef.current.offsetParent.offsetTop - 15,
+                    behavior: "smooth",
+                  })
+                }
+              >
+                Browse Featured
+              </div>
+            ) : null}
             <a
               href="https://lambdanft.medium.com/"
               target="_blank"
