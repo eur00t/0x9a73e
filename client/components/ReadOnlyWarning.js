@@ -12,7 +12,7 @@ export const ReadOnlyWarning = ({}) => {
   }
 
   return (
-    <div className="container mt-3">
+    <div className="mt-3">
       <div className="alert alert-warning" style={{ maxWidth: "500px" }}>
         <h4 className="alert-heading">Read-Only Mode</h4>
         <p>

@@ -21,6 +21,7 @@ import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 import { usePagination } from "../components/usePagination";
 import { FeaturedControl } from "../components/FeaturedControl";
+import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
 
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
 const getFinalizeScopeId = (name) => `finalize-action-${name}`;
@@ -66,6 +67,8 @@ const ModuleDetails = withOwner((module) => {
           <ModuleBadges {...module} />
         </div>
       ) : null}
+
+      <ReadOnlyWarning />
 
       {areDependenciesMutable ? (
         <div className="alert alert-warning" style={{ maxWidth: "500px" }}>
@@ -251,7 +254,7 @@ export const ModuleDetailsView = ({ moduleName, onModuleChange }) => {
       (...args) => getModuleInvocations(moduleName, ...args),
       [moduleName]
     ),
-    pageSize: 10,
+    pageSize: 5,
   });
 
   useEffect(() => {

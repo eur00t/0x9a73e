@@ -1,8 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 
-import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
-
 const FooterContainer = styled.div`
   & a {
     text-decoration: none;
@@ -44,6 +42,5 @@ export const Footer = ({}) => (
         </div>
       </div>
     </div>
-    <ReadOnlyWarning />
   </FooterContainer>
 );

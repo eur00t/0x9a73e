@@ -11,6 +11,7 @@ import { OwnerLabel } from "../components/OwnerLabel";
 import { Page } from "../components/Page";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 import { OnlyMainnet } from "../components/OnlyMainnet";
+import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
 
 import BoxArrowUpRight from "../icons/box-arrow-up-right.svg";
 import OpenSea from "../icons/opensea-logomark-full-colored.svg";
@@ -47,6 +48,7 @@ export const InvocationView = ({ tokenId }) => {
 
   return (
     <Page>
+      <ReadOnlyWarning />
       <Loading isLoading={isLoading}>
         <dl>
           <dt>Lambda Name</dt>

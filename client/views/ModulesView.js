@@ -17,6 +17,7 @@ import { fetchServerMethod } from "../utils/fetchServerMethod";
 import { OnlyWriteInjector } from "../components/OnlyWriteInjector";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 import { useNetwork } from "../utils/networks";
+import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
 
 import JSLogo from "../icons/javascript-logo.svg";
 import Diagram from "../icons/diagram.svg";
@@ -282,6 +283,8 @@ export const ModulesView = () => {
           </div>
         </Loading>
       </OnlyWriteInjector>
+
+      <ReadOnlyWarning />
     </Page>
   );
 };
