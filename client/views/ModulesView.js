@@ -21,6 +21,7 @@ import JSLogo from "../icons/javascript-logo.svg";
 import Diagram from "../icons/diagram.svg";
 import Images from "../icons/images.svg";
 import ShieldLock from "../icons/shield-lock.svg";
+import BoxArrowUpRight from "../icons/box-arrow-up-right.svg";
 
 const ModuleCard = withOwner(({ noRender = false, ...module }) => {
   const { name, metadataJSON, tokenId } = module;
@@ -183,9 +184,9 @@ export const ModulesView = () => {
               </p>
             </HeroFeatureBlock>
           </div>
-          <div className="d-flex justify-content-center mt-5">
+          <div className="d-flex flex-wrap justify-content-center mt-5">
             <div
-              className="btn btn-lg btn-outline-primary"
+              className="btn btn-lg btn-primary mt-2"
               onClick={() =>
                 window.scrollTo({
                   left: 0,
@@ -196,6 +197,17 @@ export const ModulesView = () => {
             >
               Browse Featured
             </div>
+            <a
+              href="https://lambdanft.medium.com/"
+              target="_blank"
+              className="btn btn-lg btn-outline-primary ms-2 mt-2"
+            >
+              Read Blog{" "}
+              <BoxArrowUpRight
+                className="ms-1"
+                style={{ position: "relative", top: "-3px" }}
+              />
+            </a>
           </div>
         </div>
         <MainNetworkWarning />
