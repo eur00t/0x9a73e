@@ -62,7 +62,9 @@ useWrapCache(
         .getInvocation(req.id)
         .call();
 
-      if (!featuredStorage.has(hexToAsciiWithTrim(module.name))) {
+      if (
+        !featuredStorage.has(req.networkId, hexToAsciiWithTrim(module.name))
+      ) {
         req.content = await fsPromises.readFile(
           path.resolve(`${__dirname}/../images/non-featured.png`)
         );
