@@ -14,22 +14,11 @@ import {
   Switch,
 } from "react-router-dom";
 import Web3 from "web3";
-import classNames from "classnames";
 
-import {
-  ModuleEditRoute,
-  ModuleDetailsRoute,
-  TemplateRoute,
-  ModulesRoute,
-  DisconnectedRoute,
-  WrongNetworkRoute,
-  InvocationRoute,
-} from "./routes";
+import { DisconnectedRoute, WrongNetworkRoute, WalletRoute } from "./routes";
 import { AppStateProvider } from "./state";
-import { OnlyContractOwner } from "./components/OnlyContractOwner";
 import { OnlyConnectorType } from "./components/OnlyConnectorType";
 import { OnlyInjectedAvailable } from "./components/OnlyInjectedAvailable";
-import { OnlyWriteInjector } from "./components/OnlyWriteInjector";
 import { NetworkIndicator } from "./components/NetworkIndicator";
 
 import { Web3Auth } from "./components/Web3Auth";
@@ -48,32 +37,11 @@ const Routes = () => {
     case ACTIVE:
       return (
         <Switch>
-          <Route path={["/modules/list"]} exact>
-            <ModulesRoute />
+          <Route path={["/wallet"]} exact>
+            <WalletRoute />
           </Route>
-
-          <Route path={["/modules/details/:moduleName"]} exact>
-            <ModuleDetailsRoute />
-          </Route>
-
-          <Route path={["/modules/edit/:moduleName"]} exact>
-            <ModuleEditRoute />
-          </Route>
-
-          <Route path={["/modules/create"]} exact>
-            <ModuleEditRoute isCreateMode />
-          </Route>
-
-          <Route path="/admin/template" exact>
-            <TemplateRoute />
-          </Route>
-
-          <Route path={["/modules/invocation/:tokenId"]} exact>
-            <InvocationRoute />
-          </Route>
-
           <Route path="/">
-            <Redirect to="/modules/list"></Redirect>
+            <Redirect to="/wallet"></Redirect>
           </Route>
         </Switch>
       );
@@ -105,7 +73,6 @@ const Routes = () => {
 const App = () => {
   const { chainId, account } = useWeb3React();
   const { activateInjected } = useWeb3Auth();
-  const appMode = useAppMode();
 
   return (
     <>
@@ -116,34 +83,9 @@ const App = () => {
             to="/modules/list"
             activeClassName="active"
           >
-            <small
-              className="text-muted"
-              style={{
-                position: "absolute",
-                top: "0",
-                right: "-25px",
-                fontSize: "12px",
-              }}
-            >
-              beta
-            </small>
-            <em style={{ color: "rgb(140, 140, 140)" }}>λ</em>NFT
+            ERC20 Wallet
           </NavLink>
-          <div className="collapse navbar-collapse">
-            <ul className="navbar-nav">
-              <OnlyContractOwner>
-                <li className="nav-item">
-                  <NavLink
-                    className="nav-link"
-                    to="/admin/template"
-                    activeClassName="active"
-                  >
-                    Admin
-                  </NavLink>
-                </li>
-              </OnlyContractOwner>
-            </ul>
-          </div>
+          <div className="collapse navbar-collapse"></div>
           <div>
             <NetworkIndicator />
           </div>
@@ -158,18 +100,6 @@ const App = () => {
               </div>
             </OnlyInjectedAvailable>
           </OnlyConnectorType>
-
-          <OnlyWriteInjector>
-            <NavLink
-              to="/modules/create"
-              activeClassName="d-none"
-              className={classNames("btn btn-outline-primary ms-3", {
-                disabled: appMode !== ACTIVE,
-              })}
-            >
-              Create Lambda
-            </NavLink>
-          </OnlyWriteInjector>
         </div>
       </nav>
 

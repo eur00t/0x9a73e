@@ -5,3 +5,4 @@ export { ModulesRoute } from "./ModulesRoute";
 export { DisconnectedRoute } from "./DisconnectedRoute";
 export { WrongNetworkRoute } from "./WrongNetworkRoute";
 export { InvocationRoute } from "./InvocationRoute";
+export { WalletRoute } from "./WalletRoute";

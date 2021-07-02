@@ -1,12 +1,13 @@
 import React from "react";
 import styled from "styled-components";
+import classNames from "classnames";
 import { CSSTransition } from "react-transition-group";
 
 const ModalContainer = styled.div`
   display: block;
 `;
 
-export const Modal = ({ show, onClose, children }) => {
+export const Modal = ({ show, onClose, children, centered = false }) => {
   let header;
   let body;
   let footer;
@@ -39,7 +40,12 @@ export const Modal = ({ show, onClose, children }) => {
         }}
       >
         <ModalContainer className="modal fade" onClick={onClose}>
-          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+          <div
+            className={classNames("modal-dialog", {
+              "modal-dialog-centered": centered,
+            })}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-content">
               {header ? React.cloneElement(header, { onClose }) : null}
               {body ? React.cloneElement(body, { onClose }) : null}

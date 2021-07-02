@@ -39,6 +39,7 @@ export const EtherscanLink = ({
   type,
   id,
   showFullId = false,
+  noButtons = false,
   className = "",
   ...props
 }) => {
@@ -71,12 +72,19 @@ export const EtherscanLink = ({
       >
         {!showFullId ? `${id.slice(0, 10)}...` : id}
       </a>
-      <div className="p-2 d-flex" style={{ position: "relative", top: "-2px" }}>
-        <BoxArrowUpRight />
-      </div>
-      <div className="d-flex" style={{ position: "relative", top: "-1px" }}>
-        <CopyToClipboard value={id} />
-      </div>
+      {!noButtons ? (
+        <>
+          <div
+            className="p-2 d-flex"
+            style={{ position: "relative", top: "-2px" }}
+          >
+            <BoxArrowUpRight />
+          </div>
+          <div className="d-flex" style={{ position: "relative", top: "-1px" }}>
+            <CopyToClipboard value={id} />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 };

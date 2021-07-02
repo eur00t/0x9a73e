@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import pluralize from "pluralize";
 import classNames from "classnames";
 
@@ -6,6 +6,7 @@ import { useTransactionsScope } from "../state/useTransactionsScope";
 import { useTransactionsContext } from "../state";
 
 import { EtherscanLink } from "../components/EtherscanLink";
+import { Modal } from "../components/Modal";
 
 const TransactionStatus = ({
   scopeId,
@@ -16,6 +17,7 @@ const TransactionStatus = ({
   result,
   doneHandler,
   doneBtnText,
+  doneModalText,
 }) => {
   const { removeTransaction } = useTransactionsContext();
 
@@ -27,6 +29,19 @@ const TransactionStatus = ({
   } else {
     status = "done";
   }
+
+  const [showDoneModal, setShowDoneModal] = useState(false);
+
+  const hideDoneModal = () => {
+    removeTransaction(scopeId, transactionHash);
+    setShowDoneModal(false);
+  };
+
+  useEffect(() => {
+    if (status === "done" && doneModalText) {
+      setShowDoneModal(true);
+    }
+  }, [status]);
 
   let badge;
   switch (status) {
@@ -57,53 +72,66 @@ const TransactionStatus = ({
   }
 
   return (
-    <div className={classNames("card", cardClassName)}>
-      <div className="card-body p-2">
-        {transactionHash ? (
+    <>
+      <Modal show={showDoneModal} centered onClose={hideDoneModal}>
+        <Modal.Header onClose={hideDoneModal}>
+          Confirmed Transaction
+        </Modal.Header>
+        <Modal.Body>{doneModalText}</Modal.Body>
+        <Modal.Footer>
+          <div className="btn btn-primary" onClick={hideDoneModal}>
+            Great!
+          </div>
+        </Modal.Footer>
+      </Modal>
+      <div className={classNames("card", cardClassName)}>
+        <div className="card-body p-2">
+          {transactionHash ? (
+            <div className="d-flex align-items-center">
+              <div style={{ minWidth: "50px" }} className="text-end me-2 fs-6">
+                tx
+              </div>
+              <div>
+                <EtherscanLink
+                  className="fs-6"
+                  type="transaction"
+                  id={transactionHash}
+                />
+              </div>
+            </div>
+          ) : null}
           <div className="d-flex align-items-center">
             <div style={{ minWidth: "50px" }} className="text-end me-2 fs-6">
-              tx
+              status
             </div>
-            <div>
-              <EtherscanLink
-                className="fs-6"
-                type="transaction"
-                id={transactionHash}
-              />
-            </div>
+            {badge}
           </div>
-        ) : null}
-        <div className="d-flex align-items-center">
-          <div style={{ minWidth: "50px" }} className="text-end me-2 fs-6">
-            status
-          </div>
-          {badge}
-        </div>
-        {status !== "pending" ? (
-          <div className="d-flex justify-content-center mt-1">
-            {doneBtnText ? (
+          {status !== "pending" ? (
+            <div className="d-flex justify-content-center mt-1">
+              {doneBtnText ? (
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-sm me-1"
+                  onClick={() => doneHandler && doneHandler(result)}
+                >
+                  {doneBtnText}
+                </button>
+              ) : null}
               <button
                 type="button"
-                className="btn btn-outline-primary btn-sm me-1"
-                onClick={() => doneHandler && doneHandler(result)}
+                className="btn btn-outline-primary btn-sm"
+                onClick={() => {
+                  removeTransaction(scopeId, transactionHash);
+                  !doneBtnText && doneHandler && doneHandler(result);
+                }}
               >
-                {doneBtnText}
+                Got it!
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="btn btn-outline-primary btn-sm"
-              onClick={() => {
-                removeTransaction(scopeId, transactionHash);
-                !doneBtnText && doneHandler && doneHandler(result);
-              }}
-            >
-              Got it!
-            </button>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

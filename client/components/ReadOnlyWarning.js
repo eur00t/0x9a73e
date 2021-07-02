@@ -17,8 +17,7 @@ export const ReadOnlyWarning = ({}) => {
         <h4 className="alert-heading">Read-Only Mode</h4>
         <p>
           The app functions in read-only mode. We cannot send any transactions
-          right now, therefore some features are unavailable: creating modules,
-          minting, etc.
+          right now.
         </p>
 
         {isInjectedAvailable ? (
