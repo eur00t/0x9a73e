@@ -49,11 +49,29 @@ contract CodeModules is
         _baseURIPrefix = baseURIPrefix;
     }
 
+    function bytes32ToBytes(bytes32 value)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        uint256 length = 0;
+        while (value[length] != 0) {
+            length++;
+        }
+
+        bytes memory result = new bytes(length);
+        for (uint256 i = 0; i < length; i++) {
+            result[i] = value[i];
+        }
+
+        return result;
+    }
+
     function _baseURI() internal view override returns (string memory) {
         return
             string(
                 abi.encodePacked(
-                    _baseURIPrefix,
+                    bytes32ToBytes(_baseURIPrefix),
                     bytes("/network/"),
                     bytes(_networkId.toString()),
                     bytes("/tokens/")

@@ -2,6 +2,7 @@
   "name": "0x9a73e",
   "scripts": {
     "update-abi": "node scripts/updateAbi.js",
+    "get-compiler-input": "node scripts/getCompilerInput.js",
     "compile": "truffle compile --all && npm run update-abi",
     "start-dev": "nodemon server/index.js & parcel watch public/index.html",
     "build-app": "parcel build public/index.html",

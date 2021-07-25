@@ -4,8 +4,6 @@ const chaiSnapshot = require("mocha-chai-snapshot");
 const { expect } = chai;
 chai.use(chaiSnapshot);
 
-const removeNullSymbols = (str) => str.replaceAll("\u0000", "");
-
 describe("CodeModules", function () {
   let contract;
 
@@ -119,9 +117,7 @@ describe("CodeModules", function () {
     expect(await module.name).to.equal(
       ethers.utils.formatBytes32String("test-module")
     );
-    expect(
-      removeNullSymbols(await contract.tokenURI(module.tokenId))
-    ).to.matchSnapshot(this);
+    expect(await contract.tokenURI(module.tokenId)).to.matchSnapshot(this);
   });
 
   describe("dependency resolution", () => {
