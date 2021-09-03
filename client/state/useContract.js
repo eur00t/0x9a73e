@@ -6,7 +6,7 @@ import { abi } from "../code_modules_abi.json";
 import { useNetwork } from "../utils/networks";
 import { wrapFuncCancelable } from "../utils/wrapFuncCancelable";
 
-const { asciiToHex, hexToAscii } = web3.utils;
+const { asciiToHex, hexToAscii, BN } = web3.utils;
 
 const hexToAsciiWithTrim = (hex) => {
   return hexToAscii(hex).replace(/(\0)+$/, "");
@@ -256,23 +256,29 @@ export const useContract = (trackTransaction) => {
   );
 
   const setInvocable = useCallback(
-    wrapFuncCancelable((scopeId, moduleName, invocationsMax) =>
-      trackTransaction(
-        scopeId,
-        contract.methods
-          .setInvocable(asciiToHex(moduleName), invocationsMax)
-          .send()
-      )
+    wrapFuncCancelable(
+      (scopeId, moduleName, invocationsMax, invocationFeeInEth) =>
+        trackTransaction(
+          scopeId,
+          contract.methods
+            .setInvocable(
+              asciiToHex(moduleName),
+              invocationsMax,
+              web3.utils.toWei(invocationFeeInEth, "ether")
+            )
+            .send()
+        )
     ),
     [contract, trackTransaction]
   );
 
   const createInvocation = useCallback(
-    wrapFuncCancelable((scopeId, moduleName, doneOptions) =>
+    wrapFuncCancelable((scopeId, moduleName, invocationFeeInWei) =>
       trackTransaction(
         scopeId,
-        contract.methods.createInvocation(asciiToHex(moduleName)).send(),
-        doneOptions
+        contract.methods
+          .createInvocation(asciiToHex(moduleName))
+          .send({ value: invocationFeeInWei })
       )
     ),
     [contract, trackTransaction]

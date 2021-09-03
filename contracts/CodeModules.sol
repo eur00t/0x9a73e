@@ -91,6 +91,7 @@ contract CodeModules is
         ModuleViewBrief[] allDependencies;
         string code;
         string metadataJSON;
+        uint256 invocationFeeInWei;
     }
 
     struct ModuleViewBrief {
@@ -143,6 +144,21 @@ contract CodeModules is
 
     Template internal template;
 
+    mapping(bytes32 => uint256) internal moduleNameToInvocationFeeInWei;
+    uint256 public lambdaInvocationFee;
+    address payable public lambdaWallet;
+
+    function setLambdaInvocationFee(uint256 _lambdaInvocationFee)
+        public
+        onlyOwner
+    {
+        lambdaInvocationFee = _lambdaInvocationFee;
+    }
+
+    function setLambdaWallet(address payable _lambdaWallet) public onlyOwner {
+        lambdaWallet = _lambdaWallet;
+    }
+
     function toInvocationView(uint256 tokenId)
         internal
         view
@@ -187,6 +203,7 @@ contract CodeModules is
         result.isFinalized = moduleFinalized[m.name];
         result.invocationsNum = moduleInvocableState[m.name].invocations.length;
         result.invocationsMax = moduleInvocableState[m.name].invocationsMax;
+        result.invocationFeeInWei = moduleNameToInvocationFeeInWei[m.name];
     }
 
     function toModuleViewBrief(SharedDefinitions.Module memory m)
@@ -222,7 +239,11 @@ contract CodeModules is
         moduleFinalized[name] = true;
     }
 
-    function setInvocable(bytes32 name, uint256 invocationsMax) external {
+    function setInvocable(
+        bytes32 name,
+        uint256 invocationsMax,
+        uint256 invocationFeeInWei
+    ) external {
         require(moduleExists[name], "module must exist");
         require(!moduleFinalized[name], "module is finalized");
         require(modules[name].isInvocable, "module must be invocable");
@@ -231,9 +252,18 @@ contract CodeModules is
 
         moduleFinalized[name] = true;
         moduleInvocableState[name].invocationsMax = invocationsMax;
+        moduleNameToInvocationFeeInWei[name] = invocationFeeInWei;
     }
 
-    function createInvocation(bytes32 moduleName) external returns (uint256) {
+    function createInvocation(bytes32 moduleName)
+        external
+        payable
+        returns (uint256)
+    {
+        require(
+            msg.value >= moduleNameToInvocationFeeInWei[moduleName],
+            "Insufficient fee"
+        );
         require(moduleExists[moduleName], "module must exist");
         require(modules[moduleName].isInvocable, "module must be invocable");
         require(moduleFinalized[moduleName], "module must be finalized");
@@ -261,6 +291,31 @@ contract CodeModules is
                 )
             )
         });
+
+        if (msg.value > 0) {
+            uint256 invocationFeeInWei =
+                moduleNameToInvocationFeeInWei[moduleName];
+            uint256 refund = msg.value - invocationFeeInWei;
+
+            if (refund > 0) {
+                payable(msg.sender).transfer(refund);
+            }
+
+            uint256 lambdaFee =
+                (invocationFeeInWei / 100) * lambdaInvocationFee;
+
+            if (lambdaFee > 0) {
+                lambdaWallet.transfer(lambdaFee);
+            }
+
+            uint256 creatorFee = invocationFeeInWei - lambdaFee;
+
+            if (creatorFee > 0) {
+                payable(ownerOf(moduleNameToTokenId[moduleName])).transfer(
+                    creatorFee
+                );
+            }
+        }
 
         return tokenId;
     }

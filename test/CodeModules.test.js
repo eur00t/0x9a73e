@@ -295,10 +295,10 @@ describe("CodeModules", function () {
         await createModule("own-3", "test", [], "() => {}", true, addr1);
         const moduleName = ethers.utils.formatBytes32String("own-3");
         await expect(
-          contract.connect(addr2).setInvocable(moduleName, 10)
+          contract.connect(addr2).setInvocable(moduleName, 10, 0)
         ).to.be.revertedWith("only module owner can change it");
-        await expect(contract.connect(addr1).setInvocable(moduleName, 10)).not
-          .to.be.reverted;
+        await expect(contract.connect(addr1).setInvocable(moduleName, 10, 0))
+          .not.to.be.reverted;
       });
     });
   });
@@ -311,7 +311,7 @@ describe("CodeModules", function () {
       await expect(contract.finalize(moduleName)).to.be.revertedWith(
         "module is finalized"
       );
-      await expect(contract.setInvocable(moduleName, 10)).to.be.revertedWith(
+      await expect(contract.setInvocable(moduleName, 10, 0)).to.be.revertedWith(
         "module is finalized"
       );
       await expect(
@@ -320,10 +320,15 @@ describe("CodeModules", function () {
     });
 
     it("invocations work correctly", async () => {
-      await createModule("mint-1", "test", [], "() => {}", true);
+      await createModule("mint-1", "test", [], "() => {}", true, owner);
       const moduleName1 = ethers.utils.formatBytes32String("mint-1");
-      await createModule("mint-2", "test", [], "() => {}", false);
+      await createModule("mint-2", "test", [], "() => {}", false, addr2);
       const moduleName2 = ethers.utils.formatBytes32String("mint-2");
+
+      await expect(contract.connect(owner).setLambdaInvocationFee(10)).not.to.be
+        .reverted;
+      await expect(contract.connect(owner).setLambdaWallet(addr1.address)).not
+        .to.be.reverted;
 
       await expect(contract.createInvocation(moduleName1)).to.be.revertedWith(
         "module must be finalized"
@@ -337,12 +342,38 @@ describe("CodeModules", function () {
         "invocations limit reached"
       );
 
-      await updateModule("mint-2", "test", [], "() => {}", true);
-      await expect(contract.setInvocable(moduleName2, 1)).not.to.be.reverted;
-      await expect(contract.createInvocation(moduleName2)).not.to.be.reverted;
-      await expect(contract.createInvocation(moduleName2)).to.be.revertedWith(
-        "invocations limit reached"
-      );
+      await updateModule("mint-2", "test", [], "() => {}", true, addr2);
+      await expect(contract.connect(addr2).setInvocable(moduleName2, 1, 12300))
+        .not.to.be.reverted;
+      await expect(
+        contract.createInvocation(moduleName2, { value: 9 })
+      ).to.be.revertedWith("Insufficient fee");
+
+      const ownerBalanceBefore = await owner.getBalance();
+      const creatorBalanceBefore = await addr2.getBalance();
+      const lambdaBalanceBefore = await addr1.getBalance();
+
+      await expect(
+        contract
+          .connect(owner)
+          .createInvocation(moduleName2, { value: 20000, gasPrice: 0 })
+      ).not.to.be.reverted;
+
+      expect(
+        (await addr1.getBalance()).sub(lambdaBalanceBefore).toNumber()
+      ).to.equal(1230);
+
+      expect(
+        (await addr2.getBalance()).sub(creatorBalanceBefore).toNumber()
+      ).to.equal(11070);
+
+      expect(
+        (await owner.getBalance()).sub(ownerBalanceBefore).toNumber()
+      ).to.equal(-12300);
+
+      await expect(
+        contract.createInvocation(moduleName2, { value: 12300 })
+      ).to.be.revertedWith("invocations limit reached");
     });
   });
 });

@@ -1,3 +1,4 @@
+import web3 from "web3";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import pluralize from "pluralize";
@@ -22,6 +23,7 @@ import { PreviewIFrame } from "../components/PreviewIFrame";
 import { usePagination } from "../components/usePagination";
 import { FeaturedControl } from "../components/FeaturedControl";
 import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
+import { Modal } from "../components/Modal";
 
 const getInvocableScopeId = (name) => `invocable-action-${name}`;
 const getFinalizeScopeId = (name) => `finalize-action-${name}`;
@@ -38,7 +40,13 @@ const ModuleDetails = withOwner((module) => {
     isFinalized,
     invocationsNum,
     invocationsMax,
+    invocationFeeInWei,
   } = module;
+
+  const invocationFeeInEth = invocationFeeInWei
+    ? web3.utils.fromWei(invocationFeeInWei, "ether")
+    : "";
+
   const { setInvocable, createInvocation, finalize } = useContractContext();
 
   const notFinalizedDependencies = useMemo(
@@ -52,13 +60,17 @@ const ModuleDetails = withOwner((module) => {
   const finalizeScopeId = getFinalizeScopeId(name);
 
   const [invocationsMaxInputValue, setInvocationsMaxInputValue] = useState(1);
+  const [mintingFeeValue, setMintingFeeValue] = useState(1);
+  const [showEnableMint, setShowEnableMint] = useState(false);
+
+  const hideEnableMintModal = () => setShowEnableMint(false);
 
   const { description } = useMemo(
     () => JSON.parse(metadataJSON),
     [metadataJSON]
   );
 
-  const { contractAddress } = useNetwork();
+  const { contractAddress, currencyName } = useNetwork();
 
   return (
     <>
@@ -130,6 +142,12 @@ const ModuleDetails = withOwner((module) => {
         <dd className="font-monospace">
           {dependencies.length > 0 ? dependencies.join(", ") : <em>none</em>}
         </dd>
+        {invocationFeeInWei ? (
+          <>
+            <dt>Minting Fee ({currencyName})</dt>
+            <dd className="font-monospace">{invocationFeeInEth}</dd>
+          </>
+        ) : null}
       </dl>
 
       <OnlyOwner>
@@ -169,26 +187,12 @@ const ModuleDetails = withOwner((module) => {
       {isInvocable && !isFinalized ? (
         <OnlyOwner>
           <div className="d-flex align-items-start mb-3">
-            <input
-              className="form-control form-control-sm me-1"
-              type="number"
-              value={invocationsMaxInputValue}
-              onChange={(e) => setInvocationsMaxInputValue(e.target.value)}
-              style={{ width: "60px" }}
-            ></input>
-
-            <TransactionButton
-              btnClassName="btn-outline-primary btn-sm"
-              scopeId={invocableScopeId}
-              text={`Enable ${pluralize(
-                " Mint",
-                invocationsMaxInputValue,
-                true
-              )}`}
-              onClick={() => {
-                setInvocable(invocableScopeId, name, invocationsMaxInputValue);
-              }}
-            />
+            <div
+              className="btn btn-outline-primary btn-sm"
+              onClick={() => setShowEnableMint(true)}
+            >
+              Enable Minting
+            </div>
           </div>
         </OnlyOwner>
       ) : null}
@@ -214,11 +218,78 @@ const ModuleDetails = withOwner((module) => {
                 : `Mint Mutable (${invocationsMax - invocationsNum} left)`
             }
             onClick={() => {
-              createInvocation(invocableScopeId, name);
+              createInvocation(invocableScopeId, name, invocationFeeInWei);
             }}
           />
         )
       ) : null}
+
+      <Modal show={showEnableMint} onClose={hideEnableMintModal} centered>
+        <Modal.Header onClose={hideEnableMintModal}>
+          Enable Minting
+        </Modal.Header>
+        <Modal.Body>
+          {({ onClose }) => {
+            return (
+              <>
+                <div className="mb-3">
+                  <label for="input-number-of-mints" className="form-label">
+                    Number of Mints
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={invocationsMaxInputValue}
+                    onChange={(e) =>
+                      setInvocationsMaxInputValue(e.target.value)
+                    }
+                    min={1}
+                    id="input-number-of-mints"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label for="input-minting-fee" className="form-label">
+                    Minting Fee (in ${currencyName})
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={mintingFeeValue}
+                    onChange={(e) => setMintingFeeValue(e.target.value)}
+                    min={0}
+                    id="input-minting-fee"
+                  />
+                </div>
+              </>
+            );
+          }}
+        </Modal.Body>
+        <Modal.Footer>
+          {({ onClose }) => {
+            return (
+              <>
+                <TransactionButton
+                  btnClassName="btn-outline-primary"
+                  scopeId={invocableScopeId}
+                  text={`Enable ${pluralize(
+                    " Mint",
+                    invocationsMaxInputValue,
+                    true
+                  )}`}
+                  onClick={() => {
+                    setInvocable(
+                      invocableScopeId,
+                      name,
+                      invocationsMaxInputValue,
+                      mintingFeeValue
+                    );
+                  }}
+                />
+              </>
+            );
+          }}
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }, "ModuleDetails");
