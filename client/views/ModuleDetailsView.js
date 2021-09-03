@@ -59,8 +59,8 @@ const ModuleDetails = withOwner((module) => {
   const invocableScopeId = getInvocableScopeId(name);
   const finalizeScopeId = getFinalizeScopeId(name);
 
-  const [invocationsMaxInputValue, setInvocationsMaxInputValue] = useState(1);
-  const [mintingFeeValue, setMintingFeeValue] = useState(1);
+  const [invocationsMaxInputValue, setInvocationsMaxInputValue] = useState("1");
+  const [mintingFeeValue, setMintingFeeValue] = useState("1");
   const [showEnableMint, setShowEnableMint] = useState(false);
 
   const hideEnableMintModal = () => setShowEnableMint(false);
@@ -142,7 +142,7 @@ const ModuleDetails = withOwner((module) => {
         <dd className="font-monospace">
           {dependencies.length > 0 ? dependencies.join(", ") : <em>none</em>}
         </dd>
-        {invocationFeeInWei ? (
+        {isInvocable && isFinalized && invocationFeeInEth ? (
           <>
             <dt>Minting Fee ({currencyName})</dt>
             <dd className="font-monospace">{invocationFeeInEth}</dd>
@@ -233,7 +233,7 @@ const ModuleDetails = withOwner((module) => {
             return (
               <>
                 <div className="mb-3">
-                  <label for="input-number-of-mints" className="form-label">
+                  <label htmlFor="input-number-of-mints" className="form-label">
                     Number of Mints
                   </label>
                   <input
@@ -248,8 +248,8 @@ const ModuleDetails = withOwner((module) => {
                   />
                 </div>
                 <div className="mb-3">
-                  <label for="input-minting-fee" className="form-label">
-                    Minting Fee (in ${currencyName})
+                  <label htmlFor="input-minting-fee" className="form-label">
+                    Minting Fee (in {currencyName})
                   </label>
                   <input
                     type="number"
