@@ -394,6 +394,16 @@ contract CodeModules is
         return toInvocationView(tokenId);
     }
 
+    function getModuleNameByTokenId(uint256 tokenId)
+        external
+        view
+        returns (bytes32)
+    {
+        require(tokenIsModule(tokenId), "token must be a module");
+
+        return tokenIdToModuleName[tokenId];
+    }
+
     function getModules(bytes32[] memory moduleNames)
         external
         view

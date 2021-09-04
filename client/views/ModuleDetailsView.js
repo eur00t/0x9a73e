@@ -22,6 +22,7 @@ import { ModuleBadges, hasBadges } from "../components/ModuleBadges";
 import { PreviewIFrame } from "../components/PreviewIFrame";
 import { usePagination } from "../components/usePagination";
 import { FeaturedControl } from "../components/FeaturedControl";
+import { WhitelistedControl } from "../components/WhitelistedControl";
 import { ReadOnlyWarning } from "../components/ReadOnlyWarning";
 import { Modal } from "../components/Modal";
 
@@ -162,6 +163,12 @@ const ModuleDetails = withOwner((module) => {
       <OnlyContractOwner>
         <div className="mb-3">
           <FeaturedControl moduleName={name} />
+        </div>
+      </OnlyContractOwner>
+
+      <OnlyContractOwner>
+        <div className="mb-3">
+          <WhitelistedControl moduleName={name} />
         </div>
       </OnlyContractOwner>
 

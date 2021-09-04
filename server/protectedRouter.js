@@ -4,6 +4,7 @@ const express = require("express");
 const { recoverPersonalSignature } = require("eth-sig-util");
 
 const { featuredStorage } = require("./featuredStorage");
+const { whitelistedStorage } = require("./whitelistedStorage");
 
 const { asciiToHex } = web3.utils;
 
@@ -96,6 +97,49 @@ protectedRouter.delete(
     let { moduleName } = req.params;
 
     featuredStorage.remove(req.networkId, moduleName);
+    res.send({ status: "OK" });
+  }
+);
+
+protectedRouter.get("/network/:networkId/whitelisted", (req, res) => {
+  res.send(whitelistedStorage.getAll(req.networkId));
+});
+
+protectedRouter.post("/network/:networkId/whitelisted", (req, res) => {
+  const { moduleName } = req.body;
+
+  if (!moduleName) {
+    res.status(400).send({ error: "Wrong input" });
+    return;
+  }
+
+  whitelistedStorage.add(req.networkId, moduleName);
+  res.send({ status: "OK" });
+});
+
+protectedRouter.get(
+  "/network/:networkId/whitelisted/:moduleName",
+  (req, res) => {
+    let { moduleName } = req.params;
+
+    if (whitelistedStorage.has(req.networkId, moduleName)) {
+      res.send({ status: "OK" });
+      return;
+    } else {
+      res
+        .status(404)
+        .send({ error: `Module "${moduleName}" was not whitelisted` });
+      return;
+    }
+  }
+);
+
+protectedRouter.delete(
+  "/network/:networkId/whitelisted/:moduleName",
+  (req, res) => {
+    let { moduleName } = req.params;
+
+    whitelistedStorage.remove(req.networkId, moduleName);
     res.send({ status: "OK" });
   }
 );

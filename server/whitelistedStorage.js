@@ -7,13 +7,13 @@ try {
   fs.mkdirSync(storageDirName);
 } catch {}
 
-const getFeaturedFileName = (networkId, moduleName) =>
+const getWhitelistedFileName = (networkId, moduleName) =>
   path.resolve(
-    `${storageDirName}/featured-${networkId.toString()}-${moduleName}`
+    `${storageDirName}/whitelisted-${networkId.toString()}-${moduleName}`
   );
 
-const extractFeaturedModuleName = (fileName) => {
-  const match = fileName.match(/^featured-(.*?)-(.*?)$/);
+const extractWhitelistedModuleName = (fileName) => {
+  const match = fileName.match(/^whitelisted-(.*?)-(.*?)$/);
 
   if (!match) {
     return;
@@ -48,40 +48,40 @@ const removeFromCache = (cache, networkId, moduleNameRemove) => {
 };
 
 const init = () => {
-  const featured = fs
+  const whitelisted = fs
     .readdirSync(storageDirName)
-    .map((fileName) => extractFeaturedModuleName(fileName))
+    .map((fileName) => extractWhitelistedModuleName(fileName))
     .filter((val) => val !== undefined)
     .filter(([, moduleName]) => moduleName !== undefined)
     .reduce(
       (res, [networkId, moduleName]) => addToCache(res, networkId, moduleName),
       new Map()
     );
-  return featured;
+  return whitelisted;
 };
 
-let cacheFeatured = init();
+let cacheWhitelisted = init();
 
-const featuredStorage = {
+const whitelistedStorage = {
   getAll(networkId) {
-    return cacheFeatured.get(networkId) || [];
+    return cacheWhitelisted.get(networkId) || [];
   },
   add(networkId, moduleName) {
-    fs.writeFileSync(getFeaturedFileName(networkId, moduleName), "");
-    addToCache(cacheFeatured, networkId, moduleName);
+    fs.writeFileSync(getWhitelistedFileName(networkId, moduleName), "");
+    addToCache(cacheWhitelisted, networkId, moduleName);
   },
   remove(networkId, moduleNameRemove) {
-    fs.unlinkSync(getFeaturedFileName(networkId, moduleNameRemove));
-    removeFromCache(cacheFeatured, networkId, moduleNameRemove);
+    fs.unlinkSync(getWhitelistedFileName(networkId, moduleNameRemove));
+    removeFromCache(cacheWhitelisted, networkId, moduleNameRemove);
   },
   has(networkId, moduleNameCheck) {
     return (
-      cacheFeatured.has(networkId) &&
-      cacheFeatured
+      cacheWhitelisted.has(networkId) &&
+      cacheWhitelisted
         .get(networkId)
         .some((moduleName) => moduleName === moduleNameCheck)
     );
   },
 };
 
-module.exports = { featuredStorage };
+module.exports = { whitelistedStorage };

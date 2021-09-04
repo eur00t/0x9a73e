@@ -7,6 +7,7 @@ const express = require("express");
 const { getContract } = require("./web3");
 const { useWrapCache } = require("./cache");
 const { featuredStorage } = require("./featuredStorage");
+const { whitelistedStorage } = require("./whitelistedStorage");
 
 const { hexToAscii } = web3.utils;
 
@@ -45,6 +46,20 @@ const MAX_PUPPETEER_INSTANCES = JSON.parse(
   10
 );
 
+const getModuleNameFromTokenId = async (req) => {
+  try {
+    const { module } = await req.contract.methods.getInvocation(req.id).call();
+
+    return hexToAsciiWithTrim(module.name);
+  } catch {
+    const moduleName = await req.contract.methods
+      .getModuleNameByTokenId(req.id)
+      .call();
+
+    return hexToAsciiWithTrim(moduleName);
+  }
+};
+
 useWrapCache(
   tokensRouter,
   "png",
@@ -58,12 +73,11 @@ useWrapCache(
     puppeteerInstancesCount += 1;
 
     try {
-      const { module } = await req.contract.methods
-        .getInvocation(req.id)
-        .call();
+      const moduleName = await getModuleNameFromTokenId(req);
 
       if (
-        !featuredStorage.has(req.networkId, hexToAsciiWithTrim(module.name))
+        !featuredStorage.has(req.networkId, moduleName) &&
+        !whitelistedStorage.has(req.networkId, moduleName)
       ) {
         req.content = await fsPromises.readFile(
           path.resolve(`${__dirname}/../images/non-featured.png`)
@@ -113,28 +127,88 @@ const hexToAsciiWithTrim = (hex) => {
   return hexToAscii(hex).replace(/(\0)+$/, "");
 };
 
+const getTokenMetadataTryInvocation = async (req) => {
+  try {
+    const invocation = await req.contract.methods.getInvocation(req.id).call();
+
+    return {
+      name: `${hexToAsciiWithTrim(invocation.module.name)}@${
+        invocation.tokenId
+      }`,
+      description: JSON.parse(invocation.module.metadataJSON).description,
+      image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
+      external_url: `${process.env.WEB_URL_ROOT}/modules/invocation/${req.id}`,
+      animation_url: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/render`,
+      attributes: [
+        {
+          trait_type: "type",
+          value: "minted token",
+        },
+      ],
+    };
+  } catch {
+    return false;
+  }
+};
+
+const getTokenMetadataTryModule = async (req) => {
+  try {
+    const moduleName = await req.contract.methods
+      .getModuleNameByTokenId(req.id)
+      .call();
+
+    const module = await req.contract.methods
+      .getModule(moduleName, true)
+      .call();
+
+    const readableName = hexToAsciiWithTrim(module.name);
+
+    return {
+      name: readableName,
+      description: JSON.parse(module.metadataJSON).description,
+      image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
+      external_url: `${process.env.WEB_URL_ROOT}/modules/details/${readableName}`,
+      animation_url: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/render`,
+      attributes: [
+        {
+          trait_type: "type",
+          value: "lambda",
+        },
+      ],
+    };
+  } catch {
+    return false;
+  }
+};
+
+const getTokenMetadata = async (req) => {
+  let res;
+
+  res = await getTokenMetadataTryInvocation(req);
+
+  if (res !== false) {
+    return res;
+  }
+
+  res = await getTokenMetadataTryModule(req);
+
+  if (res !== false) {
+    return res;
+  }
+
+  throw new Error("Token does not exist");
+};
+
 useWrapCache(
   tokensRouter,
   "json",
   "/network/:networkId/tokens/:id",
   async (req, res, next) => {
     try {
-      const invocation = await req.contract.methods
-        .getInvocation(req.id)
-        .call();
-
-      req.content = {
-        name: `${hexToAsciiWithTrim(invocation.module.name)}@${
-          invocation.tokenId
-        }`,
-        description: JSON.parse(invocation.module.metadataJSON).description,
-        image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
-        external_url: `${process.env.WEB_URL_ROOT}/modules/invocation/${req.id}`,
-        animation_url: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/render`,
-      };
+      req.content = await getTokenMetadata(req);
       next();
-    } catch {
-      res.status(404).send("Token does not exist");
+    } catch (e) {
+      res.status(404).send(e.message);
     }
   }
 );
