@@ -130,11 +130,10 @@ const hexToAsciiWithTrim = (hex) => {
 const getTokenMetadataTryInvocation = async (req) => {
   try {
     const invocation = await req.contract.methods.getInvocation(req.id).call();
+    const readableModuleName = hexToAsciiWithTrim(invocation.module.name);
 
     return {
-      name: `${hexToAsciiWithTrim(invocation.module.name)}@${
-        invocation.tokenId
-      }`,
+      name: `${readableModuleName}@${invocation.tokenId}`,
       description: JSON.parse(invocation.module.metadataJSON).description,
       image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
       external_url: `${process.env.WEB_URL_ROOT}/modules/invocation/${req.id}`,
@@ -143,6 +142,10 @@ const getTokenMetadataTryInvocation = async (req) => {
         {
           trait_type: "type",
           value: "minted token",
+        },
+        {
+          trait_type: "lambda",
+          value: readableModuleName,
         },
       ],
     };
@@ -161,13 +164,13 @@ const getTokenMetadataTryModule = async (req) => {
       .getModule(moduleName, true)
       .call();
 
-    const readableName = hexToAsciiWithTrim(module.name);
+    const readableModuleName = hexToAsciiWithTrim(module.name);
 
     return {
-      name: readableName,
+      name: readableModuleName,
       description: JSON.parse(module.metadataJSON).description,
       image: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/image`,
-      external_url: `${process.env.WEB_URL_ROOT}/modules/details/${readableName}`,
+      external_url: `${process.env.WEB_URL_ROOT}/modules/details/${readableModuleName}`,
       animation_url: `${process.env.WEB_URL_ROOT}/network/${req.networkId}/tokens/${req.id}/render`,
       attributes: [
         {
